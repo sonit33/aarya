@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta content="width=device-width, initial-scale=1.0" name="viewport">
+    <script src="https://code.jquery.com/jquery-3.7.1.slim.min.js"
+            type="application/javascript"></script>
+    <title>{{title}}</title>
+</head>
+<body>
+{% include "header" %}
+{% block content %}
+{% endblock %}
+{% include "footer" %}
+</body>
+</html>
