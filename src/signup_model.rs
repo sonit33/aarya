@@ -3,8 +3,9 @@
 use rocket::FromForm;
 use serde::{Deserialize, Serialize};
 
-#[derive(FromForm, Debug, Serialize, Deserialize)]
+#[derive(FromForm, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct SignupModel {
+    pub id: String,
     pub display_name: String,
     pub email: String,
     pub password: String,
