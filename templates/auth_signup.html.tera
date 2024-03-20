@@ -3,6 +3,8 @@
 {% block content %}
 <div class="signup-form">
     <form action="/signup" id="signupForm" method="POST">
+        <input id="id" name="id" type="hidden" value="not-set"/>
+
         <label for="display_name">Display Name</label>
         <input data-minlength="3" data-required="true" id="display_name" name="display_name" type="text">
 

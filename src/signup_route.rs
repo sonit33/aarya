@@ -20,7 +20,7 @@ pub fn signup_post(form_data: rocket::form::Form<SignupModel>) -> Redirect {
     // For demonstration, we'll redirect to the home page.
     println!("{:?}", form_data);
 
-    Redirect::to(uri!("/"))
+    Redirect::to(uri!("/login"))
 }
 
 
