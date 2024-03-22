@@ -1,6 +1,7 @@
 use actix_web::{App, HttpServer, web};
+use tera::Tera;
 
-use crate::route_signup::signup_post;
+use crate::route_signup::{signup_get, signup_post};
 
 pub mod model_signup;
 pub mod route_signup;
@@ -14,11 +15,17 @@ mod test_signup;
 
 #[actix_web::main] // or #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    HttpServer::new(|| {
+    let ip = "127.0.0.1";
+    let port = 8080;
+
+    println!("Actix running on http://{ip}:{port}");
+
+    let tera = Tera::new("templates/**/*").expect("Failed to initialize Tera");
+
+    HttpServer::new(move || {
+        let tera = tera.clone();
         App::new()
-            .route("/signup", web::post().to(signup_post))
-    })
-        .bind(("127.0.0.1", 8080))?
-        .run()
-        .await
+            .app_data(web::Data::new(tera))
+            .service(signup_post).service(signup_get)
+    }).bind((ip, port))?.run().await
 }

@@ -1,24 +1,40 @@
-use actix_web::{HttpResponse, Responder, web};
+use actix_web::{get, HttpResponse, post, Responder, web};
+use tera::{Context, Tera};
+use validator::Validate;
 
 use crate::model_api_response::ApiResponseModel;
 use crate::model_signup::SignupModel;
 
+#[post("/signup")]
 pub async fn signup_post(model: web::Json<SignupModel>) -> impl Responder {
-    // Access the SignupModel fields
-    // let display_name = &model.display_name;
-    // let email = &model.email;
-    // let password = &model.password;
-    // let confirm_password = &model.confirm_password;
-    // let over_13 = model.over_13;
+    // let mut response: ApiResponseModel<String>;
+    // validate the input
+    match model.0.validate() {
+        Ok(_) => {
+            HttpResponse::Ok().json(ApiResponseModel {
+                message: "new user registered".to_string(),
+                payload: "123456".to_string(), // user_id
+            })
+        }
+        Err(e) => {
+            HttpResponse::BadRequest().json(ApiResponseModel {
+                message: "validation error".to_string(),
+                payload: format!("{:?}", e),
+            })
+        }
+    }
+}
 
-    // Create a custom response
-    let response = ApiResponseModel {
-        success: true,
-        message: format!("Signup successful for user: {}", model.display_name),
-        status_code: Default::default(),
-        payload: model,
-    };
+#[get("/signup")]
+pub async fn signup_get(tera: web::Data<Tera>) -> impl Responder {
+    let mut context = Context::new();
+    context.insert("title", &"Signup for Aarya");
 
-    // Return the JSON response
-    HttpResponse::Ok().json(response)
+    match tera.render("auth_signup.html.tera", &context) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
+        Err(e) => {
+            println!("Error rendering template: {}", e);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
 }

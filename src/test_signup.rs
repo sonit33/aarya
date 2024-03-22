@@ -21,7 +21,7 @@ pub mod test_signup {
             email: "john@example.com".to_string(),
             password: "password123".to_string(),
             confirm_password: "password123".to_string(),
-            over_13: true,
+            over_13: false,
         };
 
         // Send a POST request to the /signup route with the payload
@@ -33,11 +33,11 @@ pub mod test_signup {
         let resp = test::call_service(&mut app, req).await;
 
         // Assert the response status code
-        assert_eq!(resp.status(), 200);
+        assert_eq!(resp.status(), 400);
 
         // Assert the response JSON
-        let resp_json: ApiResponseModel<SignupModel> = test::read_body_json(resp).await;
-        assert_eq!(resp_json.success, true);
-        assert_eq!(resp_json.message, "Signup successful for user: John Doe");
+        let resp_json: ApiResponseModel<String> = test::read_body_json(resp).await;
+        println!("\x1b[31m{}\x1b[0m", resp_json.payload);
+        assert_eq!(resp_json.message, "new user registered");
     }
 }

@@ -8,9 +8,9 @@
     <title>{{title}}</title>
 </head>
 <body>
-{% include "header" %}
+{% include "header.html.tera" %}
 {% block content %}
 {% endblock %}
-{% include "footer" %}
+{% include "footer.html.tera" %}
 </body>
 </html>
