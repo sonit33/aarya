@@ -1,15 +1,18 @@
+// import $ from 'jquery';
+
 $(document).ready(function () {
     $('#signupForm').submit(function (e) {
-        var errors = [];
+        let errors = [];
         $('#formErrors').empty();
 
         $(this).find('input').each(function () {
-            var $input = $(this);
-            var value = $input.val();
-            var required = $input.data('required');
-            var minlength = $input.data('minlength');
-            var email = $input.data('email');
-            var match = $input.data('match');
+            let $input = $(this);
+            let value = $input.val();
+            let required = $input.data('required');
+            let minlength = $input.data('minlength');
+            let maxlength = $input.data('maxlength');
+            let email = $input.data('email');
+            let match = $input.data('match');
 
             if (required && !value) {
                 errors.push($input.attr('name') + ' is required.');

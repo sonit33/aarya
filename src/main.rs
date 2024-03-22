@@ -1,30 +1,24 @@
-#[macro_use]
-extern crate rocket;
+use actix_web::{App, HttpServer, web};
 
-use rocket_dyn_templates::Template;
+use crate::route_signup::signup_post;
 
-use crate::login_route::{login_get, login_post};
-use crate::signup_route::{signup_get, signup_post};
-
-pub mod signup_model;
-pub mod signup_route;
-mod login_model;
-mod login_route;
-mod db_ops;
-mod signup_tests;
+pub mod model_signup;
+pub mod route_signup;
+mod model_login;
+mod route_login;
+mod ops_db;
 mod util_random;
-mod test_ops;
+mod model_api_response;
+mod test_signup;
 
 
-#[rocket::main]
-async fn main() -> Result<(), rocket::Error> {
-    let _rocket = rocket::build()
-        .mount("/", routes![signup_get, signup_post, login_post, login_get])
-        .mount("/static", rocket::fs::FileServer::from("static"))
-        .attach(Template::fairing())
-        .launch()
-        .await?;
-
-    Ok(())
+#[actix_web::main] // or #[tokio::main]
+async fn main() -> std::io::Result<()> {
+    HttpServer::new(|| {
+        App::new()
+            .route("/signup", web::post().to(signup_post))
+    })
+        .bind(("127.0.0.1", 8080))?
+        .run()
+        .await
 }
-

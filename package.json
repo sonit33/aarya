@@ -1,0 +1,17 @@
+{
+  "name": "aarya-v1",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/sonit33/aarya.git"
+  },
+  "private": true,
+  "devDependencies": {
+    "jquery": "3.7.1"
+  }
+}

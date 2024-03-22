@@ -1,10 +1,7 @@
 use bson::{doc, Document};
 use bson::oid::ObjectId;
 use futures::TryStreamExt;
-use mongodb::{
-    Collection,
-    Database, error::Result, results::InsertOneResult,
-};
+use mongodb::{Collection, Database, error::Result, results::InsertOneResult};
 use mongodb::results::{DeleteResult, UpdateResult};
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -14,15 +11,21 @@ pub struct DbOps<T>
         T: Serialize + DeserializeOwned + Unpin + Send + Sync,
 {
     collection: Collection<T>,
+    db: Database,
 }
 
 impl<T> DbOps<T>
     where
         T: Serialize + DeserializeOwned + Unpin + Send + Sync,
 {
-    pub fn new(db: &Database, collection_name: &str) -> Self {
+    pub async fn new(connection_string: &str, db_name: &str, collection_name: &str) -> Self {
+        let client_options = mongodb::options::ClientOptions::parse(connection_string).await.unwrap();
+        let client = mongodb::Client::with_options(client_options).unwrap();
+        let db = client.database(db_name);
+
         let collection = db.collection::<T>(collection_name);
-        DbOps { collection }
+
+        DbOps { db, collection }
     }
     pub async fn create(&self, data: T) -> Result<InsertOneResult> {
         self.collection.insert_one(data, None).await
