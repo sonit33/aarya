@@ -37,6 +37,5 @@ async fn test_signup_route() {
 
     // Assert the response JSON
     let resp_json: DefaultResponseModel<String> = test::read_body_json(resp).await;
-    println!("\x1b[31m{}\x1b[0m", resp_json.payload);
     assert_eq!(resp_json.message, "new user registered");
 }

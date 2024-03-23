@@ -3,7 +3,7 @@
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
-use bson::doc;
+use bson::{doc, Document};
 use futures::TryStreamExt;
 use mongodb::{Collection, Database};
 use serde::de::DeserializeOwned;
@@ -49,28 +49,28 @@ impl<T> DbOps<T>
             Err(e) => Err(e),           // On failure, forward the error
         }
     }
-    pub async fn create(&self, data: T) -> Result<String, Box<dyn Error>> {
-        match self.collection.insert_one(data, None).await {
-            Ok(result) => { Ok(result.inserted_id.to_string()) }
+    pub async fn create(&self, data: T) -> Result<T, Box<dyn Error>> {
+        match self.collection.insert_one(&data, None).await {
+            Ok(result) => { Ok(data) }
             Err(e) => Err(Box::new(RecordNotCreatedError { id: "not-set".to_string(), reason: e.to_string() }))
         }
     }
 
-    pub async fn read_by_key(&self, key: String, id: String) -> Result<T, Box<dyn Error>> {
-        let filter = doc! { key: id.clone() };
+    pub async fn read_by_key(&self, key: String, value: String) -> Result<T, Box<dyn Error>> {
+        let filter = doc! { key: value.clone() };
 
         match self.collection.find_one(filter, None).await {
             Ok(result) => {
                 match result {
                     Some(document) => Ok(document),
-                    None => Err(Box::new(RecordNotFoundError { id, reason: "no-result".to_string() })),
+                    None => Err(Box::new(RecordNotFoundError { id: value, reason: "no-result".to_string() })),
                 }
             }
-            Err(e) => Err(Box::new(RecordNotFoundError { id, reason: e.to_string() })),
+            Err(e) => Err(Box::new(RecordNotFoundError { id: value, reason: e.to_string() })),
         }
     }
-    pub async fn read_by_filter(&self, filter: T) -> Result<Vec<T>, Box<dyn Error>> {
-        match self.collection.find(bson::to_document(&filter).unwrap(), None).await {
+    pub async fn read_by_filter(&self, filter: Document) -> Result<Vec<T>, Box<dyn Error>> {
+        match self.collection.find(filter, None).await {
             Ok(mut cursor) => {
                 let mut results = Vec::new();
                 while let Some(result) = cursor.try_next().await? {

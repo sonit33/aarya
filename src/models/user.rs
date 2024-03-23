@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use bson::doc;
+use bson::{doc, Document};
 use serde::{Deserialize, Serialize};
 
 use crate::utils::db::DbOps;
@@ -33,16 +33,7 @@ pub struct UserModel {
 }
 
 impl UserModel {
-    pub async fn save(&self, db: &DbOps<UserModel>) -> Result<String, Box<dyn std::error::Error>> {
-        match db.create(self.to_owned()).await {
-            Ok(result) => {
-                Ok(result)
-            }
-            Err(e) => Err(Box::new(UserModelError { reason: e.to_string() })),
-        }
-    }
-
-    pub async fn all(&self, db: &DbOps<UserModel>) -> Result<Vec<UserModel>, Box<dyn std::error::Error>> {
+    pub async fn all(db: &DbOps<UserModel>) -> Result<Vec<UserModel>, Box<dyn std::error::Error>> {
         match db.read_all().await {
             Ok(result) => {
                 Ok(result)
@@ -51,8 +42,8 @@ impl UserModel {
         }
     }
 
-    pub async fn find(&self, db: &DbOps<UserModel>) -> Result<UserModel, Box<dyn std::error::Error>> {
-        match db.read_by_key("user_id".to_string(), self.to_owned().user_id).await {
+    pub async fn find(db: &DbOps<UserModel>, user_id: String) -> Result<UserModel, Box<dyn std::error::Error>> {
+        match db.read_by_key("user_id".to_string(), user_id).await {
             Ok(result) => {
                 Ok(result)
             }
@@ -60,8 +51,8 @@ impl UserModel {
         }
     }
 
-    pub async fn filter(&self, db: &DbOps<UserModel>) -> Result<Vec<UserModel>, Box<dyn std::error::Error>> {
-        match db.read_by_filter(self.to_owned()).await {
+    pub async fn some(db: &DbOps<UserModel>, filter: Document) -> Result<Vec<UserModel>, Box<dyn std::error::Error>> {
+        match db.read_by_filter(filter).await {
             Ok(result) => {
                 Ok(result)
             }
@@ -69,8 +60,8 @@ impl UserModel {
         }
     }
 
-    pub async fn update(&self, db: &DbOps<UserModel>) -> Result<String, Box<dyn std::error::Error>> {
-        match db.update(self.user_id.to_string(), self.clone()).await {
+    pub async fn update(db: &DbOps<UserModel>, user_id: String, changed_model: UserModel) -> Result<String, Box<dyn std::error::Error>> {
+        match db.update(user_id, changed_model).await {
             Ok(result) => {
                 Ok(result)
             }
@@ -78,8 +69,16 @@ impl UserModel {
         }
     }
 
-    pub async fn delete(&self, db: DbOps<UserModel>) -> Result<u64, Box<dyn std::error::Error>> {
-        match db.delete(self.user_id.to_string()).await {
+    pub async fn delete(db: DbOps<UserModel>, user_id: String) -> Result<u64, Box<dyn std::error::Error>> {
+        match db.delete(user_id).await {
+            Ok(result) => {
+                Ok(result)
+            }
+            Err(e) => Err(Box::new(UserModelError { reason: e.to_string() })),
+        }
+    }
+    pub async fn save(&self, db: &DbOps<UserModel>) -> Result<UserModel, Box<dyn std::error::Error>> {
+        match db.create(self.to_owned()).await {
             Ok(result) => {
                 Ok(result)
             }
