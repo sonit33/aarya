@@ -2,7 +2,7 @@ use std::error::Error;
 use std::fmt::{Debug, Display, Formatter};
 use std::str::FromStr;
 
-use bson::{doc, Document};
+use bson::{Bson, doc, Document};
 use serde::{Deserialize, Serialize};
 
 use crate::utils::db::DbOps;
@@ -32,6 +32,17 @@ pub struct UserModel {
     pub mark_deleted: bool,
 }
 
+impl Into<Bson> for UserModel {
+    fn into(self) -> Bson {
+        let document = bson::to_bson(&self)
+            .expect("Failed to convert UserModel into Bson");
+        match document {
+            Bson::Document(doc) => Bson::Document(doc),
+            _ => panic!("Expected Bson::Document"),
+        }
+    }
+}
+
 impl UserModel {
     pub async fn all(db: &DbOps<UserModel>) -> Result<Vec<UserModel>, Box<dyn std::error::Error>> {
         match db.read_all().await {
@@ -42,8 +53,8 @@ impl UserModel {
         }
     }
 
-    pub async fn find(db: &DbOps<UserModel>, user_id: String) -> Result<UserModel, Box<dyn std::error::Error>> {
-        match db.read_by_key("user_id".to_string(), user_id).await {
+    pub async fn find(db: &DbOps<UserModel>, user_id: &String) -> Result<UserModel, Box<dyn std::error::Error>> {
+        match db.read_by_key("user_id".to_string(), user_id.to_string()).await {
             Ok(result) => {
                 Ok(result)
             }
@@ -60,8 +71,8 @@ impl UserModel {
         }
     }
 
-    pub async fn update(db: &DbOps<UserModel>, user_id: String, changed_model: UserModel) -> Result<String, Box<dyn std::error::Error>> {
-        match db.update(user_id, changed_model).await {
+    pub async fn update(db: &DbOps<UserModel>, user_id: &String, changed_model: &UserModel) -> Result<u64, Box<dyn std::error::Error>> {
+        match db.update(doc! {"user_id": user_id}, doc! {"$set": bson::to_document(changed_model)?}).await {
             Ok(result) => {
                 Ok(result)
             }
@@ -69,8 +80,8 @@ impl UserModel {
         }
     }
 
-    pub async fn delete(db: DbOps<UserModel>, user_id: String) -> Result<u64, Box<dyn std::error::Error>> {
-        match db.delete(user_id).await {
+    pub async fn delete(db: &DbOps<UserModel>, user_id: &String) -> Result<u64, Box<dyn std::error::Error>> {
+        match db.delete(user_id.to_string()).await {
             Ok(result) => {
                 Ok(result)
             }

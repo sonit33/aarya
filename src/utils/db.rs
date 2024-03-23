@@ -6,6 +6,7 @@ use std::fmt::{Display, Formatter};
 use bson::{doc, Document};
 use futures::TryStreamExt;
 use mongodb::{Collection, Database};
+use mongodb::options::IndexOptions;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
@@ -98,25 +99,47 @@ impl<T> DbOps<T>
         }
     }
 
-    pub async fn update(&self, id: String, data: T) -> Result<String, Box<dyn Error>> {
-        let filter = doc! { "_id": id.clone() };
-        let update = doc! { "$set": bson::to_document(&data)? };
+    pub async fn update(&self, filter: Document, update: Document) -> Result<u64, Box<dyn Error>> {
         match self.collection.update_one(filter, update, None).await {
             Ok(result) => {
-                Ok(result.upserted_id.unwrap().to_string())
+                Ok(result.modified_count)
             }
-            Err(e) => Err(Box::new(RecordNotUpdatedError { id, reason: e.to_string() })),
+            Err(e) => Err(Box::new(RecordNotUpdatedError { id: "not-available".to_string(), reason: e.to_string() })),
         }
     }
 
     pub async fn delete(&self, id: String) -> Result<u64, Box<dyn Error>> {
-        let filter = doc! { "_id": id.clone() };
+        let filter = doc! { "user_id": id.clone() };
         match self.collection.delete_one(filter, None).await {
             Ok(result) => {
                 Ok(result.deleted_count)
             }
             Err(e) => Err(Box::new(RecordNotDeletedError { id, reason: e.to_string() })),
         }
+    }
+
+    pub async fn set_index(db: &DbOps<T>, index_name: String, field_name: String) -> Result<(), Box<dyn Error>> {
+        let mut indexes = db.collection.list_indexes(None).await?;
+
+        while let Some(index) = indexes.try_next().await? {
+            // Access the name of the index from the options
+            if let Some(options) = &index.options {
+                if let Some(name) = &options.name {
+                    if name.to_string() == index_name {
+                        println!("Index {} already exists.", index_name);
+                        return Ok(()); // Index already exists, no need to create
+                    }
+                }
+            }
+        }
+
+        // Index does not exist, proceed to create it
+        let options = IndexOptions::builder().name(index_name.to_string()).unique(true).build();
+        let model = mongodb::IndexModel::builder().keys(doc! {field_name: 1}).options(options).build();
+        db.collection.create_index(model, None).await?;
+        println!("Index {} created.", index_name);
+
+        Ok(())
     }
 }
 
