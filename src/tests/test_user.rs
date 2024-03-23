@@ -16,24 +16,21 @@ mod test_user {
         db: DbOps<UserModel>,
     }
 
-    impl Drop for TestContext {
-        fn drop(&mut self) {
-            let runtime = tokio::runtime::Runtime::new().unwrap();
-            runtime.block_on(async {
-                self.db.db.drop(None).await.unwrap()
-            });
-        }
-    }
-
     impl TestContext {
         pub async fn new() -> DbOps<UserModel> {
             from_filename(".env.dev").ok();
-            let db_name = format!("{}-db", generate_guid(5));
+            let db_name = format!("{}-db-{}", generate_guid(5), chrono::Utc::now().timestamp());
             let coll_name = format!("{}-users", generate_guid(5));
-
             println!("db:{}, coll:{}", db_name, coll_name);
-
             DbOps::new(Environ::default().mongo_connection_string, db_name, coll_name).await.unwrap()
+        }
+
+        pub async fn drop(db: DbOps<UserModel>) {
+            let name = db.db.name();
+            match db.db.drop(None).await {
+                Ok(r) => { println!("database [{}] dropped", name); }
+                Err(e) => { eprintln!("failed to drop database: {}", e) }
+            }
         }
     }
 
@@ -58,6 +55,7 @@ mod test_user {
         let found = UserModel::find(&db, x.user_id).await.unwrap();
         assert_ne!(found.user_id, "123");
         assert_eq!(found.user_id, user.user_id);
+        TestContext::drop(db).await;
     }
 
     #[actix_web::test]
@@ -72,6 +70,7 @@ mod test_user {
         assert_eq!(users[0].user_id, user1.user_id);
         assert_eq!(users[1].user_id, user2.user_id);
         println!("test_find_all_users -> user1: {} user2: {}", user1.user_id, user2.user_id);
+        TestContext::drop(db).await;
     }
 
     #[actix_web::test]
@@ -90,5 +89,20 @@ mod test_user {
         let users = UserModel::some(&db, doc! {"account_active": false}).await.unwrap();
         assert_eq!(users.len(), 1);
         assert_eq!(users[0].user_id, x.to_string());
+        TestContext::drop(db).await;
+    }
+
+    #[actix_web::test]
+    async fn test_none_users() {
+        let db = TestContext::new().await;
+        let user1 = random_user();
+        let user2 = random_user();
+        let user3 = random_user();
+        user1.save(&db).await.unwrap();
+        user2.save(&db).await.unwrap();
+        user3.save(&db).await.unwrap();
+        let users = UserModel::some(&db, doc! {"account_active": false}).await.unwrap();
+        assert_eq!(users.len(), 0);
+        TestContext::drop(db).await;
     }
 }

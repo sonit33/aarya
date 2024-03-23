@@ -19,3 +19,4 @@ rand = "0.8.5"
 validator = { version = "0.17.0", features = ["derive"] }
 tera = "1.19.1"
 dotenv = "0.15.0"
+chrono = "0.4.35"
