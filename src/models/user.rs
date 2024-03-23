@@ -52,7 +52,7 @@ impl UserModel {
     }
 
     pub async fn find(&self, db: &DbOps<UserModel>) -> Result<UserModel, Box<dyn std::error::Error>> {
-        match db.read_by_id(self.to_owned().user_id).await {
+        match db.read_by_key("user_id".to_string(), self.to_owned().user_id).await {
             Ok(result) => {
                 Ok(result)
             }

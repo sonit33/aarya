@@ -56,8 +56,8 @@ impl<T> DbOps<T>
         }
     }
 
-    pub async fn read_by_id(&self, id: String) -> Result<T, Box<dyn Error>> {
-        let filter = doc! { "_id": id.clone() };
+    pub async fn read_by_key(&self, key: String, id: String) -> Result<T, Box<dyn Error>> {
+        let filter = doc! { key: id.clone() };
 
         match self.collection.find_one(filter, None).await {
             Ok(result) => {
