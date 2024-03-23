@@ -2,8 +2,8 @@ use actix_web::{get, HttpResponse, post, Responder, web};
 use tera::{Context, Tera};
 use validator::Validate;
 
-use crate::model_api_response::ApiResponseModel;
-use crate::model_signup::SignupModel;
+use crate::models::default_response::{ActionType, DefaultResponseModel, ResponseAction};
+use crate::models::signup::SignupModel;
 
 #[post("/signup")]
 pub async fn signup_post(model: web::Json<SignupModel>) -> impl Responder {
@@ -11,15 +11,28 @@ pub async fn signup_post(model: web::Json<SignupModel>) -> impl Responder {
     // validate the input
     match model.0.validate() {
         Ok(_) => {
-            HttpResponse::Ok().json(ApiResponseModel {
+            // generate a verification code
+            // email the verification code
+            // save the user to database
+            // send a redirect to verify page
+
+            HttpResponse::Ok().json(DefaultResponseModel {
                 message: "new user registered".to_string(),
                 payload: "123456".to_string(), // user_id
+                action: ResponseAction {
+                    action_type: ActionType::Redirect,
+                    arg: "/verify".to_string(),
+                },
             })
         }
         Err(e) => {
-            HttpResponse::BadRequest().json(ApiResponseModel {
+            HttpResponse::BadRequest().json(DefaultResponseModel {
                 message: "validation error".to_string(),
                 payload: format!("{:?}", e),
+                action: ResponseAction {
+                    action_type: ActionType::Resolve,
+                    arg: "".to_string(),
+                },
             })
         }
     }
