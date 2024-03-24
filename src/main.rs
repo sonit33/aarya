@@ -10,6 +10,8 @@ mod models;
 mod routes;
 mod utils;
 mod tests;
+mod traits;
+mod errors;
 
 
 #[actix_web::main] // or #[tokio::main]

@@ -1,5 +1,3 @@
-#![allow(dead_code)]
-
 use std::error::Error;
 use std::fmt::{Display, Formatter};
 
@@ -23,7 +21,7 @@ pub struct DbOps<T>
 
 impl<T> DbOps<T>
     where
-        T: Serialize + DeserializeOwned + Unpin + Send + Sync,
+        T: Serialize + DeserializeOwned + Unpin + Send + Sync + Clone,
 {
     pub async fn new(connection_string: String, db_name: String, collection_name: String) -> Result<DbOps<T>, Box<dyn Error>> {
         // let client_options = mongodb::options::ClientOptions::parse(connection_string).await.unwrap();
@@ -50,9 +48,9 @@ impl<T> DbOps<T>
             Err(e) => Err(e),           // On failure, forward the error
         }
     }
-    pub async fn create(&self, data: T) -> Result<T, Box<dyn Error>> {
-        match self.collection.insert_one(&data, None).await {
-            Ok(result) => { Ok(data) }
+    pub async fn create(&self, data: &T) -> Result<T, Box<dyn Error>> {
+        match self.collection.insert_one(data, None).await {
+            Ok(result) => { Ok(data.clone()) }
             Err(e) => Err(Box::new(RecordNotCreatedError { id: "not-set".to_string(), reason: e.to_string() }))
         }
     }
