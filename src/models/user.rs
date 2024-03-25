@@ -9,7 +9,7 @@ use crate::traits::model_crud::ModelCrud;
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct UserModel {
 	pub model_id: String,
-	pub display_name: String,
+	pub first_name: String,
 	pub email_address: String,
 	pub password: String,
 	pub over_13: bool,

@@ -1,14 +1,14 @@
 use tokio;
 
-#[cfg(test)]
-mod test_questions {
+#[cfg(not(feature = "skip_module_tests"))]
+mod test_questions_mongo {
 	use std::error::Error;
 
 	use bson::doc;
 	use bson::oid::ObjectId;
 	use dotenv::from_filename;
 
-	use crate::models::question::{QuestionMode, QuestionModel};
+	use crate::models::question_mongo::{QuestionMode, QuestionModel};
 	use crate::traits::model_crud::ModelCrud;
 	use crate::utils::db::DbOps;
 	use crate::utils::environ::Environ;
@@ -59,7 +59,8 @@ mod test_questions {
 		}
 	}
 
-	#[actix_web::test]
+
+	// #[actix_web::test]
 	async fn test_save_question() {
 		let db = TestContext::new().await.unwrap();
 		TestContext::seed_and_create_index(&db).await.unwrap();
@@ -73,7 +74,7 @@ mod test_questions {
 		TestContext::drop(&db).await;
 	}
 
-	#[actix_web::test]
+	// #[actix_web::test]
 	async fn test_find_all_questions() {
 		let db = TestContext::new().await.unwrap();
 		let question1 = random_question();

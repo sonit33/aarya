@@ -12,7 +12,7 @@ mockall = "0.12.1"
 mongodb = "2.0"
 bson = "2.0"
 futures = "0.3.30"
-tokio = "1.36.0"
+tokio = { version = "1.36.0", features = ["full"] }
 async-trait = "0.1.78"
 serde_json = "1.0"
 rand = "0.8.5"
@@ -20,3 +20,12 @@ validator = { version = "0.17.0", features = ["derive"] }
 tera = "1.19.1"
 dotenv = "0.15.0"
 chrono = "0.4.35"
+sqlx = { version = "0.7.4", features = ["mysql", "runtime-tokio-native-tls", "time", "macros"] }
+time = "0.3.34"
+
+[dev-dependencies]
+tempfile = "3.2.0"
+
+[features]
+default = []
+skip_module_tests = [] # Define a custom feature flag

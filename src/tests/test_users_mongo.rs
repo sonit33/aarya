@@ -1,7 +1,7 @@
 use tokio;
 
-#[cfg(test)]
-mod test_users {
+#[cfg(not(feature = "skip_module_tests"))]
+mod test_users_mongo {
 	use std::error::Error;
 
 	use bson::doc;
@@ -46,7 +46,7 @@ mod test_users {
 	fn random_user() -> UserModel {
 		UserModel {
 			model_id: generate_guid(8),
-			display_name: generate_guid(15).to_string(),
+			first_name: generate_guid(15).to_string(),
 			email_address: format!("{}@example.com", generate_guid(6)),
 			password: generate_guid(10).to_string(),
 			over_13: true,
@@ -133,7 +133,7 @@ mod test_users {
 
 		// create a variant of the user
 		let updated_user = UserModel {
-			display_name: generate_guid(8),
+			first_name: generate_guid(8),
 			..user1.clone()
 		};
 
@@ -147,8 +147,8 @@ mod test_users {
 		assert_eq!(after_update_user.clone().model_id, user1.clone().model_id);
 
 		// verify that the display name has changed
-		assert_eq!(after_update_user.clone().display_name, updated_user.clone().display_name);
-		assert_ne!(after_update_user.clone().display_name, user1.clone().display_name);
+		assert_eq!(after_update_user.clone().first_name, updated_user.clone().first_name);
+		assert_ne!(after_update_user.clone().first_name, user1.clone().first_name);
 
 		//cleanup
 		TestContext::drop(&db).await;
