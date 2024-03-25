@@ -20,8 +20,8 @@ async fn test_read_feedback() {
 	let db_name = generate_guid(8);
 	let pool = setup_database(&db_name).await;
 
-	let _ = Feedback::create(&pool, Some(1), Some(1), Some(1), Some(1), Some(1)).await;
-	let feedback_id = 1; // Assuming this is the first entry and hence has ID 1
+	let create_response = Feedback::create(&pool, Some(1), Some(1), Some(1), Some(1), Some(1)).await;
+	let feedback_id = create_response.unwrap().last_insert_id() as i32; // Assuming this is the first entry and hence has ID 1
 	let result = Feedback::read(&pool, feedback_id).await;
 	assert!(result.is_ok());
 	let feedback = result.unwrap();
@@ -37,8 +37,8 @@ async fn test_update_feedback() {
 	let db_name = generate_guid(8);
 	let pool = setup_database(&db_name).await;
 
-	let _ = Feedback::create(&pool, Some(1), Some(1), Some(1), Some(1), Some(1)).await;
-	let feedback_id = 1; // Assuming this is the first entry and hence has ID 1
+	let create_response = Feedback::create(&pool, Some(1), Some(1), Some(1), Some(1), Some(1)).await;
+	let feedback_id = create_response.unwrap().last_insert_id() as i32; // Assuming this is the first entry and hence has ID 1
 	let result = Feedback::update(&pool, feedback_id, Some(2), Some(2), Some(2), Some(2), Some(2)).await;
 	assert!(result.is_ok(), "Failed to read feedback: {:?}", result.err());
 
