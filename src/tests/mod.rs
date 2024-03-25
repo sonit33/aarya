@@ -1,10 +1,15 @@
 use std::fs;
 
-use sqlx::{Executor, MySqlPool};
+use sqlx::{Executor, MySql, MySqlPool, Pool};
 
 pub mod test_course;
 mod test_feedback;
 mod test_question;
+mod test_student;
+mod test_teacher;
+mod test_assignment;
+mod test_assignment_student;
+mod test_payment;
 
 
 async fn setup_database(db_name: &str) -> MySqlPool {
@@ -14,7 +19,7 @@ async fn setup_database(db_name: &str) -> MySqlPool {
 	let pool = MySqlPool::connect(database_url).await.expect("Failed to connect to database");
 
 	// Create a new database
-	pool.execute(format!("CREATE DATABASE {}", db_name).as_str())
+	pool.execute(format!("CREATE DATABASE `{}`;", db_name).as_str())
 	    .await
 	    .expect("Failed to create database");
 
@@ -31,10 +36,19 @@ async fn setup_database(db_name: &str) -> MySqlPool {
 	pool
 }
 
-async fn teardown_database(pool: &MySqlPool, db_name: &str) {
-	pool.execute(format!("DROP DATABASE {}", db_name).as_str())
-	    .await
-	    .expect("Failed to drop database");
-	pool.close().await;
-	assert!(pool.is_closed());
+async fn teardown_database(pool: &Pool<MySql>, db_name: &str) -> Result<(), sqlx::Error> {
+	let drop_command = format!("DROP DATABASE `{}`;", db_name);
+
+	match pool.execute(drop_command.as_str()).await {
+		Ok(_) => {
+			println!("Database {} dropped successfully.", db_name);
+			pool.close().await;
+			assert!(pool.is_closed());
+			Ok(())
+		}
+		Err(e) => {
+			eprintln!("Failed to drop the database {}: {}", db_name, e);
+			Err(e)
+		}
+	}
 }

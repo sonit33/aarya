@@ -132,7 +132,7 @@ create table payments
     payment_id      int auto_increment
         primary key,
     p_direction     tinyint   default 1                   not null,
-    p_amount        decimal(10, 2)                        not null,
+    p_amount        double                                not null,
     added_timestamp timestamp default current_timestamp() null,
     p_id            int                                   null,
     student_id      int                                   null,

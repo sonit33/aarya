@@ -20,7 +20,7 @@ async fn test_create_question() {
 	let result = result.unwrap();
 	assert!(result.last_insert_id() > 0);
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 
@@ -43,7 +43,7 @@ async fn test_read_question() {
 	let question = question.unwrap();
 	assert_eq!(question.question_id, question_id);
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -65,7 +65,7 @@ async fn test_update_question() {
 	assert_eq!(question.question, "Updated Question?");
 	assert_eq!(question.answers, "Updated Answer");
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -82,5 +82,5 @@ async fn test_delete_question() {
 	assert!(read_result.is_ok());
 	assert!(read_result.unwrap().is_none());
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }

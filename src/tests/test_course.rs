@@ -12,7 +12,7 @@ async fn test_create_course() {
 	let result = result.unwrap();
 	assert!(result.last_insert_id() > 0);
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -30,7 +30,7 @@ async fn test_read_course() {
 	let course = course.unwrap();
 	assert_eq!(course.course_id, course_id as i32);
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -47,7 +47,7 @@ async fn test_update_course() {
 	assert_eq!(course.course_name, "Updated Course");
 	assert_eq!(course.description.unwrap(), "Updated description");
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -64,5 +64,5 @@ async fn test_delete_course() {
 	assert!(read_result.is_ok());
 	assert!(read_result.unwrap().is_none());
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }

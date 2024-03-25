@@ -12,7 +12,7 @@ async fn test_create_feedback() {
 	let result = result.unwrap();
 	assert!(result.last_insert_id() > 0);
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -29,7 +29,7 @@ async fn test_read_feedback() {
 	let feedback = feedback.unwrap();
 	assert_eq!(feedback.feedback_id, feedback_id);
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -49,7 +49,7 @@ async fn test_update_feedback() {
 	assert_eq!(feedback.teacher_id, Some(2));
 	assert_eq!(feedback.student_id, Some(2));
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
@@ -66,5 +66,5 @@ async fn test_delete_feedback() {
 	assert!(read_result.is_ok());
 	assert!(read_result.unwrap().is_none());
 
-	teardown_database(&pool, &db_name).await;
+	teardown_database(&pool, &db_name).await.unwrap();
 }
