@@ -11,3 +11,5 @@ pub mod feedback;
 pub mod assignment_student;
 pub mod assignment_topic;
 pub mod question_topic;
+pub mod test_question;
+pub mod test_student;

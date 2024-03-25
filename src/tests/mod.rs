@@ -10,6 +10,12 @@ mod test_teacher;
 mod test_assignment;
 mod test_assignment_student;
 mod test_payment;
+mod test_test;
+mod test_test_question;
+mod test_test_student;
+mod test_topic;
+mod test_assignment_topic;
+mod test_question_topic;
 
 
 async fn setup_database(db_name: &str) -> MySqlPool {
