@@ -13,3 +13,4 @@ pub mod assignment_topic;
 pub mod question_topic;
 pub mod test_question;
 pub mod test_student;
+pub mod test_topic;

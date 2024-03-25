@@ -16,6 +16,8 @@ mod test_test_student;
 mod test_topic;
 mod test_assignment_topic;
 mod test_question_topic;
+mod test_test_topic;
+mod test_tutoring;
 
 
 async fn setup_database(db_name: &str) -> MySqlPool {
