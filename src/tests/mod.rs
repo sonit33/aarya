@@ -2,11 +2,9 @@ use std::fs;
 
 use sqlx::{Executor, MySqlPool};
 
-mod test_signup_mongo;
-mod test_users_mongo;
-mod test_questions_mongo;
 pub mod test_course;
 mod test_feedback;
+mod test_question;
 
 
 async fn setup_database(db_name: &str) -> MySqlPool {
@@ -37,4 +35,6 @@ async fn teardown_database(pool: &MySqlPool, db_name: &str) {
 	pool.execute(format!("DROP DATABASE {}", db_name).as_str())
 	    .await
 	    .expect("Failed to drop database");
+	pool.close().await;
+	assert!(pool.is_closed());
 }
