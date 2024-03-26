@@ -6,9 +6,11 @@ use tera::{ Context, Tera };
 use validator::Validate;
 
 use crate::models::database::student::Student;
+use crate::models::database::verification_code::VerificationCode;
 use crate::models::default_response::{ ActionType, DefaultResponseModel, ResponseAction };
 use crate::models::signup::SignupModel;
 use crate::utils::email_sender::EmailSender;
+use crate::utils::hasher;
 use crate::utils::random::generate_guid;
 
 #[post("/signup")]
@@ -45,19 +47,23 @@ pub async fn signup_post(
         deleted_timestamp: None,
     };
 
+    let student_id;
+
     // Save the Student in the database
     match
         Student::create(
             &pool,
             &student.first_name,
             &student.email_address,
-            &student.password,
-            student.over_13 as i8,
-            0, // email_verified as false
-            0 // account_active as false
+            hasher::generate_password_hash(&student.password).unwrap().as_str(),
+            student.over_13,
+            false, // email_verified as false
+            false // account_active as false
         ).await
     {
-        Ok(_) => {}
+        Ok(s) => {
+            student_id = s.last_insert_id();
+        }
         Err(e) => {
             return HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
                 message: format!("Failed to create student: {}", e),
@@ -72,6 +78,27 @@ pub async fn signup_post(
 
     // Generate a verification code
     let verification_code = generate_guid(8); // Placeholder for generated code
+
+    // save the verification code
+    match
+        VerificationCode::create_or_update_student_code(
+            &pool,
+            student_id as i32,
+            &verification_code
+        ).await
+    {
+        Ok(_) => {}
+        Err(e) => {
+            return HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
+                message: format!("Failed to generate verification code: {}", e),
+                payload: (),
+                action: ResponseAction {
+                    action_type: ActionType::Resolve,
+                    arg: "".to_string(),
+                },
+            });
+        }
+    }
 
     // Email the verification code
     match

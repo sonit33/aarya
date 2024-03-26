@@ -19,3 +19,4 @@ dotenv = "0.15.0"
 sqlx = { version = "0.7.4", features = ["mysql", "runtime-tokio-native-tls", "time", "macros"] }
 time = "0.3.34"
 lettre = { version = "0.11.5", features = ["tokio1", "smtp-transport", "tokio1-native-tls"] }
+bcrypt = "0.15.1"

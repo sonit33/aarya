@@ -1,0 +1,39 @@
+{% extends "base.html" %} {% block content %}
+<div class="login-form">
+  <form
+    action="/login"
+    id="loginForm"
+    method="POST">
+    <label for="email">Email</label>
+    <input
+      data-email="true"
+      data-required="true"
+      id="email"
+      name="email"
+      type="email" />
+
+    <label for="password">Password</label>
+    <input
+      data-minlength="6"
+      data-required="true"
+      id="password"
+      name="password"
+      type="password" />
+
+    <label for="stay_signed_in">Keep me signed in</label>
+    <input
+      data-required="true"
+      id="stay_signed_in"
+      name="stay_signed_in"
+      type="checkbox" />
+
+    <button type="submit">Login</button>
+    <a href="/forgot-password">Forgot Password</a>
+    <a href="/signup">Signup for a new account</a>
+  </form>
+  <div id="formErrors"></div>
+</div>
+<script
+  src="/static/form-validator.js"
+  type="application/javascript"></script>
+{% endblock %}

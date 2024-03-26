@@ -1,0 +1,61 @@
+{% extends "base.html" %} {% block content %}
+<div class="signup-form">
+  <form
+    action="/signup"
+    id="signupForm"
+    method="POST">
+    <input
+      id="id"
+      name="id"
+      type="hidden"
+      value="not-set" />
+
+    <label for="display_name">Display Name</label>
+    <input
+      data-maxlength="50"
+      data-minlength="3"
+      data-required="true"
+      id="display_name"
+      name="display_name"
+      type="text" />
+
+    <label for="email">Email</label>
+    <input
+      data-email="true"
+      data-maxlength="50"
+      data-required="true"
+      id="email"
+      name="email"
+      type="email" />
+
+    <label for="password">Password</label>
+    <input
+      data-maxlength="20"
+      data-minlength="6"
+      data-required="true"
+      id="password"
+      name="password"
+      type="password" />
+
+    <label for="confirm_password">Confirm Password</label>
+    <input
+      data-match="#password"
+      data-maxlength="20"
+      data-required="true"
+      id="confirm_password"
+      name="confirm_password"
+      type="password" />
+
+    <label for="over_13">Over 13?</label>
+    <input
+      data-required="true"
+      id="over_13"
+      name="over_13"
+      type="checkbox" />
+
+    <button type="submit">Sign Up</button>
+  </form>
+  <div id="formErrors"></div>
+</div>
+<!--<script src="/static/form-validator.js" type="application/javascript"></script>-->
+{% endblock %}
