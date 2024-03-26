@@ -1,3 +1,3 @@
 pub mod random;
 pub mod environ;
-mod email_sender;
+pub mod email_sender;

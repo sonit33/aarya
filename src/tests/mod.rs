@@ -3,38 +3,11 @@ use std::fs;
 use sqlx::{Executor, MySql, MySqlPool, Pool};
 
 #[cfg(test)]
-pub mod test_course;
+mod database;
 #[cfg(test)]
-mod test_feedback;
+mod utils;
 #[cfg(test)]
-mod test_question;
-#[cfg(test)]
-mod test_student;
-#[cfg(test)]
-mod test_teacher;
-#[cfg(test)]
-mod test_assignment;
-#[cfg(test)]
-mod test_assignment_student;
-#[cfg(test)]
-mod test_payment;
-#[cfg(test)]
-mod test_test;
-#[cfg(test)]
-mod test_test_question;
-#[cfg(test)]
-mod test_test_student;
-#[cfg(test)]
-mod test_topic;
-#[cfg(test)]
-mod test_assignment_topic;
-#[cfg(test)]
-mod test_question_topic;
-#[cfg(test)]
-mod test_test_topic;
-#[cfg(test)]
-mod test_tutoring;
-mod test_verification_code;
+mod routes;
 
 #[cfg(test)]
 async fn setup_database(db_name: &str) -> MySqlPool {

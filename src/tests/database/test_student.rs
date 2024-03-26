@@ -39,7 +39,7 @@ async fn test_update_student() {
 
 	let created_res = Student::create(&pool, "John Doe", "john.doe@example.com", "password123", 1, 0, 1).await;
 	let student_id = created_res.unwrap().last_insert_id() as i32;
-	; // Assuming this is the first entry and hence has ID 1
+	// Assuming this is the first entry and hence has ID 1
 	let result = Student::update(&pool, student_id, "Jane Doe", "jane.doe@example.com", "newpassword123", 1, 1, 1).await;
 	assert!(result.is_ok());
 

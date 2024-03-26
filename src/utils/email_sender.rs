@@ -1,16 +1,12 @@
-use std::error::Error;
-
-// Include necessary crates
-use lettre::{AsyncSmtpTransport, AsyncTransport, Message, Tokio1Executor};
-use lettre::transport::smtp::authentication::Credentials;
+use crate::errors::email_error::EmailError;
 
 // Define a struct for the EmailSender
+#[derive(Debug, Clone)]
 pub struct EmailSender {
 	server: String,
 	port: u16,
 	username: String,
-	// Placeholder, might not be needed for MailHog but included for completeness
-	password: String, // Placeholder, might not be needed for MailHog but included for completeness
+	password: String,
 }
 
 impl EmailSender {
@@ -26,24 +22,8 @@ impl EmailSender {
 
 	// Asynchronous method to send email
 	// Parameters include recipient, subject, and body of the email
-	pub async fn send_email(&self, to: &str, subject: &str, body: &str) -> Result<(), Box<dyn Error>> {
-		// Construct the message
-		let email = Message::builder()
-			.from(self.username.parse()?)
-			.to(to.parse()?)
-			.subject(subject)
-			.body(String::from(body))?;
-
-		// Setup the SMTP transport using MailHog configuration
-		let creds = Credentials::new(self.username.clone(), self.password.clone());
-
-		let mailer = AsyncSmtpTransport::<Tokio1Executor>::relay(&self.server)?
-			.port(self.port)
-			.credentials(creds)
-			.build();
-
-		// Send the email
-		mailer.send(email).await?;
+	pub async fn send_email(&self, from: &str, to: &str, subject: &str, body: &str) -> Result<(), EmailError> {
+		println!("Mock email From: {} To: {} Subject: {}, Body: {}", from, to, subject, body);
 
 		Ok(())
 	}
