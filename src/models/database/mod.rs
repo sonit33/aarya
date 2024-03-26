@@ -14,3 +14,4 @@ pub mod question_topic;
 pub mod test_question;
 pub mod test_student;
 pub mod test_topic;
+pub mod verification_code;

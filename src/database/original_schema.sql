@@ -51,9 +51,9 @@ create table students
     first_name        varchar(255)                          not null,
     email_address     varchar(255)                          not null,
     password          varchar(255)                          not null,
-    over_13           tinyint(1)                            not null,
-    email_verified    tinyint(1)                            not null,
-    account_active    tinyint(1)                            not null,
+    over_13           bit                                   not null,
+    email_verified    bit                                   not null,
+    account_active    bit                                   not null,
     added_timestamp   timestamp default current_timestamp() null,
     updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
     deleted_timestamp timestamp                             null,
@@ -291,4 +291,23 @@ create index student_id
 
 create index teacher_id
     on tutoring (teacher_id);
+
+create table verification_codes
+(
+    code              varchar(20)                           not null,
+    student_id        int                                   null,
+    teacher_id        int                                   null,
+    added_timestamp   timestamp default current_timestamp() not null,
+    updated_timestamp timestamp default current_timestamp() null on update current_timestamp()
+);
+
+create index verification_codes_students_student_id_fk
+    on verification_codes (student_id);
+
+create index verification_codes_teachers_teacher_id_fk
+    on verification_codes (teacher_id);
+
+
+
+
 
