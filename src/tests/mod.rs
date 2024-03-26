@@ -3,14 +3,14 @@ use std::fs;
 use sqlx::{Executor, MySql, MySqlPool, Pool};
 
 #[cfg(test)]
-mod database;
+pub mod database;
 #[cfg(test)]
-mod utils;
+pub mod utils;
 #[cfg(test)]
-mod routes;
+pub mod routes;
 
 #[cfg(test)]
-async fn setup_database(db_name: &str) -> MySqlPool {
+pub async fn setup_database(db_name: &str) -> MySqlPool {
 	let database_url = "mysql://root:aarya%40991@localhost";
 
 	let full_url = format!("{}/{}", database_url, db_name);
@@ -35,7 +35,7 @@ async fn setup_database(db_name: &str) -> MySqlPool {
 }
 
 #[cfg(test)]
-async fn teardown_database(pool: &Pool<MySql>, db_name: &str) -> Result<(), sqlx::Error> {
+pub async fn teardown_database(pool: &Pool<MySql>, db_name: &str) -> Result<(), sqlx::Error> {
 	let drop_command = format!("DROP DATABASE `{}`;", db_name);
 
 	match pool.execute(drop_command.as_str()).await {

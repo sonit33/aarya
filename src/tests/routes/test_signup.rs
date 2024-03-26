@@ -1,23 +1,83 @@
-use actix_web::{App, http, test};
+use std::sync::Arc;
+
+use actix_web::{ http::StatusCode, test, web, App };
 use serde_json::json;
 
+use crate::{
+    routes::signup::signup_post,
+    tests::{ setup_database, teardown_database },
+    utils::{ email_sender::EmailSender, random::generate_guid },
+};
+
 #[actix_web::test]
-async fn test_signup_validation_error() {
-	let mut app = test::init_service(App::new().route("/signup", web::post().to(signup_post))).await;
-	let req_body = json!({
-        "user_id": "1", // Assuming this is invalid for your validation rules
-        // Add other fields here, intentionally missing or invalid to trigger validation errors
+async fn test_signup_post_success() {
+    let db_name = generate_guid(8);
+    let mock_pool = setup_database(&db_name).await;
+    let mock_email_sender = EmailSender::new(
+        "server".to_string(),
+        0,
+        "username".to_string(),
+        "password".to_string()
+    );
+
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(Arc::new(mock_pool.clone())))
+            .app_data(web::Data::new(Arc::new(mock_email_sender)))
+            .service(signup_post)
+    ).await;
+
+    let signup_model =
+        json!({
+        "user_id": "testuser123",
+        "display_name": "Test User",
+        "email": "test@example.com",
+        "password": "securepassword",
+        "confirm_password": "securepassword",
+        "over_13": true,
+        "verification_code": "12345678",
     });
 
-	let req = test::TestRequest::post()
-		.uri("/signup")
-		.set_json(&req_body)
-		.to_request();
-	let resp = test::call_service(&mut app, req).await;
+    let req = test::TestRequest::post().uri("/signup").set_json(&signup_model).to_request();
 
-	assert_eq!(resp.status(), http::StatusCode::BAD_REQUEST);
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), StatusCode::OK);
+    teardown_database(&mock_pool, &db_name).await.unwrap();
+}
 
-	let result: DefaultResponseModel<()> = test::read_body_json(resp).await;
-	assert_eq!(result.action.action_type, ActionType::Resolve);
-	assert!(result.message.contains("Validation error:"));
+#[actix_web::test]
+async fn test_signup_post_validation_failure() {
+    let db_name = generate_guid(8);
+    let mock_pool = setup_database(&db_name).await;
+
+    let mock_email_sender = EmailSender::new(
+        "server".to_string(),
+        0,
+        "username".to_string(),
+        "password".to_string()
+    ); // Define this function to setup a mock email sender
+
+    let app = test::init_service(
+        App::new()
+            .app_data(web::Data::new(Arc::new(mock_pool.clone())))
+            .app_data(web::Data::new(Arc::new(mock_email_sender)))
+            .service(signup_post)
+    ).await;
+
+    let invalid_signup_model =
+        json!({
+        "user_id": "tu",
+        "display_name": "T",
+        "email": "notanemail",
+        "password": "pwd",
+        "confirm_password": "pwd",
+        "over_13": false,
+        "verification_code": "1234",
+    });
+
+    let req = test::TestRequest::post().uri("/signup").set_json(&invalid_signup_model).to_request();
+
+    let resp = test::call_service(&app, req).await;
+    assert_eq!(resp.status(), StatusCode::BAD_REQUEST);
+    teardown_database(&mock_pool, &db_name).await.unwrap();
 }
