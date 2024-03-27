@@ -67,27 +67,18 @@ impl Student {
         }
     }
 
-    pub async fn update(
-        pool: &MySqlPool,
-        student_id: i32,
-        first_name: &str,
-        email_address: &str,
-        password: &str,
-        over_13: bool,
-        email_verified: bool,
-        account_active: bool
-    ) -> Result<MySqlQueryResult, Error> {
+    pub async fn update(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
         let res = sqlx
             ::query(
-                "UPDATE students SET first_name = ?, email_address = ?, password = ?, over_13 = ?, email_verified = ?, account_active = ? WHERE student_id = ?"
+                "UPDATE students SET first_name = ?, email_address = ?, over_13 = ?, email_verified = ?, account_active = ? WHERE student_id = ?"
             )
-            .bind(first_name)
-            .bind(email_address)
-            .bind(password)
-            .bind(over_13)
-            .bind(email_verified)
-            .bind(account_active)
-            .bind(student_id)
+            .bind(&self.first_name)
+            .bind(&self.email_address)
+            // .bind(password)
+            .bind(&self.over_13)
+            .bind(&self.email_verified)
+            .bind(&self.account_active)
+            .bind(&self.student_id)
             .execute(pool).await;
         match res {
             Ok(result) => Ok(result),

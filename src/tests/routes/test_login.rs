@@ -1,8 +1,8 @@
 use actix_web::{ http::StatusCode, test, web, App };
 
 use crate::{
-    models::{ database::student::Student, login::LoginModel },
-    routes::login::login_post,
+    models::{ auth::login::LoginModel, database::student::Student },
+    routes::auth::login::login_post,
     tests::{ setup_database, teardown_database },
     utils::{ hasher, random::generate_guid },
 };
@@ -21,7 +21,7 @@ async fn test_login_success() {
         &mock_pool,
         "first_name",
         "test@example.com",
-        hasher::generate_password_hash("password123").unwrap().as_str(),
+        hasher::cook_hash("password123").unwrap().as_str(),
         true,
         true,
         true
@@ -54,7 +54,7 @@ async fn test_login_invalid_credentials() {
         &mock_pool,
         "first_name",
         "nonexistent@example.com",
-        hasher::generate_password_hash("password123").unwrap().as_str(),
+        hasher::cook_hash("password123").unwrap().as_str(),
         true,
         true,
         true

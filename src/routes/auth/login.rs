@@ -1,13 +1,29 @@
-use actix_web::{ web, HttpResponse, Responder, post };
+use actix_web::{ web, HttpResponse, Responder, post, get };
+use tera::Context;
+use tera::Tera;
 use validator::Validate;
 use sqlx::MySqlPool;
 
-use crate::models::login::LoginModel;
+use crate::models::auth::login::LoginModel;
 use crate::models::database::student::Student;
 use crate::models::default_response::ResponseAction;
 use crate::models::default_response::ActionType;
 use crate::models::default_response::DefaultResponseModel;
 use crate::utils::hasher;
+
+#[get("/login")]
+async fn login_get(tera: web::Data<Tera>) -> impl Responder {
+    let mut context = Context::new();
+    context.insert("title", &"Login to Aarya");
+
+    match tera.render("auth_login.html", &context) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
+        Err(e) => {
+            println!("Error rendering template: {}", e);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
+}
 
 #[post("/login")]
 async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) -> impl Responder {

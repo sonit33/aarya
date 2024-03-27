@@ -4,7 +4,7 @@ use actix_web::{ http::StatusCode, test, web, App };
 use serde_json::json;
 
 use crate::{
-    routes::signup::signup_post,
+    routes::auth::signup::signup_post,
     tests::{ setup_database, teardown_database },
     utils::{ email_sender::EmailSender, random::generate_guid },
 };

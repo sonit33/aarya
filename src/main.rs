@@ -3,7 +3,11 @@ use dotenv::from_filename;
 use sqlx::MySqlPool;
 use tera::Tera;
 
-use crate::routes::signup::{ signup_get, signup_post };
+use crate::routes::auth::forgot_password::forgot_password_get;
+use crate::routes::auth::login::{ login_get, login_post };
+use crate::routes::auth::reset_password::reset_password_get;
+use crate::routes::auth::signup::{ signup_get, signup_post };
+use crate::routes::auth::verify_email::{ verify_email_get, verify_email_post };
 use crate::utils::email_sender::EmailSender;
 use crate::utils::environ::Environ;
 
@@ -48,6 +52,14 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(email_sender.clone()))
             .service(signup_post)
             .service(signup_get)
+            .service(login_get)
+            .service(login_post)
+            .service(forgot_password_get)
+            // .service(forgot_password_post)
+            .service(verify_email_get)
+            .service(verify_email_post)
+            .service(reset_password_get)
+        // .service(reset_password_post)
     })
         .bind((ip, port))?
         .run().await

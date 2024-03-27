@@ -1,3 +1,5 @@
+use time::OffsetDateTime;
+
 use crate::models::database::student::Student;
 use crate::tests::{ setup_database, teardown_database };
 use crate::utils::random::generate_guid;
@@ -63,22 +65,25 @@ async fn test_update_student() {
         true
     ).await;
     let student_id = created_res.unwrap().last_insert_id() as i32;
-    // Assuming this is the first entry and hence has ID 1
-    let result = Student::update(
-        &pool,
-        student_id,
-        "Jane Doe",
-        "jane.doe@example.com",
-        "newpassword123",
-        true,
-        true,
-        true
-    ).await;
-    assert!(result.is_ok());
 
-    let student = Student::read(&pool, student_id).await.unwrap().unwrap();
-    assert_eq!(student.first_name, "Jane Doe");
-    assert_eq!(student.email_address, "jane.doe@example.com");
+    let student = Student {
+        student_id,
+        first_name: "Jane Doe".to_string(),
+        email_address: "jane.doe@example.com".to_string(),
+        password: "newpassword123".to_string(),
+        account_active: true,
+        email_verified: true,
+        over_13: true,
+        added_timestamp: Some(OffsetDateTime::now_utc()),
+        updated_timestamp: Some(OffsetDateTime::now_utc()),
+        deleted_timestamp: Some(OffsetDateTime::now_utc()),
+    };
+
+    student.update(&pool).await.unwrap();
+
+    let updated_student = Student::read(&pool, student_id).await.unwrap().unwrap();
+    assert_eq!(updated_student.first_name, "Jane Doe");
+    assert_eq!(updated_student.email_address, "jane.doe@example.com");
 
     teardown_database(&pool, &db_name).await.unwrap();
 }

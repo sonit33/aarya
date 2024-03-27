@@ -5,10 +5,11 @@ use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
 
+use crate::models::auth::signup::SignupModel;
 use crate::models::database::student::Student;
 use crate::models::database::verification_code::VerificationCode;
 use crate::models::default_response::{ ActionType, DefaultResponseModel, ResponseAction };
-use crate::models::signup::SignupModel;
+
 use crate::utils::email_sender::EmailSender;
 use crate::utils::hasher;
 use crate::utils::random::generate_guid;
@@ -55,7 +56,7 @@ pub async fn signup_post(
             &pool,
             &student.first_name,
             &student.email_address,
-            hasher::generate_password_hash(&student.password).unwrap().as_str(),
+            hasher::cook_hash(&student.password).unwrap().as_str(),
             student.over_13,
             false, // email_verified as false
             false // account_active as false
@@ -138,7 +139,7 @@ pub async fn signup_get(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Signup for Aarya");
 
-    match tera.render("auth_signup.html.tera", &context) {
+    match tera.render("auth_signup.html", &context) {
         Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
         Err(e) => {
             println!("Error rendering template: {}", e);

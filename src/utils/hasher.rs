@@ -1,6 +1,6 @@
 use bcrypt::{ hash, DEFAULT_COST };
 
-pub fn generate_password_hash(password: &str) -> Result<String, bcrypt::BcryptError> {
+pub fn cook_hash(password: &str) -> Result<String, bcrypt::BcryptError> {
     hash(password, DEFAULT_COST)
 }
 

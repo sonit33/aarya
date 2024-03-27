@@ -1,5 +1,6 @@
 pub mod default_response;
-pub mod login;
-pub mod signup;
+
+pub mod auth;
+
 #[allow(dead_code)]
 pub mod database;
