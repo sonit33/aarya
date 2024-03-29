@@ -20,3 +20,4 @@ sqlx = { version = "0.7.4", features = ["mysql", "runtime-tokio-native-tls", "ti
 time = "0.3.34"
 lettre = { version = "0.11.5", features = ["tokio1", "smtp-transport", "tokio1-native-tls"] }
 bcrypt = "0.15.1"
+crc32fast = "1.4.0"

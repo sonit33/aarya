@@ -9,7 +9,6 @@ use crate::models::auth::signup::SignupModel;
 use crate::models::database::student::Student;
 use crate::models::database::verification_code::VerificationCode;
 use crate::models::default_response::{ ActionType, DefaultResponseModel, ResponseAction };
-
 use crate::utils::email_sender::EmailSender;
 use crate::utils::hasher;
 use crate::utils::random::generate_guid;
@@ -22,11 +21,10 @@ pub async fn signup_post(
 ) -> impl Responder {
     // Validate the SignupModel
     if let Err(e) = model.validate() {
-        return HttpResponse::BadRequest().json(DefaultResponseModel::<()> {
-            message: format!("Validation error: {}", e),
-            payload: (),
+        return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
+            json_payload: format!("Validation error: {}", e),
             action: ResponseAction {
-                action_type: ActionType::Resolve,
+                action_type: ActionType::HandleError,
                 arg: "".to_string(),
             },
         });
@@ -39,6 +37,8 @@ pub async fn signup_post(
         student_id: 0,
         first_name: signup.display_name.clone(),
         email_address: signup.email.clone(),
+        student_id_hash: "".to_string(),
+        email_address_hash: "".to_string(),
         password: signup.password,
         over_13: signup.over_13,
         email_verified: false,
@@ -66,11 +66,10 @@ pub async fn signup_post(
             student_id = s.last_insert_id();
         }
         Err(e) => {
-            return HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
-                message: format!("Failed to create student: {}", e),
-                payload: (),
+            return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
+                json_payload: format!("Failed to create student: {}", e),
                 action: ResponseAction {
-                    action_type: ActionType::Resolve,
+                    action_type: ActionType::HandleError,
                     arg: "".to_string(),
                 },
             });
@@ -90,11 +89,10 @@ pub async fn signup_post(
     {
         Ok(_) => {}
         Err(e) => {
-            return HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
-                message: format!("Failed to generate verification code: {}", e),
-                payload: (),
+            return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
+                json_payload: format!("Failed to generate verification code: {}", e),
                 action: ResponseAction {
-                    action_type: ActionType::Resolve,
+                    action_type: ActionType::HandleError,
                     arg: "".to_string(),
                 },
             });
@@ -112,11 +110,10 @@ pub async fn signup_post(
     {
         Ok(_) => {}
         Err(e) => {
-            return HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
-                message: format!("Failed to send verification email: {}", e),
-                payload: (),
+            return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
+                json_payload: format!("Failed to send verification email: {}", e),
                 action: ResponseAction {
-                    action_type: ActionType::Resolve,
+                    action_type: ActionType::HandleError,
                     arg: "".to_string(),
                 },
             });
@@ -124,9 +121,8 @@ pub async fn signup_post(
     }
 
     // Success: send a 200 HTTP response
-    HttpResponse::Ok().json(DefaultResponseModel::<()> {
-        message: "Signup successful. Please check your email to verify your account.".to_string(),
-        payload: (),
+    HttpResponse::Ok().json(DefaultResponseModel::<String> {
+        json_payload: "Signup successful. Please check your email to verify your account.".to_string(),
         action: ResponseAction {
             action_type: ActionType::Redirect,
             arg: "/login".to_string(),

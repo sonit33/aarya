@@ -1,20 +1,19 @@
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, PartialEq, Debug)]
 pub enum ActionType {
-    Redirect,
-    Resolve,
+	Redirect,
+	HandleError,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct ResponseAction {
-    pub action_type: ActionType,
-    pub arg: String,
+	pub action_type: ActionType,
+	pub arg: String,
 }
 
 #[derive(Serialize, Deserialize)]
 pub struct DefaultResponseModel<T: Serialize> {
-    pub message: String,
-    pub payload: T,
-    pub action: ResponseAction,
+	pub json_payload: T,
+	pub action: ResponseAction,
 }

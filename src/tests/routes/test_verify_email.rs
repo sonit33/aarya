@@ -1,6 +1,5 @@
 use actix_web::{ test, web, App, http };
 use sqlx::{ MySql, Pool };
-use std::sync::Arc;
 
 use crate::{
     models::{

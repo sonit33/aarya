@@ -9,6 +9,7 @@ dependencies = [
  "actix-web",
  "async-trait",
  "bcrypt",
+ "crc32fast",
  "dotenv",
  "futures",
  "lettre",

@@ -1,11 +1,22 @@
+use serde::Serialize;
 use sqlx::{ Error, MySqlPool };
 use sqlx::mysql::MySqlQueryResult;
+
+pub trait Crudable {
+    fn create(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error>;
+    fn read(&self, pool: &MySqlPool) -> Result<Option<Student>, Error>;
+    fn read_by<T: Serialize>(&self, pool: &MySqlPool, key: T) -> Result<Option<Student>, Error>;
+    fn update(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error>;
+    fn delete(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error>;
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Student {
     pub student_id: i32,
     pub first_name: String,
     pub email_address: String,
+    pub email_address_hash: String,
+    pub student_id_hash: String,
     pub password: String,
     pub over_13: bool,
     pub email_verified: bool,

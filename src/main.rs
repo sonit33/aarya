@@ -3,7 +3,7 @@ use dotenv::from_filename;
 use sqlx::MySqlPool;
 use tera::Tera;
 
-use crate::routes::auth::forgot_password::forgot_password_get;
+use crate::routes::auth::forgot_password::{ forgot_password_email_get, forgot_password_email_post };
 use crate::routes::auth::login::{ login_get, login_post };
 use crate::routes::auth::reset_password::reset_password_get;
 use crate::routes::auth::signup::{ signup_get, signup_post };
@@ -13,7 +13,7 @@ use crate::utils::environ::Environ;
 
 mod models;
 mod routes;
-mod utils;
+pub mod utils;
 #[cfg(test)]
 mod tests;
 mod traits;
@@ -54,12 +54,11 @@ async fn main() -> std::io::Result<()> {
             .service(signup_get)
             .service(login_get)
             .service(login_post)
-            .service(forgot_password_get)
-            // .service(forgot_password_post)
+            .service(forgot_password_email_get)
+            .service(forgot_password_email_post)
             .service(verify_email_get)
             .service(verify_email_post)
             .service(reset_password_get)
-        // .service(reset_password_post)
     })
         .bind((ip, port))?
         .run().await

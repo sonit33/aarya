@@ -1,4 +1,4 @@
-use actix_web::{ get, post, web, HttpResponse, Responder };
+use actix_web::{ get, HttpResponse, post, Responder, web };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
@@ -14,14 +14,12 @@ pub async fn verify_email_post(
     pool: web::Data<MySqlPool>,
     model: web::Json<VerifyEmailModel>
 ) -> impl Responder {
-    println!("***verify_email_post***");
     // Validate the request model
     if let Err(e) = model.validate() {
-        return HttpResponse::BadRequest().json(DefaultResponseModel::<()> {
-            message: format!("Validation error: {}", e),
-            payload: (),
+        return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
+            json_payload: format!("Validation error: {}", e),
             action: ResponseAction {
-                action_type: ActionType::Resolve,
+                action_type: ActionType::HandleError,
                 arg: "".to_string(),
             },
         });
@@ -38,9 +36,8 @@ pub async fn verify_email_post(
                     student.email_verified = true;
                     match student.update(&pool).await {
                         Ok(_) =>
-                            HttpResponse::Ok().json(DefaultResponseModel::<()> {
-                                message: "Email verified successfully.".to_string(),
-                                payload: (),
+                            HttpResponse::Ok().json(DefaultResponseModel::<String> {
+                                json_payload: "Email verified successfully.".to_string(),
                                 // Assuming redirect logic is determined client-side for simplicity
                                 action: ResponseAction {
                                     action_type: ActionType::Redirect,
@@ -48,32 +45,31 @@ pub async fn verify_email_post(
                                 },
                             }),
                         Err(_) =>
-                            HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
-                                message: "Failed to update student record.".to_string(),
-                                payload: (),
-                                action: ResponseAction {
-                                    action_type: ActionType::Resolve,
-                                    arg: "".to_string(),
-                                },
-                            }),
+                            HttpResponse::InternalServerError().json(
+                                DefaultResponseModel::<String> {
+                                    json_payload: "Failed to update student record.".to_string(),
+                                    action: ResponseAction {
+                                        action_type: ActionType::HandleError,
+                                        arg: "".to_string(),
+                                    },
+                                }
+                            ),
                     }
                 }
                 Ok(Some(_)) =>
-                    HttpResponse::BadRequest().json(DefaultResponseModel::<()> {
-                        message: "Invalid verification code.".to_string(),
-                        payload: (),
+                    HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
+                        json_payload: "Invalid verification code.".to_string(),
                         action: ResponseAction {
-                            action_type: ActionType::Resolve,
+                            action_type: ActionType::HandleError,
                             arg: "resend_code".to_string(), // Indicate action to resend verification email
                         },
                     }),
                 Ok(None) => {
                     eprintln!("Verification code not found.");
-                    HttpResponse::NotFound().json(DefaultResponseModel::<()> {
-                        message: "Verification code not found.".to_string(),
-                        payload: (),
+                    HttpResponse::NotFound().json(DefaultResponseModel::<String> {
+                        json_payload: "Verification code not found.".to_string(),
                         action: ResponseAction {
-                            action_type: ActionType::Resolve,
+                            action_type: ActionType::HandleError,
                             arg: "".to_string(),
                         },
                     })
@@ -81,11 +77,10 @@ pub async fn verify_email_post(
 
                 Err(e) => {
                     eprintln!("{:?}", e);
-                    HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
-                        message: "Error fetching verification code.".to_string(),
-                        payload: (),
+                    HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
+                        json_payload: "Error fetching verification code.".to_string(),
                         action: ResponseAction {
-                            action_type: ActionType::Resolve,
+                            action_type: ActionType::HandleError,
                             arg: "".to_string(),
                         },
                     })
@@ -93,21 +88,19 @@ pub async fn verify_email_post(
             }
         }
         Ok(None) =>
-            HttpResponse::NotFound().json(DefaultResponseModel::<()> {
-                message: "Email address not registered.".to_string(),
-                payload: (),
+            HttpResponse::NotFound().json(DefaultResponseModel::<String> {
+                json_payload: "Email address not registered.".to_string(),
                 action: ResponseAction {
-                    action_type: ActionType::Resolve,
+                    action_type: ActionType::HandleError,
                     arg: "signup".to_string(), // Indicate action to navigate to signup page
                 },
             }),
         Err(e) => {
             eprintln!("{:?}", e);
-            HttpResponse::InternalServerError().json(DefaultResponseModel::<()> {
-                message: "Database error.".to_string(),
-                payload: (),
+            HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
+                json_payload: "Database error.".to_string(),
                 action: ResponseAction {
-                    action_type: ActionType::Resolve,
+                    action_type: ActionType::HandleError,
                     arg: "".to_string(),
                 },
             })

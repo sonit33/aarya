@@ -71,6 +71,8 @@ async fn test_update_student() {
         first_name: "Jane Doe".to_string(),
         email_address: "jane.doe@example.com".to_string(),
         password: "newpassword123".to_string(),
+        student_id_hash: "".to_string(),
+        email_address_hash: "".to_string(),
         account_active: true,
         email_verified: true,
         over_13: true,

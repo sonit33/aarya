@@ -46,23 +46,31 @@ create index idx_question_course
 
 create table students
 (
-    student_id        int auto_increment
+    student_id         int auto_increment
         primary key,
-    first_name        varchar(255)                          not null,
-    email_address     varchar(255)                          not null,
-    password          varchar(255)                          not null,
-    over_13           bit                                   not null,
-    email_verified    bit                                   not null,
-    account_active    bit                                   not null,
-    added_timestamp   timestamp default current_timestamp() null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    deleted_timestamp timestamp                             null,
+    student_id_hash    varchar(255)                          not null,
+    first_name         varchar(255)                          not null,
+    email_address      varchar(255)                          not null,
+    email_address_hash varchar(255)                          not null,
+    password           varchar(255)                          not null,
+    over_13            bit                                   not null,
+    email_verified     bit                                   not null,
+    account_active     bit                                   not null,
+    added_timestamp    timestamp default current_timestamp() null,
+    updated_timestamp  timestamp default current_timestamp() null on update current_timestamp(),
+    deleted_timestamp  timestamp                             null,
     constraint email_address
         unique (email_address)
 );
 
 create index idx_student_email
     on students (email_address);
+
+create index students_email_address_hash_index
+    on students (email_address_hash);
+
+create index students_student_id_hash_index
+    on students (student_id_hash);
 
 create table teachers
 (
