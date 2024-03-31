@@ -1,17 +1,9 @@
-use actix_web::{ get, web, HttpResponse, Responder };
+use actix_web::{ get, post, web, HttpResponse, Responder };
 use serde::{ Deserialize, Serialize };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 
 use crate::{ models::database::student::Student, utils::timestamps };
-
-// #[post("/reset-password")]
-// pub async fn reset_password_post() -> impl Responder {
-//     // accept email address, verification code, and new passwords
-//     // verify email address and code
-//     // if verified then change the password
-//     // if not verified then redirect to /verify
-// }
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Base64ResetPasswordModel {
@@ -36,6 +28,16 @@ fn extract_values(s: &str) -> (Option<&str>, Option<&str>) {
     }
 
     (e, t)
+}
+
+fn render_template(tera: &Tera, path: &str, context: &Context) -> HttpResponse {
+    match tera.render("auth/reset-password.html", context) {
+        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
+        Err(e) => {
+            println!("Error rendering template: {}", e);
+            HttpResponse::InternalServerError().finish()
+        }
+    }
 }
 
 #[get("/reset-password")]
@@ -69,45 +71,30 @@ pub async fn reset_password_get(
                     log::debug!("{} {} {}", t, timestamps::get_unix_timestamp(), days);
                     if days == 0 {
                         // show the password reset text boxes
-                        match tera.render("auth/reset-password.html", &context) {
-                            Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-                            Err(e) => {
-                                println!("Error rendering template: {}", e);
-                                HttpResponse::InternalServerError().finish()
-                            }
-                        }
+                        render_template(&tera, "auth/reset_password.html", &context)
                     } else {
                         context.insert("error", "link has expired");
-                        match tera.render("auth/reset-password.html", &context) {
-                            Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-                            Err(e) => {
-                                println!("Error rendering template: {}", e);
-                                HttpResponse::InternalServerError().finish()
-                            }
-                        }
+                        render_template(&tera, "auth/reset_password.html", &context)
                     }
                 }
                 Err(_) => {
                     context.insert("error", "invalid link: timestamp");
-                    match tera.render("auth/reset-password.html", &context) {
-                        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-                        Err(e) => {
-                            println!("Error rendering template: {}", e);
-                            HttpResponse::InternalServerError().finish()
-                        }
-                    }
+                    render_template(&tera, "auth/reset_password.html", &context)
                 }
             }
         }
         Err(_) => {
             context.insert("error", "invalid link: email");
-            match tera.render("auth/reset-password.html", &context) {
-                Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-                Err(e) => {
-                    println!("Error rendering template: {}", e);
-                    HttpResponse::InternalServerError().finish()
-                }
-            }
+            render_template(&tera, "auth/reset_password.html", &context)
         }
     }
+}
+
+#[post("/reset-password")]
+pub async fn reset_password_post(
+    tera: web::Data<Tera>,
+    pool: web::Data<MySqlPool>
+) -> impl Responder {
+    let context = Context::new();
+    render_template(&tera, "auth/reset_password.html", &context)
 }
