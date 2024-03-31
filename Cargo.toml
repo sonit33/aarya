@@ -21,3 +21,6 @@ time = "0.3.34"
 lettre = { version = "0.11.5", features = ["tokio1", "smtp-transport", "tokio1-native-tls"] }
 bcrypt = "0.15.1"
 crc32fast = "1.4.0"
+url = "2.5.0"
+log = "0.4.21"
+env_logger = {version = "0.11.3", features = ["auto-color"]}

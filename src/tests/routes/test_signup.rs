@@ -13,12 +13,7 @@ use crate::{
 async fn test_signup_post_success() {
     let db_name = generate_guid(8);
     let mock_pool = setup_database(&db_name).await;
-    let mock_email_sender = EmailSender::new(
-        "server".to_string(),
-        0,
-        "username".to_string(),
-        "password".to_string()
-    );
+    let mock_email_sender = EmailSender {};
 
     let app = test::init_service(
         App::new()
@@ -50,12 +45,7 @@ async fn test_signup_post_validation_failure() {
     let db_name = generate_guid(8);
     let mock_pool = setup_database(&db_name).await;
 
-    let mock_email_sender = EmailSender::new(
-        "server".to_string(),
-        0,
-        "username".to_string(),
-        "password".to_string()
-    ); // Define this function to setup a mock email sender
+    let mock_email_sender = EmailSender {}; // Define this function to setup a mock email sender
 
     let app = test::init_service(
         App::new()

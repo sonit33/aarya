@@ -45,7 +45,7 @@ async fn test_read_student() {
     let student = result.unwrap();
     assert!(student.is_some());
     let student = student.unwrap();
-    assert_eq!(student.student_id, student_id);
+    assert_eq!(student.student_id.unwrap(), student_id);
 
     teardown_database(&pool, &db_name).await.unwrap();
 }
@@ -67,12 +67,12 @@ async fn test_update_student() {
     let student_id = created_res.unwrap().last_insert_id() as i32;
 
     let student = Student {
-        student_id,
+        student_id: Some(student_id),
         first_name: "Jane Doe".to_string(),
         email_address: "jane.doe@example.com".to_string(),
         password: "newpassword123".to_string(),
-        student_id_hash: "".to_string(),
-        email_address_hash: "".to_string(),
+        id_hash: "".to_string(),
+        email_hash: "".to_string(),
         account_active: true,
         email_verified: true,
         over_13: true,

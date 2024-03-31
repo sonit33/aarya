@@ -7,11 +7,9 @@ use validator::Validate;
 
 use crate::models::auth::signup::SignupModel;
 use crate::models::database::student::Student;
-use crate::models::database::verification_code::VerificationCode;
 use crate::models::default_response::{ ActionType, DefaultResponseModel, ResponseAction };
 use crate::utils::email_sender::EmailSender;
 use crate::utils::hasher;
-use crate::utils::random::generate_guid;
 
 #[post("/signup")]
 pub async fn signup_post(
@@ -34,11 +32,11 @@ pub async fn signup_post(
 
     // Transform SignupModel into Student
     let student = Student {
-        student_id: 0,
+        student_id: Some(-1),
         first_name: signup.display_name.clone(),
         email_address: signup.email.clone(),
-        student_id_hash: "".to_string(),
-        email_address_hash: "".to_string(),
+        id_hash: "".to_string(),
+        email_hash: "".to_string(),
         password: signup.password,
         over_13: signup.over_13,
         email_verified: false,
@@ -48,7 +46,7 @@ pub async fn signup_post(
         deleted_timestamp: None,
     };
 
-    let student_id;
+    // let student_id;
 
     // Save the Student in the database
     match
@@ -62,8 +60,8 @@ pub async fn signup_post(
             false // account_active as false
         ).await
     {
-        Ok(s) => {
-            student_id = s.last_insert_id();
+        Ok(_) => {
+            // student_id = s.last_insert_id();
         }
         Err(e) => {
             return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
@@ -77,35 +75,18 @@ pub async fn signup_post(
     }
 
     // Generate a verification code
-    let verification_code = generate_guid(8); // Placeholder for generated code
+    // let verification_code = generate_guid(8); // Placeholder for generated code
+    // generate a link that completes the email verification
 
-    // save the verification code
-    match
-        VerificationCode::create_or_update_student_code(
-            &pool,
-            student_id as i32,
-            &verification_code
-        ).await
-    {
-        Ok(_) => {}
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
-                json_payload: format!("Failed to generate verification code: {}", e),
-                action: ResponseAction {
-                    action_type: ActionType::HandleError,
-                    arg: "".to_string(),
-                },
-            });
-        }
-    }
+    let link = "/verify-email/<email-hash>::<code-hash>::<timestamp>";
 
     // Email the verification code
     match
         email_sender.send_email(
             "admin@aarya.ai",
             &student.email_address,
-            "Verification Code",
-            &verification_code
+            format!("{} activate your Aarya account", &student.first_name).as_str(),
+            &link
         ).await
     {
         Ok(_) => {}
@@ -135,7 +116,7 @@ pub async fn signup_get(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Signup for Aarya");
 
-    match tera.render("auth_signup.html", &context) {
+    match tera.render("auth/signup.html", &context) {
         Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
         Err(e) => {
             println!("Error rendering template: {}", e);
