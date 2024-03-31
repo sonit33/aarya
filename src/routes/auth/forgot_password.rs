@@ -1,5 +1,4 @@
-use actix_web::web::Redirect;
-use actix_web::{ body, get, post, web, HttpResponse, Responder };
+use actix_web::{ get, post, web, HttpResponse, Responder };
 use serde::{ Deserialize, Serialize };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
@@ -20,7 +19,7 @@ struct Form {
 }
 
 // emails a password reset link to the user
-#[post("/forgot-password/verify-email")]
+#[post("/forgot-password")]
 pub async fn forgot_password_email_post(
     pool: web::Data<MySqlPool>,
     email_sender: web::Data<EmailSender>,
@@ -102,12 +101,7 @@ pub async fn forgot_password_email_post(
 }
 
 #[get("/forgot-password")]
-pub async fn forgot_password_get() -> impl Responder {
-    Redirect::to("/forgot-password/verify-email").permanent()
-}
-
-#[get("/forgot-password/verify-email")]
-pub async fn forgot_password_email_get(tera: web::Data<Tera>) -> impl Responder {
+pub async fn forgot_password_get(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Forgot password?");
 

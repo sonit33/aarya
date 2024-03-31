@@ -4,7 +4,6 @@ use sqlx::MySqlPool;
 use tera::Tera;
 
 use crate::routes::auth::forgot_password::{
-    forgot_password_email_get,
     forgot_password_email_post,
     forgot_password_email_sent_get,
     forgot_password_get,
@@ -35,16 +34,6 @@ async fn main() -> std::io::Result<()> {
     let ip = "127.0.0.1";
     let port = 8080;
 
-    // log::debug!("{:?}", hasher::fast_hash("1"));
-    // log::debug!("{:?}", hasher::fast_hash("jon@abc.com"));
-    // log::debug!("{:?}", hasher::cook_hash("12345678"));
-    // log::debug!("{:?}", hasher::fast_hash("2"));
-    // log::debug!("{:?}", hasher::fast_hash("jane@abc.com"));
-    // log::debug!("{:?}", hasher::cook_hash("12345678"));
-    // log::debug!("{:?}", hasher::fast_hash("3"));
-    // log::debug!("{:?}", hasher::fast_hash("joe@abc.com"));
-    // log::debug!("{:?}", hasher::cook_hash("12345678"));
-
     println!("Actix running on http://{ip}:{port}");
 
     let env_default = Environ::default();
@@ -69,7 +58,6 @@ async fn main() -> std::io::Result<()> {
             .service(login_get)
             .service(login_post)
             .service(forgot_password_get)
-            .service(forgot_password_email_get)
             .service(forgot_password_email_post)
             .service(forgot_password_email_sent_get)
             .service(verify_email_get)
