@@ -30,5 +30,3 @@ mod test_question_topic;
 mod test_test_topic;
 #[cfg(test)]
 mod test_tutoring;
-#[cfg(test)]
-mod test_verification_code;

@@ -46,19 +46,19 @@ create index idx_question_course
 
 create table students
 (
-    student_id         int auto_increment
+    student_id        int auto_increment
         primary key,
-    student_id_hash    varchar(255)                          not null,
-    first_name         varchar(255)                          not null,
-    email_address      varchar(255)                          not null,
-    email_address_hash varchar(255)                          not null,
-    password           varchar(255)                          not null,
-    over_13            bit                                   not null,
-    email_verified     bit                                   not null,
-    account_active     bit                                   not null,
-    added_timestamp    timestamp default current_timestamp() null,
-    updated_timestamp  timestamp default current_timestamp() null on update current_timestamp(),
-    deleted_timestamp  timestamp                             null,
+    id_hash           varchar(255)                          not null,
+    first_name        varchar(255)                          not null,
+    email_address     varchar(255)                          not null,
+    email_hash        varchar(255)                          not null,
+    password          varchar(255)                          not null,
+    over_13           bit                                   not null,
+    email_verified    bit                                   not null,
+    account_active    bit                                   not null,
+    added_timestamp   timestamp default current_timestamp() null,
+    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
+    deleted_timestamp timestamp                             null,
     constraint email_address
         unique (email_address)
 );
@@ -67,10 +67,12 @@ create index idx_student_email
     on students (email_address);
 
 create index students_email_address_hash_index
-    on students (email_address_hash);
+    on students (email_hash);
 
 create index students_student_id_hash_index
-    on students (student_id_hash);
+    on students (id_hash);
+
+
 
 create table teachers
 (
@@ -300,21 +302,15 @@ create index student_id
 create index teacher_id
     on tutoring (teacher_id);
 
-create table verification_codes
-(
-    code              varchar(20)                           not null,
-    student_id        int                                   null,
-    teacher_id        int                                   null,
-    added_timestamp   timestamp default current_timestamp() not null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp()
-);
 
-create index verification_codes_students_student_id_fk
-    on verification_codes (student_id);
+insert into students(student_id, id_hash, first_name, email_address, email_hash, password, over_13, email_verified, account_active)
+values(1, '83dcefb7','John','jon@abc.com', '29599b12', '$2b$12$kXgej2NgVd6RJu9WxjiBS.E57vHpQrMqm7Cg9rY9LvosTyisKuwHS',true,false,false);
 
-create index verification_codes_teachers_teacher_id_fk
-    on verification_codes (teacher_id);
+insert into students(student_id, id_hash, first_name, email_address, email_hash, password, over_13, email_verified, account_active)
+values(2, '1ad5be0d','Jane','jane@abc.com', 'b5d81a5f', '$2b$12$3hMwKn9QM4Zc2.t3/pX9PupgD.fjryIrCnonUlgKIwjtxxfwIhm4i',true,false,false);
 
+insert into students(student_id, id_hash, first_name, email_address, email_hash, password, over_13, email_verified, account_active)
+values(3, '6dd28e9b','Joe','joe@abc.com', 'ab0c05cf', '$2b$12$VVeWdlCP9u3pthuClIYWluOeoUyXt8BreRBqk42U49ynaUZ54R9ru',true,false,false);
 
 
 

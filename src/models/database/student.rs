@@ -1,22 +1,15 @@
-use serde::Serialize;
 use sqlx::{ Error, MySqlPool };
 use sqlx::mysql::MySqlQueryResult;
 
-pub trait Crudable {
-    fn create(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error>;
-    fn read(&self, pool: &MySqlPool) -> Result<Option<Student>, Error>;
-    fn read_by<T: Serialize>(&self, pool: &MySqlPool, key: T) -> Result<Option<Student>, Error>;
-    fn update(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error>;
-    fn delete(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error>;
-}
+use crate::utils::{ hasher, random };
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Student {
-    pub student_id: i32,
+    pub student_id: Option<i32>,
+    pub id_hash: String,
     pub first_name: String,
     pub email_address: String,
-    pub email_address_hash: String,
-    pub student_id_hash: String,
+    pub email_hash: String,
     pub password: String,
     pub over_13: bool,
     pub email_verified: bool,
@@ -24,6 +17,25 @@ pub struct Student {
     pub added_timestamp: Option<time::OffsetDateTime>,
     pub updated_timestamp: Option<time::OffsetDateTime>,
     pub deleted_timestamp: Option<time::OffsetDateTime>,
+}
+
+impl Student {
+    fn random(hash: &str) -> Self {
+        Student {
+            student_id: Some(0),
+            first_name: hash.to_string(),
+            email_address: format!("{}@email.com", hash),
+            email_hash: hasher::fast_hash(format!("{}@email.com", hash).as_str()),
+            id_hash: hasher::fast_hash(&hash),
+            password: hash.to_string(),
+            over_13: true,
+            email_verified: false,
+            account_active: false,
+            added_timestamp: Some(time::OffsetDateTime::now_utc()),
+            updated_timestamp: Some(time::OffsetDateTime::now_utc()),
+            deleted_timestamp: Some(time::OffsetDateTime::now_utc()),
+        }
+    }
 }
 
 impl Student {
@@ -36,12 +48,16 @@ impl Student {
         email_verified: bool,
         account_active: bool
     ) -> Result<MySqlQueryResult, Error> {
+        let id_hash = hasher::fast_hash(&random::generate_guid(8));
+        let email_hash = hasher::cook_hash(email_address).unwrap();
         let res = sqlx
             ::query(
-                "INSERT INTO students (first_name, email_address, password, over_13, email_verified, account_active) VALUES (?, ?, ?, ?, ?, ?)"
+                "INSERT INTO students (id_hash, first_name, email_address, email_hash, password, over_13, email_verified, account_active) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
             )
+            .bind(id_hash)
             .bind(first_name)
             .bind(email_address)
+            .bind(email_hash)
             .bind(password)
             .bind(over_13)
             .bind(email_verified)
@@ -78,14 +94,29 @@ impl Student {
         }
     }
 
+    pub async fn read_by_email_hash(
+        pool: &MySqlPool,
+        email_hash: &str
+    ) -> Result<Option<Student>, Error> {
+        let student = sqlx
+            ::query_as::<_, Student>("SELECT * FROM students WHERE email_hash = ?")
+            .bind(email_hash)
+            .fetch_optional(pool).await;
+        match student {
+            Ok(result) => Ok(result),
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn update(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
+        let email_hash = hasher::cook_hash(&self.email_address).unwrap();
         let res = sqlx
             ::query(
-                "UPDATE students SET first_name = ?, email_address = ?, over_13 = ?, email_verified = ?, account_active = ? WHERE student_id = ?"
+                "UPDATE students SET first_name = ?, email_address = ?, email_hash = ?, over_13 = ?, email_verified = ?, account_active = ? WHERE student_id = ?"
             )
             .bind(&self.first_name)
             .bind(&self.email_address)
-            // .bind(password)
+            .bind(email_hash)
             .bind(&self.over_13)
             .bind(&self.email_verified)
             .bind(&self.account_active)

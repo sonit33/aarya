@@ -16,7 +16,7 @@ async fn login_get(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Login to Aarya");
 
-    match tera.render("auth_login.html", &context) {
+    match tera.render("auth/login.html", &context) {
         Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
         Err(e) => {
             println!("Error rendering template: {}", e);

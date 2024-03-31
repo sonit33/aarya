@@ -3,7 +3,11 @@ use dotenv::from_filename;
 use sqlx::MySqlPool;
 use tera::Tera;
 
-use crate::routes::auth::forgot_password::{ forgot_password_email_get, forgot_password_email_post };
+use crate::routes::auth::forgot_password::{
+    forgot_password_email_post,
+    forgot_password_email_sent_get,
+    forgot_password_get,
+};
 use crate::routes::auth::login::{ login_get, login_post };
 use crate::routes::auth::reset_password::reset_password_get;
 use crate::routes::auth::signup::{ signup_get, signup_post };
@@ -25,6 +29,8 @@ async fn main() -> std::io::Result<()> {
 
     from_filename(env_file).ok();
 
+    env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
+
     let ip = "127.0.0.1";
     let port = 8080;
 
@@ -32,18 +38,15 @@ async fn main() -> std::io::Result<()> {
 
     let env_default = Environ::default();
 
+    log::debug!("{:?}", env_default);
+
     let database_url = env_default.db_connection_string;
     let pool = MySqlPool::connect(database_url.as_str()).await.expect(
         "Failed to connect to database"
     );
     let tera = Tera::new("templates/**/*").expect("Failed to initialize Tera");
-    let e_port: Result<u16, _> = env_default.email_port.parse();
-    let email_sender = EmailSender::new(
-        env_default.email_server,
-        e_port.unwrap(),
-        env_default.email_username,
-        env_default.email_password
-    );
+    // let e_port: Result<u16, _> = env_default.email_port.parse();
+    let email_sender = EmailSender {};
 
     HttpServer::new(move || {
         App::new()
@@ -54,8 +57,9 @@ async fn main() -> std::io::Result<()> {
             .service(signup_get)
             .service(login_get)
             .service(login_post)
-            .service(forgot_password_email_get)
+            .service(forgot_password_get)
             .service(forgot_password_email_post)
+            .service(forgot_password_email_sent_get)
             .service(verify_email_get)
             .service(verify_email_post)
             .service(reset_password_get)

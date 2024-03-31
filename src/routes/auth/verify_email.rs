@@ -5,7 +5,7 @@ use validator::Validate;
 
 use crate::models::{
     auth::verify_email::VerifyEmailModel,
-    database::{ student::Student, verification_code::VerificationCode },
+    database::student::Student,
     default_response::{ ActionType, DefaultResponseModel, ResponseAction },
 };
 
@@ -30,61 +30,26 @@ pub async fn verify_email_post(
     match Student::read_by_email(&pool, &verify_email.email).await {
         Ok(Some(mut student)) => {
             // Read the verification code for the student
-            match VerificationCode::read_student_code(pool.get_ref(), student.student_id).await {
-                Ok(Some(code)) if code.code == verify_email.verification_code => {
-                    student.account_active = true;
-                    student.email_verified = true;
-                    match student.update(&pool).await {
-                        Ok(_) =>
-                            HttpResponse::Ok().json(DefaultResponseModel::<String> {
-                                json_payload: "Email verified successfully.".to_string(),
-                                // Assuming redirect logic is determined client-side for simplicity
-                                action: ResponseAction {
-                                    action_type: ActionType::Redirect,
-                                    arg: "/login".to_string(), // Placeholder
-                                },
-                            }),
-                        Err(_) =>
-                            HttpResponse::InternalServerError().json(
-                                DefaultResponseModel::<String> {
-                                    json_payload: "Failed to update student record.".to_string(),
-                                    action: ResponseAction {
-                                        action_type: ActionType::HandleError,
-                                        arg: "".to_string(),
-                                    },
-                                }
-                            ),
-                    }
-                }
-                Ok(Some(_)) =>
-                    HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
-                        json_payload: "Invalid verification code.".to_string(),
+            student.account_active = true;
+            student.email_verified = true;
+            match student.update(&pool).await {
+                Ok(_) =>
+                    HttpResponse::Ok().json(DefaultResponseModel::<String> {
+                        json_payload: "Email verified successfully.".to_string(),
+                        // Assuming redirect logic is determined client-side for simplicity
                         action: ResponseAction {
-                            action_type: ActionType::HandleError,
-                            arg: "resend_code".to_string(), // Indicate action to resend verification email
+                            action_type: ActionType::Redirect,
+                            arg: "/login".to_string(), // Placeholder
                         },
                     }),
-                Ok(None) => {
-                    eprintln!("Verification code not found.");
-                    HttpResponse::NotFound().json(DefaultResponseModel::<String> {
-                        json_payload: "Verification code not found.".to_string(),
-                        action: ResponseAction {
-                            action_type: ActionType::HandleError,
-                            arg: "".to_string(),
-                        },
-                    })
-                }
-
-                Err(e) => {
-                    eprintln!("{:?}", e);
+                Err(_) =>
                     HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
-                        json_payload: "Error fetching verification code.".to_string(),
+                        json_payload: "Failed to update student record.".to_string(),
                         action: ResponseAction {
                             action_type: ActionType::HandleError,
                             arg: "".to_string(),
                         },
-                    })
-                }
+                    }),
             }
         }
         Ok(None) =>
