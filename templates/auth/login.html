@@ -1,21 +1,26 @@
 {% extends "base.html" %} {% block content %}
-<div class="login-form">
+<div id="form-container">
   <form
     action="/login"
     id="loginForm"
     method="POST">
-    <label for="email">Email</label>
+    <label for="email_address">Email</label>
     <input
       data-email="true"
+      data-minlength="3"
       data-required="true"
-      id="email"
-      name="email"
+      data-maxlength="50"
+      data-label="Email Address"
+      id="email_address"
+      name="email_address"
       type="email" />
 
     <label for="password">Password</label>
     <input
       data-minlength="6"
+      data-maxlength="20"
       data-required="true"
+      data-label="Password"
       id="password"
       name="password"
       type="password" />
@@ -28,12 +33,88 @@
       type="checkbox" />
 
     <button type="submit">Login</button>
-    <a href="/forgot-password/verify-email">Forgot Password</a>
+    <a href="/forgot-password">Forgot Password</a>
     <a href="/signup">Signup for a new account</a>
   </form>
   <div id="formErrors"></div>
 </div>
-<script
-  src="/static/form-validator.js"
-  type="application/javascript"></script>
+<script>
+  $(document).ready(function () {
+    $("#loginForm").submit(function (e) {
+      e.preventDefault();
+      let errors = [];
+      $("#formErrors").empty();
+
+      // validate
+      $(e.currentTarget)
+        .find("input")
+        .each(function () {
+          let $input = $(this);
+          let value = $input.val();
+          let required = $input.data("required");
+          let minlength = $input.data("minlength");
+          let maxlength = $input.data("maxlength");
+          let email = $input.data("email");
+          let match = $input.data("match");
+
+          if (required && !value) {
+            errors.push($input.data("label") + " is required.");
+          }
+
+          if (value && minlength && value.length < minlength) {
+            errors.push($input.data("label") + " must be at least " + minlength + " characters.");
+          }
+
+          if (value && email && !/^\S+@\S+\.\S+$/.test(value)) {
+            errors.push($input.attr("name") + " must be a valid email address.");
+          }
+        });
+
+      if (errors.length > 0) {
+        $.each(errors, function (i, error) {
+          $("#formErrors").append($("<div>").text(error));
+        });
+        return;
+      }
+
+      // submit form
+      var formData = $(e.currentTarget).serializeArray(); // Serialize form data
+      var jsonData = {};
+      $.each(formData, function () {
+        jsonData[this.name] = this.value;
+      });
+
+      //console.log(formData);
+
+      jsonData = {
+        ...jsonData,
+        stay_signed_in: jsonData.stay_signed_in === "on",
+      };
+
+      console.log(jsonData);
+
+      $.ajax({
+        url: "/login",
+        type: "POST",
+        contentType: "application/json", // Specify the content type as JSON
+        data: JSON.stringify(jsonData), // Convert the JSON object to a JSON string
+        success: function (response) {
+          if (response.action && response.action.action_type == "Redirect") {
+            window.location = response.action.arg;
+          }
+        },
+        error: function (xhr) {
+          console.log(xhr);
+          var response = xhr.responseJSON;
+          if (response.action && response.action.action_type == "HandleError") {
+            $("<p>" + response.action.arg + "</p>").appendTo("#formErrors");
+            $("<p>If you are a new user, you can <a href='/signup'>signup</a>.</p>").appendTo(
+              "#formErrors"
+            );
+          }
+        },
+      });
+    });
+  });
+</script>
 {% endblock %}

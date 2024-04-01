@@ -109,14 +109,15 @@ impl Student {
     }
 
     pub async fn update(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
-        let email_hash = hasher::cook_hash(&self.email_address).unwrap();
+        let email_hash = hasher::fast_hash(&self.email_address);
         let res = sqlx
             ::query(
-                "UPDATE students SET first_name = ?, email_address = ?, email_hash = ?, over_13 = ?, email_verified = ?, account_active = ? WHERE student_id = ?"
+                "UPDATE students SET first_name = ?, email_address = ?, email_hash = ?, password = ?, over_13 = ?, email_verified = ?, account_active = ? WHERE student_id = ?"
             )
             .bind(&self.first_name)
             .bind(&self.email_address)
             .bind(email_hash)
+            .bind(&self.password)
             .bind(&self.over_13)
             .bind(&self.email_verified)
             .bind(&self.account_active)
