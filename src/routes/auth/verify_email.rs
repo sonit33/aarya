@@ -27,7 +27,7 @@ pub async fn verify_email_post(
 
     let verify_email = model.into_inner();
 
-    match Student::read_by_email(&pool, &verify_email.email).await {
+    match Student::read_by_email(&pool, &verify_email.email_address).await {
         Ok(Some(mut student)) => {
             // Read the verification code for the student
             student.account_active = true;

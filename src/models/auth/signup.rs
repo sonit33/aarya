@@ -1,7 +1,7 @@
 // models/model_signup
 
-use serde::{Deserialize, Serialize};
-use validator::{Validate, ValidationError};
+use serde::{ Deserialize, Serialize };
+use validator::{ Validate, ValidationError };
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct SignupModel {
@@ -11,9 +11,9 @@ pub struct SignupModel {
     pub display_name: String,
     #[validate(email, length(min = 3, max = 50), custom(function = "is_unique"))]
     pub email: String,
-    #[validate(length(min = 3, max = 15))]
+    #[validate(length(min = 6, max = 15))]
     pub password: String,
-    #[validate(length(min = 3, max = 15))]
+    #[validate(length(min = 6, max = 15))]
     #[validate(must_match(other = "password"))]
     pub confirm_password: String,
     #[validate(custom(function = "must_be_true"))]

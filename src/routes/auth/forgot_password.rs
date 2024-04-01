@@ -2,7 +2,9 @@ use actix_web::{ get, post, web, HttpResponse, Responder };
 use serde::{ Deserialize, Serialize };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
+use validator::Validate;
 
+use crate::models::auth::verify_email::VerifyEmailModel;
 use crate::models::database::student::Student;
 use crate::models::default_response::{ ActionType, DefaultResponseModel, ResponseAction };
 use crate::utils::encoder::UrlEncoderDecoder;
@@ -13,27 +15,32 @@ pub struct EmailSentModel {
     pub e: String,
 }
 
-#[derive(Serialize, Deserialize, Debug)]
-struct Form {
-    pub email_address: String,
-}
-
 // emails a password reset link to the user
 #[post("/forgot-password")]
 pub async fn forgot_password_email_post(
     pool: web::Data<MySqlPool>,
     email_sender: web::Data<EmailSender>,
-    form: web::Json<Form>
+    model: web::Json<VerifyEmailModel>
 ) -> impl Responder {
-    match Student::read_by_email(&pool, &form.email_address).await {
+    // validate the model
+    if let Err(e) = model.validate() {
+        return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
+            json_payload: format!("Validation error: {}", e),
+            action: ResponseAction {
+                action_type: ActionType::HandleError,
+                arg: "".to_string(),
+            },
+        });
+    }
+    match Student::read_by_email(&pool, &model.email_address).await {
         Ok(result) => {
             match result {
                 None => {
                     HttpResponse::NotFound().json(DefaultResponseModel::<String> {
-                        json_payload: format!("Email address {} not found", &form.email_address),
+                        json_payload: format!("Email address {} not found", &model.email_address),
                         action: ResponseAction {
                             action_type: ActionType::HandleError,
-                            arg: form.email_address.to_string(),
+                            arg: model.email_address.to_string(),
                         },
                     })
                 }
@@ -93,7 +100,7 @@ pub async fn forgot_password_email_post(
                 json_payload: format!("Server error: {}", e),
                 action: ResponseAction {
                     action_type: ActionType::HandleError,
-                    arg: form.email_address.to_string(),
+                    arg: model.email_address.to_string(),
                 },
             })
         }

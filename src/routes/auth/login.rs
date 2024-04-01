@@ -30,10 +30,10 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
     // Validate the LoginModel
     if let Err(e) = model.validate() {
         return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
-            json_payload: format!("Validation error: {}", e),
+            json_payload: "".to_string(),
             action: ResponseAction {
                 action_type: ActionType::HandleError,
-                arg: "".to_string(),
+                arg: "Please check for typos.".to_string(),
             },
         });
     }
@@ -41,16 +41,16 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
     let login = model.clone();
 
     // Query the database for a user with the given email
-    let user = match Student::read_by_email(&pool, &login.email).await {
+    let user = match Student::read_by_email(&pool, &login.email_address).await {
         Ok(user) =>
             match user {
                 Some(user) => user,
                 None => {
                     return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
-                        json_payload: "User not found.".to_string(),
+                        json_payload: "".to_string(),
                         action: ResponseAction {
                             action_type: ActionType::HandleError,
-                            arg: "".to_string(),
+                            arg: "We did not find any user with that email address. Please check your email and try again.".to_string(),
                         },
                     });
                 }
@@ -58,10 +58,10 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
         Err(e) => {
             println!("{:?}", e);
             return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
-                json_payload: format!("Database error: {}", e),
+                json_payload: "".to_string(),
                 action: ResponseAction {
                     action_type: ActionType::HandleError,
-                    arg: "".to_string(),
+                    arg: "Failed to retrieve user information.".to_string(),
                 },
             });
         }
@@ -70,10 +70,10 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
     // Verify the supplied password matches the one stored in the database
     if !hasher::verify(&model.password, &user.password) {
         return HttpResponse::Unauthorized().json(DefaultResponseModel::<String> {
-            json_payload: "Invalid credentials.".to_string(),
+            json_payload: "".to_string(),
             action: ResponseAction {
                 action_type: ActionType::HandleError,
-                arg: "".to_string(),
+                arg: "Invalid credentials.".to_string(),
             },
         });
     }
@@ -81,10 +81,10 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
     // Check if the user's account is active and email is verified
     if !user.email_verified || !user.account_active {
         return HttpResponse::Forbidden().json(DefaultResponseModel::<String> {
-            json_payload: "Account not active or email not verified.".to_string(),
+            json_payload: "".to_string(),
             action: ResponseAction {
                 action_type: ActionType::HandleError,
-                arg: "".to_string(),
+                arg: "Your email address is not verified. Follow this link to <a href='/verify-email'>verify your email address</a>".to_string(),
             },
         });
     }
