@@ -4,10 +4,13 @@ use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
 
+use crate::{ bad_request, not_found, ok_action, render_template, server_error };
 use crate::models::auth::verify_email::VerifyEmailModel;
 use crate::models::database::student::Student;
-use crate::models::default_response::{ ActionType, DefaultResponseModel, ResponseAction };
-use crate::utils::encoder::UrlEncoderDecoder;
+use crate::{
+    models::default_response::{ ActionType, DefaultResponseModel },
+    utils::encoder::UrlEncoderDecoder,
+};
 use crate::utils::email_sender::EmailSender;
 
 #[derive(Serialize, Deserialize, Debug)]
@@ -24,26 +27,12 @@ pub async fn forgot_password_email_post(
 ) -> impl Responder {
     // validate the model
     if let Err(e) = model.validate() {
-        return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
-            json_payload: format!("Validation error: {}", e),
-            action: ResponseAction {
-                action_type: ActionType::HandleError,
-                arg: "".to_string(),
-            },
-        });
+        bad_request!(format!("Validation error: {}", e));
     }
     match Student::read_by_email(&pool, &model.email_address).await {
         Ok(result) => {
             match result {
-                None => {
-                    HttpResponse::NotFound().json(DefaultResponseModel::<String> {
-                        json_payload: format!("Email address {} not found", &model.email_address),
-                        action: ResponseAction {
-                            action_type: ActionType::HandleError,
-                            arg: model.email_address.to_string(),
-                        },
-                    })
-                }
+                None => not_found!(format!("Email address {} not found", &model.email_address)),
                 Some(student) => {
                     // email address found
                     // generate a url-encoded link to reset password e.g. /reset-password?e=<email-hash>&t=<timestamp>
@@ -65,45 +54,17 @@ pub async fn forgot_password_email_post(
                             &reset_password_link
                         ).await
                     {
-                        Ok(_) => {
-                            // send 200 and ask to redirect to the next page
-                            HttpResponse::Ok().json(DefaultResponseModel::<String> {
-                                json_payload: student.email_address,
-                                action: ResponseAction {
-                                    action_type: ActionType::Redirect,
-                                    arg: format!(
-                                        "/forgot-password/email-sent?e={}",
-                                        student.email_hash
-                                    ),
-                                },
-                            })
-                        }
-                        Err(e) => {
-                            println!("{:?}", e);
-                            HttpResponse::InternalServerError().json(
-                                DefaultResponseModel::<String> {
-                                    json_payload: format!("Error sending email: {}", e),
-                                    action: ResponseAction {
-                                        action_type: ActionType::HandleError,
-                                        arg: student.email_address,
-                                    },
-                                }
-                            )
-                        }
+                        Ok(_) =>
+                            ok_action!(
+                                ActionType::Redirect,
+                                format!("/forgot-password/email-sent?e={}", student.email_hash)
+                            ),
+                        Err(e) => server_error!(format!("Error sending email: {}", e)),
                     }
                 }
             }
         }
-        Err(e) => {
-            println!("{:?}", e);
-            HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
-                json_payload: format!("Server error: {}", e),
-                action: ResponseAction {
-                    action_type: ActionType::HandleError,
-                    arg: model.email_address.to_string(),
-                },
-            })
-        }
+        Err(e) => server_error!(format!("Server error: {}", e)),
     }
 }
 
@@ -112,13 +73,7 @@ pub async fn forgot_password_get(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Forgot password?");
 
-    match tera.render("auth/forgot-password/verify-email.html", &context) {
-        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-        Err(e) => {
-            println!("Error rendering template: {}", e);
-            HttpResponse::InternalServerError().finish()
-        }
-    }
+    render_template!(&tera, "auth/forgot-password/verify-email.html", &context)
 }
 
 #[get("/forgot-password/email-sent")]
@@ -139,40 +94,18 @@ pub async fn forgot_password_email_sent_get(
                 Some(student) => {
                     context.insert("email_address", &student.email_address);
                     log::debug!("{:?}", &context);
-                    match tera.render("auth/forgot-password/email-sent.html", &context) {
-                        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-                        Err(e) => {
-                            log::debug!("{:?}", e);
-                            println!("Error rendering template: {}", e);
-                            HttpResponse::InternalServerError().finish()
-                        }
-                    }
+                    render_template!(&tera, "auth/forgot-password/email-sent.html", &context)
                 }
                 None => {
                     context.insert("error", "not found");
-                    match tera.render("auth/forgot-password/email-sent.html", &context) {
-                        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-                        Err(e) => {
-                            log::debug!("{:?}", e);
-                            println!("Error rendering template: {}", e);
-
-                            HttpResponse::InternalServerError().finish()
-                        }
-                    }
+                    render_template!(&tera, "auth/forgot-password/email-sent.html", &context)
                 }
             }
         }
-        Err(_) => {
+        Err(e) => {
             context.insert("error", "server error");
-            match tera.render("auth/forgot-password/email-sent.html", &context) {
-                Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-                Err(e) => {
-                    log::debug!("{:?}", e);
-                    println!("Error rendering template: {}", e);
-
-                    HttpResponse::InternalServerError().finish()
-                }
-            }
+            log::debug!("{:?}", e);
+            render_template!(&tera, "auth/forgot-password/email-sent.html", &context)
         }
     }
 }

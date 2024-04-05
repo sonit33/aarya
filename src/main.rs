@@ -22,6 +22,7 @@ pub mod utils;
 mod tests;
 mod traits;
 mod errors;
+mod macros;
 
 #[actix_web::main] // or #[tokio::main]
 async fn main() -> std::io::Result<()> {
