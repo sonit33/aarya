@@ -10,12 +10,17 @@ macro_rules! string_response {
 
 #[macro_export]
 macro_rules! server_error {
-    ($arg:expr) => {
+    ($arg1:expr, $arg2:ident) => {
+        {
+        println!("{:?}", $arg1);
+        println!("{:?}", $arg2);
+
         HttpResponse::InternalServerError().json(
             DefaultResponseModel::<String> {
                 action_type: ActionType::HandleError,
-                arg: $arg.to_string()
+                arg: format!("{}: {}", $arg1, $arg2)
         })
+        }
     };
 }
 

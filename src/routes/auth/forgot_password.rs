@@ -1,4 +1,5 @@
 use actix_web::{ get, post, web, HttpResponse, Responder };
+use colored::Colorize;
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
@@ -20,10 +21,14 @@ pub async fn forgot_password_email_post(
     email_sender: web::Data<EmailSender>,
     model: web::Json<VerifyEmailModel>
 ) -> impl Responder {
+    println!("{}", "inside forgot_password_email_post".green());
     // validate the model
     if let Err(e) = model.validate() {
         bad_request!(format!("Validation error: {}", e));
     }
+
+    log::debug!("{:?}", &model);
+
     match Student::read_by_email(&pool, &model.email_address).await {
         Ok(result) => {
             match result {
@@ -54,12 +59,12 @@ pub async fn forgot_password_email_post(
                                 ActionType::Redirect,
                                 format!("/forgot-password/email-sent?e={}", student.email_hash)
                             ),
-                        Err(e) => server_error!(format!("Error sending email: {}", e)),
+                        Err(e) => server_error!("Error sending email", e),
                     }
                 }
             }
         }
-        Err(e) => server_error!(format!("Server error: {}", e)),
+        Err(e) => server_error!("Server error", e),
     }
 }
 

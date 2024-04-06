@@ -78,7 +78,7 @@ pub async fn signup_post(
     {
         Ok(_) => {}
         Err(e) => {
-            return server_error!(format!("Failed to send verification email: [{e}]"));
+            return server_error!("Failed to send verification email", e);
         }
     }
 

@@ -1,4 +1,4 @@
-use actix_web::{ test, App, http::StatusCode };
+use actix_web::{ http::StatusCode, test, web, App };
 use serde_json::json;
 
 use crate::{
@@ -8,23 +8,19 @@ use crate::{
 };
 
 #[actix_web::test]
-async fn forgot_password_email_post_path_not_found() {
+async fn forgot_password_email_post_email_not_found() {
     let db_name = generate_guid(8);
     let mock_pool = setup_database(&db_name).await;
     let mock_email_sender = EmailSender {};
     let app = test::init_service(
         App::new()
-            .app_data(mock_pool.clone())
-            .app_data(mock_email_sender.clone())
+            .app_data(web::Data::new(mock_pool.clone()))
+            .app_data(web::Data::new(mock_email_sender.clone()))
             .service(forgot_password_email_post)
     ).await;
 
     let req_body = json!({"email_address": "nonexistent@example.com"});
-    let req = test::TestRequest
-        ::post()
-        .uri("/forgot-password/email-address")
-        .set_json(&req_body)
-        .to_request();
+    let req = test::TestRequest::post().uri("/forgot-password").set_json(&req_body).to_request();
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
@@ -50,17 +46,13 @@ async fn forgot_password_email_post_success() {
     let mock_email_sender = EmailSender {};
     let app = test::init_service(
         App::new()
-            .app_data(mock_pool.clone())
-            .app_data(mock_email_sender.clone())
+            .app_data(web::Data::new(mock_pool.clone()))
+            .app_data(web::Data::new(mock_email_sender.clone()))
             .service(forgot_password_email_post)
     ).await;
 
-    let req_body = json!({"email_address": "existing@example.com"});
-    let req = test::TestRequest
-        ::post()
-        .uri("/forgot-password/email-address")
-        .set_json(&req_body)
-        .to_request();
+    let req_body = json!({"email_address": "jon@abc.com"});
+    let req = test::TestRequest::post().uri("/forgot-password").set_json(&req_body).to_request();
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::OK);

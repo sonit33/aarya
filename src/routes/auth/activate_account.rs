@@ -61,12 +61,12 @@ pub async fn activate_account_post(
                                 ActionType::Redirect,
                                 format!("/activate-account/email-sent?e={}", student.email_hash)
                             ),
-                        Err(e) => server_error!(format!("Error sending email: {}", e)),
+                        Err(e) => server_error!("Error sending email", e),
                     }
                 }
             }
         }
-        Err(e) => server_error!(format!("Server error: {}", e)),
+        Err(e) => server_error!("Server error", e),
     }
 }
 

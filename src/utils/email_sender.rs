@@ -14,7 +14,7 @@ impl EmailSender {
         subject: &str,
         body: &str
     ) -> Result<(), EmailError> {
-        println!("Mock email From: {} To: {} Subject: {}, Body: {}", from, to, subject, body);
+        log::debug!("Mock email From: {} To: {} Subject: {}, Body: {}", from, to, subject, body);
 
         Ok(())
     }

@@ -2,6 +2,7 @@ use actix_web::{ get, post, web, HttpResponse, Responder };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
+use log;
 
 use crate::{
     bad_request,
@@ -46,7 +47,7 @@ pub async fn reset_password_get(
                     log::debug!("{} {} {}", t, timestamps::get_unix_timestamp(), days);
                     if days == 0 {
                         // show the password reset text boxes
-                        context.insert("email_hash", email_hash);
+                        context.insert("email_hash", &email_hash);
                         render_template!(&tera, "auth/reset-password.html", &context)
                     } else {
                         context.insert("error", "link has expired");
@@ -91,12 +92,12 @@ pub async fn reset_password_post(
                                 string_response!(ActionType::Redirect, "/login")
                             )
                         }
-                        Err(e) => server_error!(format!("Failed to update password. [{}]", e)),
+                        Err(e) => { server_error!("Failed to update password.", e) }
                     }
                 }
                 None => not_found!("Student not found"),
             }
         }
-        Err(e) => server_error!(format!("Failed to retrieve student. [{}]", e)),
+        Err(e) => server_error!("Failed to retrieve student", e),
     }
 }

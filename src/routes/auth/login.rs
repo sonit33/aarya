@@ -16,6 +16,7 @@ use crate::render_template;
 use crate::server_error;
 use crate::unauthorized;
 use crate::utils::hasher;
+use log;
 
 #[get("/login")]
 async fn login_get(tera: web::Data<Tera>) -> impl Responder {
@@ -58,7 +59,7 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
                 }
             }
         Err(e) => {
-            return server_error!(format!("Failed to retrieve user information: [{e}]"));
+            return server_error!("Failed to retrieve user information", e);
         }
     }
 
