@@ -100,7 +100,7 @@
         data: JSON.stringify(jsonData), // Convert the JSON object to a JSON string
         success: function (response) {
           if (response && response.action_type == "Redirect") {
-            window.location = response.action.arg;
+            window.location = response.arg;
           }
         },
         error: function (xhr) {

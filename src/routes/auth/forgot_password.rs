@@ -1,9 +1,9 @@
 use actix_web::{ get, post, web, HttpResponse, Responder };
-use serde::{ Deserialize, Serialize };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
 
+use crate::models::auth::email_qs_model::EmailSentModel;
 use crate::{ bad_request, not_found, ok_action, render_template, server_error };
 use crate::models::auth::verify_email::VerifyEmailModel;
 use crate::models::database::student::Student;
@@ -12,11 +12,6 @@ use crate::{
     utils::encoder::UrlEncoderDecoder,
 };
 use crate::utils::email_sender::EmailSender;
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct EmailSentModel {
-    pub e: String,
-}
 
 // emails a password reset link to the user
 #[post("/forgot-password")]

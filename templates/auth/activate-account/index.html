@@ -1,0 +1,71 @@
+{% extends "base.html" %} {% block content %}
+<div class="form-container">
+  <form
+    action="/verify-email"
+    id="emailForm"
+    method="POST">
+    <label for="email_address">Verify Email</label>
+    <input
+      data-email="true"
+      data-required="true"
+      id="email_address"
+      name="email_address"
+      type="email" />
+
+    <button type="submit">Send email</button>
+    <a href="/login">Login</a>
+    <a href="/signup">Signup for a new account</a>
+  </form>
+  <div id="formErrors"></div>
+</div>
+
+<script>
+  $(document).ready(() => {
+    $("#emailForm").on("submit", (e) => {
+      e.preventDefault();
+      // validate
+      // submit form
+      var formData = $(e.currentTarget).serializeArray(); // Serialize form data
+      var jsonData = {};
+      $.each(formData, function () {
+        jsonData[this.name] = this.value;
+      });
+
+      console.log(formData);
+      console.log(jsonData);
+
+      $.ajax({
+        url: "/activate-account",
+        type: "POST",
+        contentType: "application/json", // Specify the content type as JSON
+        data: JSON.stringify(jsonData), // Convert the JSON object to a JSON string
+        success: function (response) {
+          console.log(response);
+          if (response && response.action_type == "Redirect") {
+            window.location = response.arg;
+          }
+        },
+        error: function (xhr) {
+          console.log(xhr);
+          var response = xhr.responseJSON;
+          console.log(response);
+          var message = $("<div/>");
+          if (response && response.action_type == "HandleError") {
+            if (xhr.status == 404) {
+              var email_address = response.arg;
+              $("<p>" + response.arg + "</p>").appendTo(message);
+              $("<p>If you are a new user, you can <a href='/signup'>signup</a>.</p>").appendTo(
+                message
+              );
+            } else {
+              $("<p>" + response.arg + "</p>").appendTo(message);
+            }
+          }
+          message.appendTo("#formErrors");
+        },
+      });
+    });
+  });
+</script>
+
+{% endblock %}

@@ -10,6 +10,7 @@ use crate::models::auth::login::LoginModel;
 use crate::models::database::student::Student;
 use crate::models::default_response::ActionType;
 use crate::models::default_response::DefaultResponseModel;
+use crate::not_found;
 use crate::ok_action;
 use crate::render_template;
 use crate::server_error;
@@ -46,12 +47,12 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
                     // Check if the user's account is active and email is verified
                     if !user.email_verified || !user.account_active {
                         return forbidden!(
-                            "Your email address is not verified. Follow this link to <a href='/verify-email'>verify your email address</a>"
+                            "Your account is not verified. Follow this link to <a href='/activate-account'>activate your account</a>"
                         );
                     }
                 }
                 None => {
-                    return bad_request!(
+                    return not_found!(
                         "We did not find any user with that email address. Please check your email and try again."
                     );
                 }

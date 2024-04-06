@@ -1,5 +1,4 @@
 use actix_web::{ get, post, web, HttpResponse, Responder };
-use serde::{ Deserialize, Serialize };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
@@ -7,7 +6,10 @@ use validator::Validate;
 use crate::{
     bad_request,
     models::{
-        auth::reset_password::ResetPasswordModel,
+        auth::{
+            base64_qs_model::{ extract_values, Base64QuerystringModel },
+            reset_password::ResetPasswordModel,
+        },
         database::student::Student,
         default_response::{ ActionType, DefaultResponseModel },
     },
@@ -18,41 +20,12 @@ use crate::{
     utils::{ hasher, timestamps },
 };
 
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Base64ResetPasswordModel {
-    pub q: String,
-}
-
-fn extract_values(s: &str) -> (Option<&str>, Option<&str>) {
-    let mut e = None;
-    let mut t = None;
-
-    for param in s.split('&') {
-        let mut parts = param.split('=');
-        match (parts.next(), parts.next()) {
-            (Some("e"), Some(value)) => {
-                e = Some(value);
-            }
-            (Some("t"), Some(value)) => {
-                t = Some(value);
-            }
-            _ => {}
-        }
-    }
-
-    (e, t)
-}
-
 #[get("/reset-password")]
 pub async fn reset_password_get(
     tera: web::Data<Tera>,
     pool: web::Data<MySqlPool>,
-    query: web::Query<Base64ResetPasswordModel>
+    query: web::Query<Base64QuerystringModel>
 ) -> impl Responder {
-    // accept email address and verification code
-    // verify them
-    // if they match then offer allow them to enter and confirm a new password
-    // if they don't match then redirect to /verify
     let mut context = Context::new();
     context.insert("title", &"Reset your password");
 
