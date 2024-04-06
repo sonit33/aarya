@@ -1,8 +1,8 @@
 {% extends "base.html" %} {% block content %}
-<div class="login-form">
+<div class="form-container">
   <form
-    action="/forgot-password/verify-email"
-    id="loginForm"
+    action="/verify-email"
+    id="emailForm"
     method="POST">
     <label for="email_address">Verify Email</label>
     <input
@@ -21,7 +21,7 @@
 
 <script>
   $(document).ready(() => {
-    $("#loginForm").on("submit", (e) => {
+    $("#emailForm").on("submit", (e) => {
       e.preventDefault();
       // validate
       // submit form
@@ -35,38 +35,33 @@
       console.log(jsonData);
 
       $.ajax({
-        url: "/forgot-password",
+        url: "/activate-account",
         type: "POST",
         contentType: "application/json", // Specify the content type as JSON
         data: JSON.stringify(jsonData), // Convert the JSON object to a JSON string
         success: function (response) {
-          if (response.action && response.action.action_type == "Redirect") {
-            window.location = response.action.arg;
+          console.log(response);
+          if (response && response.action_type == "Redirect") {
+            window.location = response.arg;
           }
         },
         error: function (xhr) {
           console.log(xhr);
-          if (xhr.status == 404) {
-            var message = $("<div/>");
-            var response = xhr.responseJSON;
-            if (response.action && response.action.action_type == "HandleError") {
-              var email_address = response.action.arg;
-              $(
-                "<p>We did not find " +
-                  email_address +
-                  " in our records. Please check for typos.</p>"
-              ).appendTo(message);
+          var response = xhr.responseJSON;
+          console.log(response);
+          var message = $("<div/>");
+          if (response && response.action_type == "HandleError") {
+            if (xhr.status == 404) {
+              var email_address = response.arg;
+              $("<p>" + response.arg + "</p>").appendTo(message);
               $("<p>If you are a new user, you can <a href='/signup'>signup</a>.</p>").appendTo(
                 message
               );
-              message.appendTo("#formErrors");
+            } else {
+              $("<p>" + response.arg + "</p>").appendTo(message);
             }
           }
-          if (xhr.status == 500) {
-            var message = $("<div/>");
-            $("<p>An internal error has occurred. Please try again later.</p>").appendTo(message);
-            message.appendTo("#formErrors");
-          }
+          message.appendTo("#formErrors");
         },
       });
     });

@@ -1,64 +1,31 @@
 use actix_web::{ get, post, web, HttpResponse, Responder };
-use serde::{ Deserialize, Serialize };
 use sqlx::MySqlPool;
 use tera::{ Context, Tera };
-use tokio::sync::watch;
 use validator::Validate;
 
 use crate::{
+    bad_request,
     models::{
-        auth::reset_password::ResetPasswordModel,
+        auth::{
+            base64_qs_model::{ extract_values, Base64QuerystringModel },
+            reset_password::ResetPasswordModel,
+        },
         database::student::Student,
-        default_response::{ ActionType, DefaultResponseModel, ResponseAction },
+        default_response::{ ActionType, DefaultResponseModel },
     },
+    not_found,
+    render_template,
+    server_error,
+    string_response,
     utils::{ hasher, timestamps },
 };
-
-#[derive(Serialize, Deserialize, Debug)]
-pub struct Base64ResetPasswordModel {
-    pub q: String,
-}
-
-fn extract_values(s: &str) -> (Option<&str>, Option<&str>) {
-    let mut e = None;
-    let mut t = None;
-
-    for param in s.split('&') {
-        let mut parts = param.split('=');
-        match (parts.next(), parts.next()) {
-            (Some("e"), Some(value)) => {
-                e = Some(value);
-            }
-            (Some("t"), Some(value)) => {
-                t = Some(value);
-            }
-            _ => {}
-        }
-    }
-
-    (e, t)
-}
-
-fn render_template(tera: &Tera, path: &str, context: &Context) -> HttpResponse {
-    match tera.render(path, context) {
-        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-        Err(e) => {
-            println!("Error rendering template: {}", e);
-            HttpResponse::InternalServerError().finish()
-        }
-    }
-}
 
 #[get("/reset-password")]
 pub async fn reset_password_get(
     tera: web::Data<Tera>,
     pool: web::Data<MySqlPool>,
-    query: web::Query<Base64ResetPasswordModel>
+    query: web::Query<Base64QuerystringModel>
 ) -> impl Responder {
-    // accept email address and verification code
-    // verify them
-    // if they match then offer allow them to enter and confirm a new password
-    // if they don't match then redirect to /verify
     let mut context = Context::new();
     context.insert("title", &"Reset your password");
 
@@ -80,21 +47,21 @@ pub async fn reset_password_get(
                     if days == 0 {
                         // show the password reset text boxes
                         context.insert("email_hash", email_hash);
-                        render_template(&tera, "auth/reset-password.html", &context)
+                        render_template!(&tera, "auth/reset-password.html", &context)
                     } else {
                         context.insert("error", "link has expired");
-                        render_template(&tera, "auth/reset-password.html", &context)
+                        render_template!(&tera, "auth/reset-password.html", &context)
                     }
                 }
                 Err(_) => {
                     context.insert("error", "invalid link: timestamp");
-                    render_template(&tera, "auth/reset-password.html", &context)
+                    render_template!(&tera, "auth/reset-password.html", &context)
                 }
             }
         }
         Err(_) => {
             context.insert("error", "invalid link: email");
-            render_template(&tera, "auth/reset-password.html", &context)
+            render_template!(&tera, "auth/reset-password.html", &context)
         }
     }
 }
@@ -107,13 +74,7 @@ pub async fn reset_password_post(
     log::debug!("{:?}", model);
     // validate model
     if let Err(e) = model.validate() {
-        return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
-            json_payload: format!("Validation error: {}", e),
-            action: ResponseAction {
-                action_type: ActionType::HandleError,
-                arg: "".to_string(),
-            },
-        });
+        bad_request!(e);
     }
 
     // get the student by email_hash then update its password
@@ -126,43 +87,16 @@ pub async fn reset_password_post(
                     student.password = p_hash;
                     match student.update(&pool).await {
                         Ok(_) => {
-                            HttpResponse::Ok().json(DefaultResponseModel::<String> {
-                                json_payload: "".to_string(),
-                                action: ResponseAction {
-                                    action_type: ActionType::Redirect,
-                                    arg: "/login".to_string(),
-                                },
-                            })
+                            HttpResponse::Ok().json(
+                                string_response!(ActionType::Redirect, "/login")
+                            )
                         }
-                        Err(_) =>
-                            HttpResponse::InternalServerError().json(
-                                DefaultResponseModel::<String> {
-                                    json_payload: "".to_string(),
-                                    action: ResponseAction {
-                                        action_type: ActionType::HandleError,
-                                        arg: "Failed to update password".to_string(),
-                                    },
-                                }
-                            ),
+                        Err(e) => server_error!(format!("Failed to update password. [{}]", e)),
                     }
                 }
-                None =>
-                    HttpResponse::NotFound().json(DefaultResponseModel::<String> {
-                        json_payload: "".to_string(),
-                        action: ResponseAction {
-                            action_type: ActionType::HandleError,
-                            arg: "Student not found".to_string(),
-                        },
-                    }),
+                None => not_found!("Student not found"),
             }
         }
-        Err(_) =>
-            HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
-                json_payload: "".to_string(),
-                action: ResponseAction {
-                    action_type: ActionType::HandleError,
-                    arg: "Failed to retrieve student".to_string(),
-                },
-            }),
+        Err(e) => server_error!(format!("Failed to retrieve student. [{}]", e)),
     }
 }

@@ -5,11 +5,11 @@ use sqlx::MySqlPool;
 use tera::{ Context, Tera };
 use validator::Validate;
 
+use crate::{ bad_request, ok_action, render_template, server_error };
 use crate::models::auth::signup::SignupModel;
 use crate::models::database::student::Student;
-use crate::models::default_response::{ ActionType, DefaultResponseModel, ResponseAction };
+use crate::models::default_response::{ ActionType, DefaultResponseModel };
 use crate::utils::email_sender::EmailSender;
-use crate::utils::hasher;
 
 #[post("/signup")]
 pub async fn signup_post(
@@ -19,13 +19,7 @@ pub async fn signup_post(
 ) -> impl Responder {
     // Validate the SignupModel
     if let Err(e) = model.validate() {
-        return HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
-            json_payload: format!("Validation error: {}", e),
-            action: ResponseAction {
-                action_type: ActionType::HandleError,
-                arg: "".to_string(),
-            },
-        });
+        return bad_request!(format!("Validation error: {}", e));
     }
 
     let signup = model.into_inner();
@@ -49,30 +43,23 @@ pub async fn signup_post(
     // let student_id;
 
     // Save the Student in the database
-    match
-        Student::create(
-            &pool,
-            &student.first_name,
-            &student.email_address,
-            hasher::cook_hash(&student.password).unwrap().as_str(),
-            student.over_13,
-            false, // email_verified as false
-            false // account_active as false
-        ).await
-    {
-        Ok(_) => {
-            // student_id = s.last_insert_id();
-        }
-        Err(e) => {
-            return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
-                json_payload: format!("Failed to create student: {}", e),
-                action: ResponseAction {
-                    action_type: ActionType::HandleError,
-                    arg: "".to_string(),
-                },
-            });
-        }
-    }
+    //TODO
+    // match
+    //     Student::create(
+    //         &pool,
+    //         &student.first_name,
+    //         &student.email_address,
+    //         hasher::cook_hash(&student.password).unwrap().as_str(),
+    //         student.over_13,
+    //         false, // email_verified as false
+    //         false // account_active as false
+    //     ).await
+    // {
+    //     Ok(_) => {
+    //         // student_id = s.last_insert_id();
+    //     }
+    //     Err(e) => server_error!(format!("Failed to create student: {}", e)),
+    // }
 
     // Generate a verification code
     // let verification_code = generate_guid(8); // Placeholder for generated code
@@ -91,24 +78,11 @@ pub async fn signup_post(
     {
         Ok(_) => {}
         Err(e) => {
-            return HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
-                json_payload: format!("Failed to send verification email: {}", e),
-                action: ResponseAction {
-                    action_type: ActionType::HandleError,
-                    arg: "".to_string(),
-                },
-            });
+            return server_error!(format!("Failed to send verification email: [{e}]"));
         }
     }
 
-    // Success: send a 200 HTTP response
-    HttpResponse::Ok().json(DefaultResponseModel::<String> {
-        json_payload: "Signup successful. Please check your email to verify your account.".to_string(),
-        action: ResponseAction {
-            action_type: ActionType::Redirect,
-            arg: "/login".to_string(),
-        },
-    })
+    ok_action!(ActionType::Redirect, "/login")
 }
 
 #[get("/signup")]
@@ -116,11 +90,5 @@ pub async fn signup_get(tera: web::Data<Tera>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Signup for Aarya");
 
-    match tera.render("auth/signup.html", &context) {
-        Ok(body) => HttpResponse::Ok().content_type("text/html").body(body),
-        Err(e) => {
-            println!("Error rendering template: {}", e);
-            HttpResponse::InternalServerError().finish()
-        }
-    }
+    render_template!(&tera, "auth/signup.html", &context)
 }

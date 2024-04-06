@@ -11,7 +11,12 @@ use crate::routes::auth::forgot_password::{
 use crate::routes::auth::login::{ login_get, login_post };
 use crate::routes::auth::reset_password::{ reset_password_get, reset_password_post };
 use crate::routes::auth::signup::{ signup_get, signup_post };
-use crate::routes::auth::verify_email::{ verify_email_get, verify_email_post };
+use crate::routes::auth::activate_account::{
+    account_activate_get,
+    activate_account_email_sent_get,
+    activate_account_get,
+    activate_account_post,
+};
 use crate::utils::email_sender::EmailSender;
 use crate::utils::environ::Environ;
 
@@ -22,6 +27,7 @@ pub mod utils;
 mod tests;
 mod traits;
 mod errors;
+mod macros;
 
 #[actix_web::main] // or #[tokio::main]
 async fn main() -> std::io::Result<()> {
@@ -33,8 +39,6 @@ async fn main() -> std::io::Result<()> {
 
     let ip = "127.0.0.1";
     let port = 8080;
-
-    println!("Actix running on http://{ip}:{port}");
 
     let env_default = Environ::default();
 
@@ -48,6 +52,8 @@ async fn main() -> std::io::Result<()> {
     // let e_port: Result<u16, _> = env_default.email_port.parse();
     let email_sender = EmailSender {};
 
+    println!("Actix running at http://{ip}:{port}");
+
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(tera.clone()))
@@ -60,8 +66,10 @@ async fn main() -> std::io::Result<()> {
             .service(forgot_password_get)
             .service(forgot_password_email_post)
             .service(forgot_password_email_sent_get)
-            .service(verify_email_get)
-            .service(verify_email_post)
+            .service(activate_account_get)
+            .service(activate_account_post)
+            .service(account_activate_get)
+            .service(activate_account_email_sent_get)
             .service(reset_password_get)
             .service(reset_password_post)
     })
