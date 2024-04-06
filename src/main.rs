@@ -35,8 +35,6 @@ async fn main() -> std::io::Result<()> {
     let ip = "127.0.0.1";
     let port = 8080;
 
-    println!("Actix running on http://{ip}:{port}");
-
     let env_default = Environ::default();
 
     log::debug!("{:?}", env_default);
@@ -48,6 +46,8 @@ async fn main() -> std::io::Result<()> {
     let tera = Tera::new("templates/**/*").expect("Failed to initialize Tera");
     // let e_port: Result<u16, _> = env_default.email_port.parse();
     let email_sender = EmailSender {};
+
+    println!("Actix running at http://{ip}:{port}");
 
     HttpServer::new(move || {
         App::new()

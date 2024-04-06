@@ -77,7 +77,7 @@ macro_rules! unauthorized {
 #[macro_export]
 macro_rules! not_found {
     ($arg:expr) => {
-        HttpResponse::BadRequest().json(
+        HttpResponse::NotFound().json(
             DefaultResponseModel::<String> {
                 action_type: ActionType::HandleError,
                 arg: $arg.to_string()

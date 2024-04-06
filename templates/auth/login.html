@@ -99,15 +99,15 @@
         contentType: "application/json", // Specify the content type as JSON
         data: JSON.stringify(jsonData), // Convert the JSON object to a JSON string
         success: function (response) {
-          if (response.action && response.action.action_type == "Redirect") {
+          if (response && response.action_type == "Redirect") {
             window.location = response.action.arg;
           }
         },
         error: function (xhr) {
           console.log(xhr);
           var response = xhr.responseJSON;
-          if (response.action && response.action.action_type == "HandleError") {
-            $("<p>" + response.action.arg + "</p>").appendTo("#formErrors");
+          if (response && response.action_type == "HandleError") {
+            $("<p>" + response.arg + "</p>").appendTo("#formErrors");
             $("<p>If you are a new user, you can <a href='/signup'>signup</a>.</p>").appendTo(
               "#formErrors"
             );
