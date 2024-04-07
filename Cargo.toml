@@ -25,3 +25,4 @@ url = "2.5.0"
 log = "0.4.21"
 env_logger = {version = "0.11.3", features = ["auto-color"]}
 colored = "2.1.0"
+jsonschema = "0.17.1"

@@ -1,21 +1,22 @@
 use std::sync::Arc;
 
-use actix_web::{ get, HttpResponse, post, Responder, web };
+use actix_web::{get, post, web, HttpResponse, Responder};
 use sqlx::MySqlPool;
-use tera::{ Context, Tera };
+use tera::{Context, Tera};
 use validator::Validate;
 
-use crate::{ bad_request, ok_action, render_template, server_error };
 use crate::models::auth::signup::SignupModel;
 use crate::models::database::student::Student;
-use crate::models::default_response::{ ActionType, DefaultResponseModel };
+use crate::models::default_response::{ActionType, DefaultResponseModel};
 use crate::utils::email_sender::EmailSender;
+use crate::utils::encoder::UrlEncoderDecoder;
+use crate::{bad_request, ok_action, render_template, server_error};
 
 #[post("/signup")]
 pub async fn signup_post(
     pool: web::Data<Arc<MySqlPool>>,
     email_sender: web::Data<Arc<EmailSender>>,
-    model: web::Json<SignupModel>
+    model: web::Json<SignupModel>,
 ) -> impl Responder {
     // Validate the SignupModel
     if let Err(e) = model.validate() {
@@ -25,56 +26,52 @@ pub async fn signup_post(
     let signup = model.into_inner();
 
     // Transform SignupModel into Student
-    let student = Student {
-        student_id: Some(-1),
+    let mut student = Student {
+        student_id: Some(0),
         first_name: signup.display_name.clone(),
         email_address: signup.email.clone(),
-        id_hash: "".to_string(),
-        email_hash: "".to_string(),
-        password: signup.password,
+        id_hash: "not-set".to_string(),
+        email_hash: "not-set".to_string(),
+        pass_hash: Some(signup.password),
         over_13: signup.over_13,
         email_verified: false,
         account_active: false,
         added_timestamp: None,
-        updated_timestamp: None,
-        deleted_timestamp: None,
     };
 
-    // let student_id;
+    let student_id = match student.create(&pool).await {
+        Ok(r) => r.last_insert_id(),
+        Err(e) => return server_error!("Failed to create new user", e),
+    };
 
-    // Save the Student in the database
-    //TODO
-    // match
-    //     Student::create(
-    //         &pool,
-    //         &student.first_name,
-    //         &student.email_address,
-    //         hasher::cook_hash(&student.password).unwrap().as_str(),
-    //         student.over_13,
-    //         false, // email_verified as false
-    //         false // account_active as false
-    //     ).await
-    // {
-    //     Ok(_) => {
-    //         // student_id = s.last_insert_id();
-    //     }
-    //     Err(e) => server_error!(format!("Failed to create student: {}", e)),
-    // }
+    // retrieve the student for email_hash and added_timestamp
+    student.student_id = Some(student_id as u32);
+    let created_student = match student.read(&pool).await {
+        Ok(r) => r.unwrap(),
+        Err(e) => return server_error!("Failed to retrieve new user", e),
+    };
 
-    // Generate a verification code
-    // let verification_code = generate_guid(8); // Placeholder for generated code
-    // generate a link that completes the email verification
-
-    let link = "/verify-email/<email-hash>::<code-hash>::<timestamp>";
+    let link = format!(
+        "/activate-account/{}",
+        UrlEncoderDecoder::encode(
+            format!(
+                "e={}&t={}",
+                created_student.email_hash,
+                created_student.added_timestamp.unwrap()
+            )
+            .as_str()
+        )
+    );
 
     // Email the verification code
-    match
-        email_sender.send_email(
+    match email_sender
+        .send_email(
             "admin@aarya.ai",
             &student.email_address,
             format!("{} activate your Aarya account", &student.first_name).as_str(),
-            &link
-        ).await
+            &link,
+        )
+        .await
     {
         Ok(_) => {}
         Err(e) => {

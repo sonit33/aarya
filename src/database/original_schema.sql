@@ -1,317 +1,123 @@
-create table courses
-(
-    course_id         int auto_increment
-        primary key,
-    course_name       varchar(255)                          not null,
+DROP TABLE IF EXISTS chapters;
+DROP TABLE IF EXISTS questions;
+DROP TABLE IF EXISTS students;
+DROP TABLE IF EXISTS students_history;
+DROP TABLE IF EXISTS courses;
+DROP TRIGGER IF EXISTS student_update_trigger;
+DROP TRIGGER IF EXISTS student_delete_trigger;
+
+create table courses (
+    course_id         int unsigned auto_increment primary key,
+    name       varchar(255)                          not null,
     added_timestamp   timestamp default current_timestamp() null,
     updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    description       text                                  null
+    description       varchar(1024) not null
 );
 
-create index idx_course_name
-    on courses (course_name);
-
-create table feedbacks
-(
-    feedback_id int auto_increment
-        primary key,
-    course_id   int null,
-    test_id     int null,
-    question_id int null,
-    teacher_id  int null,
-    student_id  int null
+create table chapters (
+    chapter_id int unsigned primary key,
+    course_id int unsigned,
+    name varchar(128),
+    description varchar(512)
 );
 
-create table questions
-(
-    question_id   int auto_increment
-        primary key,
-    course_id     int               not null,
-    question      text              not null,
-    answers       text              not null,
-    choices       int               null
-        check (`choices` between 0 and 6),
-    q_difficulty  int               null
-        check (`q_difficulty` between 1 and 5),
-    d_reason      text              null,
-    a_explanation text              null,
-    a_hint        text              null,
-    q_mode        tinyint default 1 not null,
-    constraint questions_ibfk_1
-        foreign key (course_id) references courses (course_id)
+create table questions (
+    question_id int unsigned auto_increment primary key,
+    course_id int unsigned not null,
+    chapter_id int unsigned not null,
+    id_hash varchar(32) not null,
+    q_text varchar(2048) not null,
+    choices json not null, -- [{id: "", text: ""}]
+    answers json not null, -- [{id: ""}]
+    a_explanation varchar(2048) not null,
+    a_hint varchar(1024) not null,
+    q_difficulty tinyint not null,
+    diff_reason varchar(1024) not null,
+    added_timestamp   timestamp default current_timestamp() null,
+    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
+    constraint questions_ibfk_1 foreign key (course_id) references courses (course_id)
 );
 
-create index idx_question_course
-    on questions (course_id);
+create index idx_question_course on questions (course_id);
 
-create table students
-(
-    student_id        int auto_increment
-        primary key,
+create table students (
+    student_id        int unsigned auto_increment primary key,
     id_hash           varchar(255)                          not null,
     first_name        varchar(255)                          not null,
     email_address     varchar(255)                          not null,
     email_hash        varchar(255)                          not null,
-    password          varchar(255)                          not null,
+    pass_hash          varchar(255)                          not null,
     over_13           bit                                   not null,
     email_verified    bit                                   not null,
     account_active    bit                                   not null,
     added_timestamp   timestamp default current_timestamp() null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    deleted_timestamp timestamp                             null,
-    constraint email_address
-        unique (email_address)
+    constraint email_address unique (email_address)
 );
 
-create index idx_student_email
-    on students (email_address);
+create index idx_student_email on students (email_address);
 
-create index students_email_address_hash_index
-    on students (email_hash);
+create index students_email_address_hash_index on students (email_hash);
 
-create index students_student_id_hash_index
-    on students (id_hash);
+create index students_student_id_hash_index on students (id_hash);
 
-
-
-create table teachers
-(
-    teacher_id        int auto_increment
-        primary key,
-    teacher_name      varchar(255)                          not null,
-    teacher_school    varchar(255)                          null,
-    password          varchar(255)                          not null,
+create table students_history (
+    history_id int unsigned auto_increment primary key,
+    student_id int unsigned,
+    action_type enum('update', 'delete'),
+    timestamp timestamp default current_timestamp(),
+    id_hash varchar(255) not null,
+    first_name        varchar(255)                          not null,
     email_address     varchar(255)                          not null,
-    photo_url         varchar(255)                          null,
-    blurb             text                                  null,
-    education         text                                  null,
-    skills            text                                  null,
-    certifications    text                                  null,
-    employed_at       varchar(255)                          null,
-    availability_dow  tinyint   default 1                   not null comment 'weekends, daily, weekdays, custom',
-    account_active    tinyint(1)                            not null,
-    venmo_handle      varchar(255)                          null,
-    paypal_handle     varchar(255)                          null,
-    added_timestamp   timestamp default current_timestamp() null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    deleted_timestamp timestamp                             null,
-    availability_tod  tinyint   default 1                   null comment 'morning, afternoon, evening, all-day, custom',
-    constraint email_address
-        unique (email_address)
+    email_hash        varchar(255)                          not null,
+    pass_hash          varchar(255)                          not null,
+    over_13           bit                                   not null,
+    email_verified    bit                                   not null,
+    account_active    bit                                   not null
 );
 
-create table assignments
-(
-    assignment_id    int auto_increment
-        primary key,
-    course_id        int                                   not null,
-    teacher_id       int                                   not null,
-    assignment_name  varchar(255)                          not null,
-    added_timestamp  timestamp default current_timestamp() null,
-    due_on_timestamp timestamp                             not null,
-    constraint assignments_ibfk_1
-        foreign key (course_id) references courses (course_id),
-    constraint assignments_ibfk_2
-        foreign key (teacher_id) references teachers (teacher_id)
-);
+CREATE TRIGGER student_update_trigger
+    AFTER UPDATE ON students
+    FOR EACH ROW
+BEGIN
+    INSERT INTO students_history (student_id, action_type, id_hash, first_name, email_address, email_hash, pass_hash, over_13, email_verified, account_active)
+    VALUES (old.student_id, 'update', old.id_hash, old.first_name, old.email_address, old.email_hash, old.pass_hash, old.over_13, old.email_verified, old.account_active);
+END;
 
-create table assignment_students
-(
-    assignment_id int not null,
-    student_id    int not null,
-    constraint assignment_students_ibfk_1
-        foreign key (assignment_id) references assignments (assignment_id),
-    constraint assignment_students_ibfk_2
-        foreign key (student_id) references students (student_id)
-);
-
-create index assignment_id
-    on assignment_students (assignment_id);
-
-create index student_id
-    on assignment_students (student_id);
-
-create index idx_assignment_course_teacher
-    on assignments (course_id, teacher_id);
-
-create index teacher_id
-    on assignments (teacher_id);
-
-create table payments
-(
-    payment_id      int auto_increment
-        primary key,
-    p_direction     tinyint   default 1                   not null,
-    p_amount        double                                not null,
-    added_timestamp timestamp default current_timestamp() null,
-    p_id            int                                   null,
-    student_id      int                                   null,
-    teacher_id      int                                   null,
-    purpose         tinyint   default 1                   not null,
-    constraint payments_ibfk_1
-        foreign key (student_id) references students (student_id),
-    constraint payments_ibfk_2
-        foreign key (teacher_id) references teachers (teacher_id)
-);
-
-create index student_id
-    on payments (student_id);
-
-create index teacher_id
-    on payments (teacher_id);
-
-create index idx_teacher_email
-    on teachers (email_address);
-
-create table tests
-(
-    test_id           int auto_increment
-        primary key,
-    course_id         int                                   not null,
-    test_name         varchar(255)                          not null,
-    added_timestamp   timestamp default current_timestamp() null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    mode              tinyint   default 1                   not null,
-    test_size         tinyint   default 1                   not null,
-    constraint tests_ibfk_1
-        foreign key (course_id) references courses (course_id)
-);
-
-create table test_questions
-(
-    test_id     int not null,
-    question_id int not null,
-    constraint test_questions_ibfk_1
-        foreign key (test_id) references tests (test_id),
-    constraint test_questions_ibfk_2
-        foreign key (question_id) references questions (question_id)
-);
-
-create index question_id
-    on test_questions (question_id);
-
-create index test_id
-    on test_questions (test_id);
-
-create table test_students
-(
-    test_id     int           not null,
-    student_id  int           not null,
-    ai_feedback varchar(1024) null comment 'Aarya''s feedback about the test',
-    constraint test_students_ibfk_1
-        foreign key (test_id) references tests (test_id),
-    constraint test_students_ibfk_2
-        foreign key (student_id) references students (student_id)
-);
-
-create index student_id
-    on test_students (student_id);
-
-create index test_id
-    on test_students (test_id);
-
-create index idx_test_course
-    on tests (course_id);
-
-create table topics
-(
-    topic_id          int auto_increment
-        primary key,
-    course_id         int                                   not null,
-    topic_name        varchar(255)                          not null,
-    description       text                                  null,
-    added_timestamp   timestamp default current_timestamp() null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    constraint topics_ibfk_1
-        foreign key (course_id) references courses (course_id)
-);
-
-create table assignment_topics
-(
-    assignment_id int not null,
-    topic_id      int not null,
-    constraint assignment_topics_ibfk_1
-        foreign key (assignment_id) references assignments (assignment_id),
-    constraint assignment_topics_ibfk_2
-        foreign key (topic_id) references topics (topic_id)
-);
-
-create index assignment_id
-    on assignment_topics (assignment_id);
-
-create index topic_id
-    on assignment_topics (topic_id);
-
-create table question_topics
-(
-    question_id int not null,
-    topic_id    int not null,
-    constraint question_topics_ibfk_1
-        foreign key (question_id) references questions (question_id),
-    constraint question_topics_ibfk_2
-        foreign key (topic_id) references topics (topic_id)
-);
-
-create index question_id
-    on question_topics (question_id);
-
-create index topic_id
-    on question_topics (topic_id);
-
-create table test_topics
-(
-    test_id  int not null,
-    topic_id int not null,
-    constraint test_topics_ibfk_1
-        foreign key (test_id) references tests (test_id),
-    constraint test_topics_ibfk_2
-        foreign key (topic_id) references topics (topic_id)
-);
-
-create index test_id
-    on test_topics (test_id);
-
-create index topic_id
-    on test_topics (topic_id);
-
-create index course_id
-    on topics (course_id);
-
-create table tutoring
-(
-    tutoring_id int auto_increment
-        primary key,
-    course_id   int     not null,
-    student_id  int     not null,
-    teacher_id  int     not null,
-    t_type      tinyint not null comment 'one-time consultation, trial, package, long-term',
-    constraint tutoring_ibfk_1
-        foreign key (course_id) references courses (course_id),
-    constraint tutoring_ibfk_2
-        foreign key (student_id) references students (student_id),
-    constraint tutoring_ibfk_3
-        foreign key (teacher_id) references teachers (teacher_id)
-);
-
-create index idx_tutoring_course_student_teacher
-    on tutoring (course_id, student_id, teacher_id);
-
-create index student_id
-    on tutoring (student_id);
-
-create index teacher_id
-    on tutoring (teacher_id);
+CREATE TRIGGER student_delete_trigger
+    AFTER DELETE ON students
+    FOR EACH ROW
+BEGIN
+    INSERT INTO students_history (student_id, action_type, id_hash, first_name, email_address, email_hash, pass_hash, over_13, email_verified, account_active)
+    VALUES (old.student_id, 'delete', old.id_hash, old.first_name, old.email_address, old.email_hash, old.pass_hash, old.over_13, old.email_verified, old.account_active);
+END;
 
 
-insert into students(student_id, id_hash, first_name, email_address, email_hash, password, over_13, email_verified, account_active)
+insert into courses(course_id, name, description)
+values(1, 'AP Computer Science Principles', "AP Computer Science Principles is an elective course offered by the College Board's Advanced Placement (AP) program, providing high school students worldwide with an introductory college-level exploration of foundational computer science concepts. Through this course, students delve into computational thinking, problem-solving skills, and various aspects of computing, including programming, algorithms, data analysis, internet fundamentals, cybersecurity, and the societal impacts of technology. While typically not mandatory for graduation, students have the option to select this course to gain a deeper understanding of computer science principles and their applications.");
+
+insert into courses(course_id, name, description)
+values(2, 'AP Computer Science A', "AP Computer Science A is an elective course offered by the College Board's Advanced Placement (AP) program, catering to high school students globally seeking an in-depth study of computer science fundamentals. Through this course, students delve into programming concepts using the Java programming language, focusing on topics such as algorithms, data structures, software development methodologies, and object-oriented programming principles. While not typically mandatory for graduation, students have the opportunity to choose this course to develop their programming skills and prepare for advanced study or careers in computer science and related fields.");
+
+insert into chapters(chapter_id, course_id, name, description)
+values(1, 1, "Creative Development", "This section focuses on the creative process behind developing computational artifacts. By exploring collaboration, program function, design, development, and error correction, students learn to create effective software solutions that meet user needs. This fosters creativity, problem-solving skills, and an understanding of how to debug and improve software, preparing students for further study or careers in software development and engineering.");
+
+insert into chapters(chapter_id, course_id, name, description)
+values(2, 1, "Data", "Students delve into the representation, transformation, and analysis of data. Through topics like binary numbers, data compression, and data manipulation with programs, they gain critical insights into how data underpins all computing systems and applications. This knowledge is crucial for understanding the digital world, enhancing students' abilities to make data-driven decisions and to process and interpret vast amounts of information efficiently.");
+
+insert into chapters(chapter_id, course_id, name, description)
+values(3, 1, "Algorithms and Programming", "Covering the fundamentals of programming and algorithmic thinking, this comprehensive section includes variables, data abstraction, control structures, lists, and more. Students learn to design algorithms to solve problems and to implement those algorithms in software. This equips them with the problem-solving skills and technical knowledge necessary for software development, computational thinking, and the pursuit of advanced computer science studies.");
+
+insert into chapters(chapter_id, course_id, name, description)
+values(4, 1, "Computer Systems and Networks", "By understanding the internet, fault tolerance, and the basics of parallel and distributed computing, students grasp the foundational concepts that allow global connectivity and data exchange. This understanding is essential for recognizing the role of computer systems in facilitating communication, ensuring data reliability, and supporting the distributed nature of modern computing.");
+
+insert into chapters(chapter_id, course_id, name, description)
+values(5, 1, "Impact of Computing", "This idea explores the societal impacts of computing, including its benefits, the digital divide, bias, crowdsourcing, legal and ethical concerns, and safe computing practices. It prepares students to be informed citizens who can critically assess the implications of technology on society and contribute positively to discussions about technology's role in addressing social, ethical, and legal issues.");
+
+insert into students(student_id, id_hash, first_name, email_address, email_hash, pass_hash, over_13, email_verified, account_active)
 values(1, '83dcefb7','John','jon@abc.com', '29599b12', '$2b$12$kXgej2NgVd6RJu9WxjiBS.E57vHpQrMqm7Cg9rY9LvosTyisKuwHS',true,false,false);
 
-insert into students(student_id, id_hash, first_name, email_address, email_hash, password, over_13, email_verified, account_active)
+insert into students(student_id, id_hash, first_name, email_address, email_hash, pass_hash, over_13, email_verified, account_active)
 values(2, '1ad5be0d','Jane','jane@abc.com', 'b5d81a5f', '$2b$12$3hMwKn9QM4Zc2.t3/pX9PupgD.fjryIrCnonUlgKIwjtxxfwIhm4i',true,false,false);
 
-insert into students(student_id, id_hash, first_name, email_address, email_hash, password, over_13, email_verified, account_active)
+insert into students(student_id, id_hash, first_name, email_address, email_hash, pass_hash, over_13, email_verified, account_active)
 values(3, '6dd28e9b','Joe','joe@abc.com', 'ab0c05cf', '$2b$12$VVeWdlCP9u3pthuClIYWluOeoUyXt8BreRBqk42U49ynaUZ54R9ru',true,false,false);
-
-
-
-

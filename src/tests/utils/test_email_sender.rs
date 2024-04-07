@@ -11,7 +11,13 @@ async fn test_send_email_success() {
 
     // Execute: Attempt to send an email
     email_sender
-        .send_email("user@example.com", "recipient@example.com", "Test Subject", "Test Body").await
+        .send_email(
+            "user@example.com",
+            "recipient@example.com",
+            "Test Subject",
+            "Test Body",
+        )
+        .await
         .unwrap();
 
     // Verify: Expect Ok(()) indicating the email was sent successfully
@@ -24,15 +30,17 @@ async fn test_send_email_invalid_recipient() {
     let email_sender = EmailSender {};
 
     // Execute with an invalid email address format
-    let result = email_sender.send_email(
-        "user@example.com",
-        "invalid-recipient",
-        "Test Subject",
-        "Test Body"
-    ).await;
+    let result = email_sender
+        .send_email(
+            "user@example.com",
+            "invalid-recipient",
+            "Test Subject",
+            "Test Body",
+        )
+        .await;
 
     // Verify: Expect an error indicating the recipient email address is invalid
-    // assert!(result.is_err());
+    assert!(result.is_err());
 }
 
 // Test to verify the handling when the MailHog server is unreachable
@@ -42,13 +50,15 @@ async fn test_send_email_server_unreachable() {
     let email_sender = EmailSender {};
 
     // Execute: Attempt to send an email with the unreachable server configuration
-    let result = email_sender.send_email(
-        "user@example.com",
-        "recipient@example.com",
-        "Test Subject",
-        "Test Body"
-    ).await;
+    let result = email_sender
+        .send_email(
+            "user@example.com",
+            "recipient@example.com",
+            "Test Subject",
+            "Test Body",
+        )
+        .await;
 
     // Verify: Expect an error indicating the server is unreachable or connection failed
-    // assert!(result.is_err());
+    assert!(result.is_err());
 }

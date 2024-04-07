@@ -1,4 +1,4 @@
-use actix_web::{ get, HttpResponse, post, Responder, web };
+use actix_web::{get, post, web, HttpResponse, Responder};
 use sqlx::MySqlPool;
 use tera::Context;
 use tera::Tera;
@@ -16,7 +16,6 @@ use crate::render_template;
 use crate::server_error;
 use crate::unauthorized;
 use crate::utils::hasher;
-use log;
 
 #[get("/login")]
 async fn login_get(tera: web::Data<Tera>) -> impl Responder {
@@ -35,29 +34,31 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
 
     let login = model.clone();
 
-    // Query the database for a user with the given email
-    match Student::read_by_email(&pool, &login.email_address).await {
-        Ok(user) =>
-            match user {
-                Some(user) => {
-                    // Verify the supplied password matches the one stored in the database
-                    if !hasher::verify(&model.password, &user.password) {
-                        return unauthorized!("Invalid credentials.");
-                    }
+    let mut student = Student::new();
+    student.email_address = login.email_address;
 
-                    // Check if the user's account is active and email is verified
-                    if !user.email_verified || !user.account_active {
-                        return forbidden!(
+    // Query the database for a user with the given email
+    match student.read_by_email(&pool).await {
+        Ok(user) => match user {
+            Some(user) => {
+                // Verify the supplied password matches the one stored in the database
+                if !hasher::verify(&model.password, &user.pass_hash.unwrap()) {
+                    return unauthorized!("Invalid credentials.");
+                }
+
+                // Check if the user's account is active and email is verified
+                if !user.email_verified || !user.account_active {
+                    return forbidden!(
                             "Your account is not verified. Follow this link to <a href='/activate-account'>activate your account</a>"
                         );
-                    }
-                }
-                None => {
-                    return not_found!(
-                        "We did not find any user with that email address. Please check your email and try again."
-                    );
                 }
             }
+            None => {
+                return not_found!(
+                        "We did not find any user with that email address. Please check your email and try again."
+                    );
+            }
+        },
         Err(e) => {
             return server_error!("Failed to retrieve user information", e);
         }
