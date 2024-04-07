@@ -1,0 +1,92 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "type": "array",
+  "items": {
+    "type": "object",
+    "properties": {
+      "question_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "course_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "chapter_id": {
+        "type": "integer",
+        "minimum": 1
+      },
+      "id_hash": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 32
+      },
+      "q_text": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      },
+      "choices": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" },
+            "text": { "type": "string" }
+          },
+          "required": ["id", "text"]
+        }
+      },
+      "answers": {
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": { "type": "string" }
+          },
+          "required": ["id"]
+        }
+      },
+      "a_explanation": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      },
+      "a_hint": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024
+      },
+      "q_difficulty": {
+        "type": "integer",
+        "minimum": 0,
+        "maximum": 255
+      },
+      "diff_reason": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 1024
+      },
+      "added_timestamp": {
+        "type": "string",
+        "format": "date-time"
+      },
+      "updated_timestamp": {
+        "type": "string",
+        "format": "date-time"
+      }
+    },
+    "required": [
+      "course_id",
+      "chapter_id",
+      "id_hash",
+      "q_text",
+      "choices",
+      "answers",
+      "a_explanation",
+      "a_hint",
+      "q_difficulty",
+      "diff_reason"
+    ]
+  }
+}

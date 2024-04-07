@@ -1,18 +1,23 @@
-use sqlx::{ Error, MySqlPool };
+use serde_json::Value;
 use sqlx::mysql::MySqlQueryResult;
+use sqlx::{Error, MySqlPool};
+use time::OffsetDateTime;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Question {
-    pub question_id: i32,
-    pub course_id: i32,
-    pub question: String,
-    pub answers: String,
-    pub choices: Option<i32>,
-    pub q_difficulty: Option<i32>,
-    pub d_reason: Option<String>,
-    pub a_explanation: Option<String>,
-    pub a_hint: Option<String>,
-    pub q_mode: i8,
+    question_id: u32,
+    course_id: u32,
+    chapter_id: u32,
+    id_hash: String,
+    q_text: String,
+    choices: Value, // Assuming JSON structure is [{ "id": "", "text": "" }]
+    answers: Value, // Assuming JSON structure is [{ "id": "" }]
+    a_explanation: String,
+    a_hint: String,
+    q_difficulty: i8,
+    diff_reason: String,
+    added_timestamp: Option<OffsetDateTime>,
+    updated_timestamp: Option<OffsetDateTime>,
 }
 
 impl Question {
@@ -26,7 +31,7 @@ impl Question {
         d_reason: Option<&str>,
         a_explanation: Option<&str>,
         a_hint: Option<&str>,
-        q_mode: i8
+        q_mode: i8,
     ) -> Result<MySqlQueryResult, Error> {
         let res = sqlx
             ::query(
@@ -49,10 +54,11 @@ impl Question {
     }
 
     pub async fn read(pool: &MySqlPool, question_id: i32) -> Result<Option<Question>, Error> {
-        let question = sqlx
-            ::query_as::<_, Question>("SELECT * FROM questions WHERE question_id = ?")
-            .bind(question_id)
-            .fetch_optional(pool).await;
+        let question =
+            sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE question_id = ?")
+                .bind(question_id)
+                .fetch_optional(pool)
+                .await;
         match question {
             Ok(result) => Ok(result),
             Err(e) => Err(e),
@@ -70,7 +76,7 @@ impl Question {
         d_reason: Option<&str>,
         a_explanation: Option<&str>,
         a_hint: Option<&str>,
-        q_mode: i8
+        q_mode: i8,
     ) -> Result<MySqlQueryResult, Error> {
         let res = sqlx
             ::query(
@@ -94,10 +100,10 @@ impl Question {
     }
 
     pub async fn delete(pool: &MySqlPool, question_id: i32) -> Result<MySqlQueryResult, Error> {
-        let res = sqlx
-            ::query("DELETE FROM questions WHERE question_id = ?")
+        let res = sqlx::query("DELETE FROM questions WHERE question_id = ?")
             .bind(question_id)
-            .execute(pool).await;
+            .execute(pool)
+            .await;
         match res {
             Ok(result) => Ok(result),
             Err(e) => Err(e),

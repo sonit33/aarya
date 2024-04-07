@@ -1,16 +1,3 @@
 pub mod course;
-pub mod student;
-pub mod teacher;
-pub mod assignment;
-pub mod payment;
-pub mod test;
-pub mod topic;
-pub mod tutoring;
 pub mod question;
-pub mod feedback;
-pub mod assignment_student;
-pub mod assignment_topic;
-pub mod question_topic;
-pub mod test_question;
-pub mod test_student;
-pub mod test_topic;
+pub mod student;

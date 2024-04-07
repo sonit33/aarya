@@ -22,23 +22,27 @@ create table chapters (
 );
 
 create table questions (
-    question_id int unsigned auto_increment primary key,
-    course_id int unsigned not null,
-    chapter_id int unsigned not null,
-    id_hash varchar(32) not null,
-    q_text varchar(2048) not null,
-    choices json not null, -- [{id: "", text: ""}]
-    answers json not null, -- [{id: ""}]
-    a_explanation varchar(2048) not null,
-    a_hint varchar(1024) not null,
-    q_difficulty tinyint not null,
-    diff_reason varchar(1024) not null,
+    question_id       int unsigned auto_increment primary key,
+    course_id         int unsigned                          not null,
+    chapter_id        int unsigned                          not null,
+    id_hash           varchar(32)                           not null,
+    q_text            varchar(2048)                         not null,
+    choices           varchar(2048) collate utf8mb4_bin     not null
+        check (json_valid(`choices`)),
+    answers           varchar(2048) collate utf8mb4_bin     not null
+        check (json_valid(`answers`)),
+    a_explanation     varchar(2048)                         not null,
+    a_hint            varchar(1024)                         not null,
+    q_difficulty      tinyint                               not null,
+    diff_reason       varchar(1024)                         not null,
     added_timestamp   timestamp default current_timestamp() null,
     updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    constraint questions_ibfk_1 foreign key (course_id) references courses (course_id)
+    constraint questions_ibfk_1
+        foreign key (course_id) references courses (course_id)
 );
 
 create index idx_question_course on questions (course_id);
+
 
 create table students (
     student_id        int unsigned auto_increment primary key,

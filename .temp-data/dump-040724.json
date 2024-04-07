@@ -1,0 +1,21 @@
+[
+  {
+    "question_id": 1,
+    "course_id": 101,
+    "chapter_id": 201,
+    "id_hash": "abc123",
+    "q_text": "What is the capital of France?",
+    "choices": [
+      { "id": "A", "text": "Paris" },
+      { "id": "B", "text": "London" },
+      { "id": "C", "text": "Berlin" }
+    ],
+    "answers": [{ "id": "A" }],
+    "a_explanation": "Paris is the capital of France.",
+    "a_hint": "Think about famous landmarks.",
+    "q_difficulty": 2,
+    "diff_reason": "Common knowledge",
+    "added_timestamp": "2022-04-14T10:00:00Z",
+    "updated_timestamp": "2022-04-14T10:00:00Z"
+  }
+]
