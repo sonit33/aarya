@@ -1,7 +1,6 @@
 [workspace]
 resolver = "2"
-members = ["macros", "models", "routes", "utils", "tests", "web"]
-
+members = ["macros", "models", "routes", "utils", "tests", "web", "cli"]
 
 # [dependencies]
 # actix-web = { version = "4.5.1", features = ["macros"] }
