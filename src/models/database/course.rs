@@ -3,7 +3,7 @@ use sqlx::Error;
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Course {
-    pub course_id: i32,
+    pub course_id: Option<u32>,
     pub name: String,
     pub added_timestamp: Option<time::OffsetDateTime>,
     pub updated_timestamp: Option<time::OffsetDateTime>,
@@ -11,14 +11,22 @@ pub struct Course {
 }
 
 impl Course {
-    pub async fn create(
-        pool: &MySqlPool,
-        name: &str,
-        description: Option<&str>,
-    ) -> Result<MySqlQueryResult, Error> {
+    pub fn new() -> Self {
+        Course {
+            course_id: Some(0),
+            name: String::from("not-set"),
+            added_timestamp: None,
+            updated_timestamp: None,
+            description: String::from("not-set"),
+        }
+    }
+}
+
+impl Course {
+    pub async fn create(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
         let res = sqlx::query("INSERT INTO courses (name, description) VALUES (?, ?)")
-            .bind(name)
-            .bind(description)
+            .bind(&self.name)
+            .bind(&self.description)
             .execute(pool)
             .await;
         match res {
@@ -27,9 +35,9 @@ impl Course {
         }
     }
 
-    pub async fn read(pool: &MySqlPool, course_id: i32) -> Result<Option<Course>, Error> {
+    pub async fn read(&self, pool: &MySqlPool) -> Result<Option<Course>, Error> {
         let course = sqlx::query_as::<_, Course>("SELECT * FROM courses WHERE course_id = ?")
-            .bind(course_id)
+            .bind(&self.course_id)
             .fetch_optional(pool)
             .await;
         match course {
@@ -38,16 +46,11 @@ impl Course {
         }
     }
 
-    pub async fn update(
-        pool: &MySqlPool,
-        course_id: i32,
-        name: &str,
-        description: Option<&str>,
-    ) -> Result<MySqlQueryResult, Error> {
+    pub async fn update(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
         let res = sqlx::query("UPDATE courses SET name = ?, description = ? WHERE course_id = ?")
-            .bind(name)
-            .bind(description)
-            .bind(course_id)
+            .bind(&self.name)
+            .bind(&self.description)
+            .bind(&self.course_id)
             .execute(pool)
             .await;
         match res {
@@ -56,9 +59,9 @@ impl Course {
         }
     }
 
-    pub async fn delete(pool: &MySqlPool, course_id: i32) -> Result<MySqlQueryResult, Error> {
+    pub async fn delete(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
         let res = sqlx::query("DELETE FROM courses WHERE course_id = ?")
-            .bind(course_id)
+            .bind(&self.course_id)
             .execute(pool)
             .await;
         match res {

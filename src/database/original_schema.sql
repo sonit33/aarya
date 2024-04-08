@@ -33,7 +33,7 @@ create table questions (
         check (json_valid(`answers`)),
     a_explanation     varchar(2048)                         not null,
     a_hint            varchar(1024)                         not null,
-    q_difficulty      tinyint                               not null,
+    difficulty        tinyint                               not null,
     diff_reason       varchar(1024)                         not null,
     added_timestamp   timestamp default current_timestamp() null,
     updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),

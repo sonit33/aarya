@@ -3,4 +3,4 @@
 .env.*
 .DS_Store
 src/.DS_Store
-.temp_data
+.temp-*

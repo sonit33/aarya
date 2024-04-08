@@ -1,24 +1,28 @@
-use jsonschema::JSONSchema;
-use serde_json::Value;
+use jsonschema::{Draft, JSONSchema};
+use serde_json::{from_reader, Value};
+use std::error::Error;
 use std::fs::File;
 use std::io::BufReader;
 
-fn validate_json_file(file_path: &str, schema: &str) -> bool {
-    // Read the JSON file
+// Function to read JSON file
+fn read_json_file(file_path: &str) -> Value {
     let file = File::open(file_path).expect("Failed to open file");
     let reader = BufReader::new(file);
-    let json_data: Value = serde_json::from_reader(reader).expect("Failed to parse JSON");
+    from_reader(reader).expect("Failed to parse JSON")
+}
 
-    // Parse the JSON schema
-    let schema_data: Value = serde_json::from_str(schema).expect("Failed to parse schema");
+pub fn validate_json_file(schema_path: &str, data_path: &str) -> Result<bool, Box<dyn Error>> {
+    let schema = read_json_file(schema_path);
+    let data = read_json_file(data_path);
 
-    // Create a JSONSchema from the parsed schema
-    let compile = JSONSchema::compile(&schema_data);
-    let compiled_schema = compile.expect("Failed to compile schema");
+    let compiled = JSONSchema::options()
+        .with_draft(Draft::Draft7)
+        .compile(&schema)
+        .expect("A valid schema");
 
-    // Validate the JSON data against the schema
-    let validation_result = compiled_schema.validate(&json_data);
-
-    // Return true if validation succeeded, false otherwise
-    validation_result.is_ok()
+    let result = compiled.validate(&data);
+    match result.is_ok() {
+        true => Ok(true),
+        false => Err("Validation failed".into()), // Return a specific error message
+    }
 }

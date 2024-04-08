@@ -140,7 +140,7 @@ impl Student {
 
     pub async fn update_account(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
         let res = sqlx::query(
-            "UPDATE students SET email_verified = ? account_active = ? WHERE student_id = ?",
+            "UPDATE students SET email_verified = ?, account_active = ? WHERE student_id = ?",
         )
         .bind(&self.email_verified)
         .bind(&self.account_active)

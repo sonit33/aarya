@@ -9,25 +9,15 @@ async fn test_create_question() {
     let pool = setup_database(&db_name).await;
 
     // First, create a course to satisfy the foreign key constraint
-    let course_result = Course::create(&pool, "Sample Course", Some("Sample Description")).await;
+    let course_result = Course::new().create(&pool).await;
     assert!(course_result.is_ok());
     let course = course_result.unwrap();
-    let course_id = course.last_insert_id(); // Adjust this line based on how you retrieve IDs
+
+    let mut question = Question::new();
+    question.course_id = course.last_insert_id() as u32;
 
     // Then, create a question associated with the newly created course
-    let result = Question::create(
-        &pool,
-        course_id as i32,
-        "What is Rust?",
-        "A programming language.",
-        Some(4),
-        Some(3),
-        Some("Because it's important."),
-        Some("It's widely used for system programming."),
-        Some("Think about system programming."),
-        1,
-    )
-    .await;
+    let result = question.create(&pool).await;
     assert!(result.is_ok());
     let result = result.unwrap();
     assert!(result.last_insert_id() > 0);
@@ -40,31 +30,20 @@ async fn test_read_question() {
     let db_name = generate_guid(8);
     let pool = setup_database(&db_name).await;
 
-    let course_result = Course::create(&pool, "Sample Course", Some("Sample Description")).await;
+    let course_result = Course::new().create(&pool).await;
     assert!(course_result.is_ok());
     let course = course_result.unwrap();
-    let course_id = course.last_insert_id() as i32; // Adjust this line based on how you retrieve IDs
+    let mut q1 = Question::new();
+    q1.course_id = course.last_insert_id() as u32;
 
-    let _ = Question::create(
-        &pool,
-        course_id,
-        "What is Rust?",
-        "A programming language.",
-        Some(4),
-        Some(3),
-        Some("Because it's important."),
-        Some("It's widely used for system programming."),
-        Some("Think about system programming."),
-        1,
-    )
-    .await;
-    let question_id = 1; // Assuming this is the first entry and hence has ID 1
-    let result = Question::read(&pool, question_id).await;
+    // Then, create a question associated with the newly created course
+    let result = q1.create(&pool).await.unwrap();
+    q1.question_id = Some(result.last_insert_id() as u32);
+    let result = q1.read(&pool).await;
     assert!(result.is_ok());
-    let question = result.unwrap();
-    assert!(question.is_some());
-    // let question = question.unwrap();
-    // assert_eq!(question.question_id, question_id);
+    let q2 = result.unwrap();
+    assert!(q2.is_some());
+    assert_eq!(q2.unwrap().question_id.unwrap(), q1.question_id.unwrap());
 
     teardown_database(&pool, &db_name).await.unwrap();
 }
@@ -74,44 +53,25 @@ async fn test_update_question() {
     let db_name = generate_guid(8);
     let pool = setup_database(&db_name).await;
 
-    let course_result = Course::create(&pool, "Sample Course", Some("Sample Description")).await;
+    let course_result = Course::new().create(&pool).await;
     assert!(course_result.is_ok());
     let course = course_result.unwrap();
-    let course_id = course.last_insert_id() as i32; // Adjust this line based on how you retrieve IDs
 
-    let created_response = Question::create(
-        &pool,
-        course_id,
-        "What is Rust?",
-        "A programming language.",
-        Some(4),
-        Some(3),
-        Some("Because it's important."),
-        Some("It's widely used for system programming."),
-        Some("Think about system programming."),
-        1,
-    )
-    .await;
-    let question_id = created_response.unwrap().last_insert_id() as i32; // Assuming this is the first entry and hence has ID 1
-    let result = Question::update(
-        &pool,
-        question_id,
-        1,
-        "Updated Question?",
-        "Updated Answer",
-        None,
-        None,
-        Some("Updated reason"),
-        Some("Updated explanation"),
-        Some("Updated hint"),
-        2,
-    )
-    .await;
-    assert!(result.is_ok());
+    // create a new question
+    let mut q1 = Question::new();
+    q1.course_id = course.last_insert_id() as u32;
+    let r1 = q1.create(&pool).await;
 
-    let question = Question::read(&pool, question_id).await.unwrap().unwrap();
-    // assert_eq!(question.question, "Updated Question?");
-    // assert_eq!(question.answers, "Updated Answer");
+    // update the question
+    // let mut q2 = Question::new();
+    q1.question_id = Some(r1.unwrap().last_insert_id() as u32); // Assuming this is the first entry and hence has ID 1
+    q1.q_text = String::from("Updated question?");
+    let r2 = q1.update(&pool).await.unwrap();
+    assert!(r2.rows_affected() > 0);
+
+    // read the updated question to verify change
+    let q3 = q1.read(&pool).await.unwrap().unwrap();
+    assert_eq!(q3.q_text, q1.q_text);
 
     teardown_database(&pool, &db_name).await.unwrap();
 }
@@ -121,26 +81,17 @@ async fn test_delete_question() {
     let db_name = generate_guid(8);
     let pool = setup_database(&db_name).await;
 
-    let _ = Question::create(
-        &pool,
-        1,
-        "What is Rust?",
-        "A programming language.",
-        Some(4),
-        Some(3),
-        Some("Because it's important."),
-        Some("It's widely used for system programming."),
-        Some("Think about system programming."),
-        1,
-    )
-    .await;
-    let question_id = 1; // Assuming this is the first entry and hence has ID 1
-    let delete_result = Question::delete(&pool, question_id).await;
-    assert!(delete_result.is_ok());
-
-    let read_result = Question::read(&pool, question_id).await;
-    assert!(read_result.is_ok());
-    assert!(read_result.unwrap().is_none());
+    // create a new question
+    let mut q1 = Question::new();
+    q1.course_id = 1;
+    q1.chapter_id = 1;
+    let r1 = q1.create(&pool).await.unwrap();
+    q1.question_id = Some(r1.last_insert_id() as u32);
+    // delete the question
+    q1.delete(&pool).await.unwrap();
+    // verify delete
+    let r2 = q1.read(&pool).await.unwrap();
+    assert!(r2.is_none());
 
     teardown_database(&pool, &db_name).await.unwrap();
 }
