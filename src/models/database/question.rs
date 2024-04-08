@@ -1,7 +1,30 @@
+use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::mysql::MySqlQueryResult;
 use sqlx::{Error, MySqlPool};
 use time::OffsetDateTime;
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Choice {
+    id: String,
+    text: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Answer {
+    id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct QuestionFromJson {
+    pub q_text: String,
+    pub choices: Vec<Choice>,
+    pub answers: Vec<Answer>,
+    pub a_explanation: String,
+    pub a_hint: String,
+    pub difficulty: i8,
+    pub diff_reason: String,
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct Question {
@@ -92,11 +115,11 @@ impl Question {
         }
     }
 
-    pub async fn read_by_chapter(&self, pool: &MySqlPool) -> Result<Option<Question>, Error> {
+    pub async fn read_by_chapter(&self, pool: &MySqlPool) -> Result<Vec<Question>, Error> {
         let question =
             sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE chapter_id = ?")
                 .bind(&self.chapter_id)
-                .fetch_optional(pool)
+                .fetch_all(pool)
                 .await;
         match question {
             Ok(result) => Ok(result),
@@ -104,10 +127,10 @@ impl Question {
         }
     }
 
-    pub async fn read_by_course(&self, pool: &MySqlPool) -> Result<Option<Question>, Error> {
+    pub async fn read_by_course(&self, pool: &MySqlPool) -> Result<Vec<Question>, Error> {
         let question = sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE course_id = ?")
             .bind(&self.course_id)
-            .fetch_optional(pool)
+            .fetch_all(pool)
             .await;
         match question {
             Ok(result) => Ok(result),

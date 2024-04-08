@@ -1,6 +1,9 @@
+use serde_json::json;
+
 use crate::models::database::course::Course;
-use crate::models::database::question::Question;
+use crate::models::database::question::{Question, QuestionFromJson};
 use crate::tests::{setup_database, teardown_database};
+use crate::utils::json_ops;
 use crate::utils::random::generate_guid;
 
 #[tokio::test]
@@ -93,5 +96,43 @@ async fn test_delete_question() {
     let r2 = q1.read(&pool).await.unwrap();
     assert!(r2.is_none());
 
+    teardown_database(&pool, &db_name).await.unwrap();
+}
+
+#[tokio::test]
+async fn test_create_questions_from_file() {
+    // setup
+    let db_name = generate_guid(8);
+    let pool = setup_database(&db_name).await;
+
+    // validate schema
+    let schema_path = ".schema/question-schema.json";
+    let data_path = ".temp-data/co2-ch2-040724.json";
+    assert!(json_ops::validate_json_file(&schema_path, &data_path).is_ok());
+
+    // load data from json file
+    let questions: Vec<QuestionFromJson> = json_ops::json_to_vec(&data_path).unwrap();
+    assert_eq!(questions.len(), 5);
+    // iterate and create questions
+    for question in questions {
+        // println!("{:?}", question);
+        let mut q = Question::new();
+        q.course_id = 2;
+        q.chapter_id = 2;
+        q.q_text = question.q_text;
+        q.choices = json!(question.choices);
+        q.answers = json!(question.answers);
+        q.a_explanation = question.a_explanation;
+        q.a_hint = question.a_hint;
+        q.difficulty = question.difficulty;
+        q.diff_reason = question.diff_reason;
+        q.create(&pool).await.unwrap();
+    }
+    // assert question count equals created count
+    let mut q = Question::new();
+    q.chapter_id = 2;
+    let results = q.read_by_chapter(&pool).await.unwrap();
+    assert_eq!(results.len(), 5);
+    // teardown
     teardown_database(&pool, &db_name).await.unwrap();
 }
