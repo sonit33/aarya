@@ -42,17 +42,26 @@ pub async fn setup_test_database(db_name: &str) -> MySqlPool {
 }
 
 pub async fn teardown_test_database(pool: &Pool<MySql>, db_name: &str) -> Result<(), sqlx::Error> {
-    let drop_command = format!("DROP DATABASE `{}`;", db_name);
-
-    match pool.execute(drop_command.as_str()).await {
+    // switch to mysql database then execute the drop database command from there
+    match pool.execute("use mysql;").await {
         Ok(_) => {
-            println!("Database {} dropped successfully.", db_name);
-            pool.close().await;
-            assert!(pool.is_closed());
-            Ok(())
+            println!("switched to mysql");
+            let drop_command = format!("DROP DATABASE `{}`;", db_name);
+            match pool.execute(drop_command.as_str()).await {
+                Ok(_) => {
+                    println!("Database {} dropped successfully.", db_name);
+                    pool.close().await;
+                    assert!(pool.is_closed());
+                    Ok(())
+                }
+                Err(e) => {
+                    eprintln!("Failed to drop the database {}: {}", db_name, e);
+                    Err(e)
+                }
+            }
         }
         Err(e) => {
-            eprintln!("Failed to drop the database {}: {}", db_name, e);
+            eprintln!("Failed to switch to mysql");
             Err(e)
         }
     }
