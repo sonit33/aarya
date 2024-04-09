@@ -1,0 +1,28 @@
+[package]
+name = "aarya_web"
+version = "0.1.0"
+edition = "2021"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+aarya_utils = { path = "../utils", version = "*" }
+aarya_models = { path = "../models", version = "*" }
+aarya_macros = { path = "../macros", version = "*" }
+aarya_routes = { path = "../routes", version = "*" }
+actix-web = { version = "4.5.1", features = ["macros"] }
+tokio = { version = "1.36.0", features = ["full"] }
+tera = "1.19.1"
+log = "0.4.21"
+env_logger = { version = "0.11.3", features = ["auto-color"] }
+dotenv = "0.15.0"
+sqlx = { version = "0.7.4", features = [
+    "mysql",
+    "runtime-tokio-native-tls",
+    "time",
+    "macros",
+] }
+
+# [[bin]]
+# name = "aarya_web"
+# path = "src/lib.rs"
