@@ -1,8 +1,8 @@
 use aarya_utils::hasher;
-use serde::{Deserialize, Serialize};
-use serde_json::{json, Value};
+use serde::{ Deserialize, Serialize };
+use serde_json::{ json, Value };
 use sqlx::mysql::MySqlQueryResult;
-use sqlx::{Error, MySqlPool};
+use sqlx::{ Error, MySqlPool };
 use time::OffsetDateTime;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -86,7 +86,7 @@ impl Question {
 
 impl Question {
     pub async fn create(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
-        let q_hash = hasher::cook_hash(&self.q_text.to_lowercase().as_str()).unwrap();
+        let q_hash = hasher::string_hasher(self.q_text.to_lowercase().as_str());
         let res = sqlx
             ::query(
                 "INSERT INTO questions (course_id, chapter_id, id_hash, q_text, answers, choices, difficulty, diff_reason, a_explanation, a_hint, q_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -110,30 +110,31 @@ impl Question {
     }
 
     pub async fn create_if(&mut self, pool: &MySqlPool) -> Result<Option<MySqlQueryResult>, Error> {
-        let q_hash = hasher::cook_hash(&self.q_text.to_lowercase().as_str()).unwrap();
+        // let q_hash = hasher::cook_hash(&self.q_text.to_lowercase().as_str()).unwrap();
+        let q_hash = hasher::string_hasher(self.q_text.to_lowercase().as_str());
         match self.read_by_q_hash(&pool, &q_hash).await {
-            Ok(q) => match q {
-                // return if hash is found
-                Some(_) => Ok(None),
-                // create new if hash is unique
-                None => {
-                    self.q_hash = q_hash;
-                    match self.create(&pool).await {
-                        Ok(r1) => Ok(Some(r1)),
-                        Err(e) => Err(e),
+            Ok(q) =>
+                match q {
+                    // return if hash is found
+                    Some(_) => Ok(None),
+                    // create new if hash is unique
+                    None => {
+                        self.q_hash = q_hash;
+                        match self.create(&pool).await {
+                            Ok(r1) => Ok(Some(r1)),
+                            Err(e) => Err(e),
+                        }
                     }
                 }
-            },
             Err(e) => Err(e),
         }
     }
 
     pub async fn read(&self, pool: &MySqlPool) -> Result<Option<Question>, Error> {
-        let question =
-            sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE question_id = ?")
-                .bind(&self.question_id)
-                .fetch_optional(pool)
-                .await;
+        let question = sqlx
+            ::query_as::<_, Question>("SELECT * FROM questions WHERE question_id = ?")
+            .bind(&self.question_id)
+            .fetch_optional(pool).await;
         match question {
             Ok(result) => Ok(result),
             Err(e) => Err(e),
@@ -141,11 +142,10 @@ impl Question {
     }
 
     pub async fn read_by_chapter(&self, pool: &MySqlPool) -> Result<Vec<Question>, Error> {
-        let question =
-            sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE chapter_id = ?")
-                .bind(&self.chapter_id)
-                .fetch_all(pool)
-                .await;
+        let question = sqlx
+            ::query_as::<_, Question>("SELECT * FROM questions WHERE chapter_id = ?")
+            .bind(&self.chapter_id)
+            .fetch_all(pool).await;
         match question {
             Ok(result) => Ok(result),
             Err(e) => Err(e),
@@ -153,10 +153,10 @@ impl Question {
     }
 
     pub async fn read_by_course(&self, pool: &MySqlPool) -> Result<Vec<Question>, Error> {
-        let question = sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE course_id = ?")
+        let question = sqlx
+            ::query_as::<_, Question>("SELECT * FROM questions WHERE course_id = ?")
             .bind(&self.course_id)
-            .fetch_all(pool)
-            .await;
+            .fetch_all(pool).await;
         match question {
             Ok(result) => Ok(result),
             Err(e) => Err(e),
@@ -164,10 +164,10 @@ impl Question {
     }
 
     pub async fn read_by_hash(&self, pool: &MySqlPool) -> Result<Option<Question>, Error> {
-        let question = sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE id_hash = ?")
+        let question = sqlx
+            ::query_as::<_, Question>("SELECT * FROM questions WHERE id_hash = ?")
             .bind(&self.id_hash)
-            .fetch_optional(pool)
-            .await;
+            .fetch_optional(pool).await;
         match question {
             Ok(result) => Ok(result),
             Err(e) => Err(e),
@@ -177,12 +177,12 @@ impl Question {
     pub async fn read_by_q_hash(
         &self,
         pool: &MySqlPool,
-        q_hash: &str,
+        q_hash: &str
     ) -> Result<Option<Question>, Error> {
-        let question = sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE q_hash = ?")
+        let question = sqlx
+            ::query_as::<_, Question>("SELECT * FROM questions WHERE q_hash = ?")
             .bind(q_hash)
-            .fetch_one(pool)
-            .await;
+            .fetch_one(pool).await;
         match question {
             Ok(result) => Ok(Some(result)),
             Err(_) => Ok(None),
@@ -213,10 +213,10 @@ impl Question {
     }
 
     pub async fn delete(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
-        let res = sqlx::query("DELETE FROM questions WHERE question_id = ?")
+        let res = sqlx
+            ::query("DELETE FROM questions WHERE question_id = ?")
             .bind(&self.question_id)
-            .execute(pool)
-            .await;
+            .execute(pool).await;
         match res {
             Ok(result) => Ok(result),
             Err(e) => Err(e),

@@ -1,6 +1,16 @@
 use bcrypt::{ hash, DEFAULT_COST };
 use crc32fast::Hasher;
 
+use sha2::{ Sha256, Digest };
+use hex::encode as hex_encode;
+
+pub fn string_hasher(input: &str) -> String {
+    let mut hasher = Sha256::new();
+    hasher.update(input);
+    let result = hasher.finalize();
+    hex_encode(result)
+}
+
 pub fn cook_hash(password: &str) -> Result<String, bcrypt::BcryptError> {
     hash(password, DEFAULT_COST)
 }

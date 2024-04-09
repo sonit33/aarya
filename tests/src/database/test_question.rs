@@ -160,24 +160,32 @@ async fn test_create_if_hash_unavailable() {
     q2.course_id = 2;
     q2.chapter_id = 2;
     q2.q_text = "abcd".to_string();
+
+    let h1 = hasher::string_hasher(&q1.q_text.to_lowercase());
+    let h2 = hasher::string_hasher(&q1.q_text.to_lowercase());
+
+    // write assertion for string equality
+    assert_eq!(h1, h2);
+
     match q2.create_if(&pool).await {
-        Ok(q) => match q {
-            Some(_) => {
-                println!("duplicate inserted");
+        Ok(q) =>
+            match q {
+                Some(_) => {
+                    println!("duplicate inserted");
+                }
+                None => {
+                    println!("no duplicate");
+                }
             }
-            None => {
-                println!("no duplicate");
-            }
-        },
         Err(e) => {
-            println!("error: [{}]", e)
+            println!("error: [{}]", e);
         }
     }
-    // verify that 2 doesn't exist
+
+    // verify that question with ID 2 doesn't exist
     let mut q3 = Question::new();
     q3.question_id = Some(2);
-    let r = q3.read(&pool).await.unwrap().unwrap();
-    assert!(r.question_id != Some(2));
+    assert!(q3.read(&pool).await.unwrap().is_none());
 
     // teardown
     teardown_test_database(&pool, &db_name).await.unwrap();
