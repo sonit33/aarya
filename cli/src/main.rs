@@ -4,7 +4,7 @@ use crate::question_ops::save;
 use std::path::PathBuf;
 
 use aarya_models::database::question::QuestionFromJson;
-use aarya_utils::{db_ops::setup_durable_database, environ::Environ, json_ops};
+use aarya_utils::json_ops;
 use clap::{Parser, Subcommand};
 
 #[derive(Parser)]
@@ -31,40 +31,25 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
     match &cli.command {
-        Some(Commands::Questions {
-            schema_file,
-            data_file,
-        }) => {
+        Some(Commands::Questions { schema_file, data_file }) => {
             match (schema_file, data_file) {
                 // Both schema_file and data_file are Some
-                (Some(schema_file), Some(data_file)) => {
-                    match json_ops::validate_json_file(
-                        schema_file.to_str().unwrap(),
-                        data_file.to_str().unwrap(),
-                    ) {
-                        Ok(r) => match r {
-                            true => {
-                                match json_ops::json_to_vec::<QuestionFromJson>(
-                                    &data_file.to_str().unwrap(),
-                                ) {
-                                    Ok(questions) => {
-                                        save(questions).await;
-                                    }
-                                    Err(e) => println!(
-                                        "Failed to convert json to vector of questions: [{}]",
-                                        e
-                                    ),
-                                }
+                (Some(schema_file), Some(data_file)) => match json_ops::validate_json_file(schema_file.to_str().unwrap(), data_file.to_str().unwrap()) {
+                    Ok(r) => match r {
+                        true => match json_ops::json_to_vec::<QuestionFromJson>(&data_file.to_str().unwrap()) {
+                            Ok(questions) => {
+                                save(questions).await;
                             }
-                            false => {
-                                println!("the data file is invalid");
-                            }
+                            Err(e) => println!("Failed to convert json to vector of questions: [{}]", e),
                         },
-                        Err(e) => {
-                            println!("Failed to validate the data file: [{}]", e);
+                        false => {
+                            println!("the data file is invalid");
                         }
+                    },
+                    Err(e) => {
+                        println!("Failed to validate the data file: [{}]", e);
                     }
-                }
+                },
                 // Only schema_file is Some
                 (Some(_), None) => {
                     println!("data file missing");
