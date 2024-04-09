@@ -1,7 +1,7 @@
 use aarya_models::database::student::Student;
 use aarya_utils::{
     db_ops::{setup_test_database, teardown_test_database},
-    random::generate_guid,
+    random::generate_guid
 };
 
 #[tokio::test]

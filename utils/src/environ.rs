@@ -9,16 +9,12 @@ pub struct Environ {
     pub email_server: String,
     pub email_port: String,
     pub email_username: String,
-    pub email_password: String,
+    pub email_password: String
 }
 
 impl Environ {
     pub fn init() {
-        let env_file = if cfg!(debug_assertions) {
-            ".env.dev"
-        } else {
-            ".env.prod"
-        };
+        let env_file = if cfg!(debug_assertions) { ".env.dev" } else { ".env.prod" };
 
         from_filename(env_file).ok();
     }
@@ -37,7 +33,7 @@ impl Default for Environ {
             email_server,
             email_port,
             email_username,
-            email_password,
+            email_password
         }
     }
 }

@@ -41,10 +41,6 @@ fn test_within_days_edge_case_true() {
 #[test]
 fn test_within_days_edge_case_false() {
     // Edge case: just over the number of days specified
-    let slightly_more_than_two_days_ago =
-        OffsetDateTime::now_utc() - Duration::days(2) - Duration::seconds(1);
-    assert!(!within_days(
-        slightly_more_than_two_days_ago.unix_timestamp(),
-        2
-    ));
+    let slightly_more_than_two_days_ago = OffsetDateTime::now_utc() - Duration::days(2) - Duration::seconds(1);
+    assert!(!within_days(slightly_more_than_two_days_ago.unix_timestamp(), 2));
 }

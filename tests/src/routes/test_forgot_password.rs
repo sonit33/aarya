@@ -2,7 +2,7 @@ use aarya_routes::auth::forgot_password::forgot_password_email_post;
 use aarya_utils::{
     db_ops::{setup_test_database, teardown_test_database},
     email_sender::EmailSender,
-    random::generate_guid,
+    random::generate_guid
 };
 use actix_web::{http::StatusCode, test, web, App};
 use serde_json::json;
@@ -16,15 +16,12 @@ async fn forgot_password_email_post_email_not_found() {
         App::new()
             .app_data(web::Data::new(mock_pool.clone()))
             .app_data(web::Data::new(mock_email_sender.clone()))
-            .service(forgot_password_email_post),
+            .service(forgot_password_email_post)
     )
     .await;
 
     let req_body = json!({"email_address": "nonexistent@example.com"});
-    let req = test::TestRequest::post()
-        .uri("/forgot-password")
-        .set_json(&req_body)
-        .to_request();
+    let req = test::TestRequest::post().uri("/forgot-password").set_json(&req_body).to_request();
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
@@ -52,15 +49,12 @@ async fn forgot_password_email_post_success() {
         App::new()
             .app_data(web::Data::new(mock_pool.clone()))
             .app_data(web::Data::new(mock_email_sender.clone()))
-            .service(forgot_password_email_post),
+            .service(forgot_password_email_post)
     )
     .await;
 
     let req_body = json!({"email_address": "jon@abc.com"});
-    let req = test::TestRequest::post()
-        .uri("/forgot-password")
-        .set_json(&req_body)
-        .to_request();
+    let req = test::TestRequest::post().uri("/forgot-password").set_json(&req_body).to_request();
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::OK);

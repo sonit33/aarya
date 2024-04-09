@@ -168,15 +168,14 @@ async fn test_create_if_hash_unavailable() {
     assert_eq!(h1, h2);
 
     match q2.create_if(&pool).await {
-        Ok(q) =>
-            match q {
-                Some(_) => {
-                    println!("duplicate inserted");
-                }
-                None => {
-                    println!("no duplicate");
-                }
+        Ok(q) => match q {
+            Some(_) => {
+                println!("duplicate inserted");
             }
+            None => {
+                println!("no duplicate");
+            }
+        },
         Err(e) => {
             println!("error: [{}]", e);
         }

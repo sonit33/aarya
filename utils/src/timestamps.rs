@@ -1,4 +1,4 @@
-use time::{ self, OffsetDateTime };
+use time::{self, OffsetDateTime};
 
 pub fn within_days(unix_timestamp: i64, days: i64) -> bool {
     let given_time = time::OffsetDateTime::from_unix_timestamp(unix_timestamp).unwrap();
@@ -17,6 +17,4 @@ pub fn difference_in_days(timestamp1: i64, timestamp2: i64) -> i64 {
     difference.whole_days()
 }
 
-pub fn get_unix_timestamp() -> i64 {
-    OffsetDateTime::now_utc().unix_timestamp()
-}
+pub fn get_unix_timestamp() -> i64 { OffsetDateTime::now_utc().unix_timestamp() }

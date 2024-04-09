@@ -9,5 +9,5 @@ pub enum AaryaUtilError {
     #[error("Schema failed to compile: [{1}] due to: [{0}]")]
     SchemaCompilationError(String, String),
     #[error("Validation failed for the file: [{0}]")]
-    ValidationError(String),
+    ValidationError(String)
 }

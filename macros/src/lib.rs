@@ -6,7 +6,7 @@ macro_rules! server_error {
 
         HttpResponse::InternalServerError().json(DefaultResponseModel::<String> {
             action_type: ActionType::HandleError,
-            arg: format!("{}: {}", $arg1, $arg2),
+            arg: format!("{}: {}", $arg1, $arg2)
         })
     }};
 }
@@ -16,7 +16,7 @@ macro_rules! all_ok {
     ($arg:expr) => {
         HttpResponse::Ok().json(DefaultResponseModel::<String> {
             action_type: ActionType::Inform,
-            arg: $arg.to_string(),
+            arg: $arg.to_string()
         })
     };
 }
@@ -26,7 +26,7 @@ macro_rules! ok_action {
     ($arg1:expr, $arg2:expr) => {
         HttpResponse::Ok().json(DefaultResponseModel::<String> {
             action_type: $arg1,
-            arg: $arg2.to_string(),
+            arg: $arg2.to_string()
         })
     };
 }
@@ -36,7 +36,7 @@ macro_rules! bad_request {
     ($arg:expr) => {
         HttpResponse::BadRequest().json(DefaultResponseModel::<String> {
             action_type: ActionType::HandleError,
-            arg: $arg.to_string(),
+            arg: $arg.to_string()
         })
     };
 }
@@ -46,7 +46,7 @@ macro_rules! forbidden {
     ($arg:expr) => {
         HttpResponse::Forbidden().json(DefaultResponseModel::<String> {
             action_type: ActionType::HandleError,
-            arg: $arg.to_string(),
+            arg: $arg.to_string()
         })
     };
 }
@@ -56,7 +56,7 @@ macro_rules! unauthorized {
     ($arg:expr) => {
         HttpResponse::Unauthorized().json(DefaultResponseModel::<String> {
             action_type: ActionType::HandleError,
-            arg: $arg.to_string(),
+            arg: $arg.to_string()
         })
     };
 }
@@ -66,7 +66,7 @@ macro_rules! not_found {
     ($arg:expr) => {
         HttpResponse::NotFound().json(DefaultResponseModel::<String> {
             action_type: ActionType::HandleError,
-            arg: $arg.to_string(),
+            arg: $arg.to_string()
         })
     };
 }

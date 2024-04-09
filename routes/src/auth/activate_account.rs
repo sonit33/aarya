@@ -13,11 +13,7 @@ use tera::{Context, Tera};
 use validator::Validate;
 
 #[post("/activate-account")]
-pub async fn activate_account_post(
-    pool: web::Data<MySqlPool>,
-    email_sender: web::Data<EmailSender>,
-    model: web::Json<VerifyEmailModel>,
-) -> impl Responder {
+pub async fn activate_account_post(pool: web::Data<MySqlPool>, email_sender: web::Data<EmailSender>, model: web::Json<VerifyEmailModel>) -> impl Responder {
     // validate the model
     if let Err(e) = model.validate() {
         bad_request!(format!("Validation error: {}", e));
@@ -35,34 +31,24 @@ pub async fn activate_account_post(
                     // generate a url-encoded link to reset password e.g. /reset-password?e=<email-hash>&t=<timestamp>
                     let reset_password_link = format!(
                         "/account-confirmation?q={}",
-                        UrlEncoderDecoder::encode(
-                            format!(
-                                "e={}&t={}",
-                                student.email_hash,
-                                time::OffsetDateTime::now_utc().unix_timestamp().to_string()
-                            )
-                            .as_str()
-                        )
+                        UrlEncoderDecoder::encode(format!("e={}&t={}", student.email_hash, time::OffsetDateTime::now_utc().unix_timestamp().to_string()).as_str())
                     );
                     match email_sender
                         .send_email(
                             "postmaster@aarya.ai",
                             &student.email_address,
                             format!("{}'s password reset link", &student.first_name).as_str(),
-                            &reset_password_link,
+                            &reset_password_link
                         )
                         .await
                     {
-                        Ok(_) => ok_action!(
-                            ActionType::Redirect,
-                            format!("/activate-account/email-sent?e={}", student.email_hash)
-                        ),
-                        Err(e) => server_error!("Error sending email", e),
+                        Ok(_) => ok_action!(ActionType::Redirect, format!("/activate-account/email-sent?e={}", student.email_hash)),
+                        Err(e) => server_error!("Error sending email", e)
                     }
                 }
             }
         }
-        Err(e) => server_error!("Server error", e),
+        Err(e) => server_error!("Server error", e)
     }
 }
 
@@ -75,11 +61,7 @@ pub async fn activate_account_get(tera: web::Data<Tera>) -> impl Responder {
 }
 
 #[get("/account-confirmation")]
-pub async fn account_activate_get(
-    tera: web::Data<Tera>,
-    pool: web::Data<MySqlPool>,
-    query: web::Query<Base64QuerystringModel>,
-) -> impl Responder {
+pub async fn account_activate_get(tera: web::Data<Tera>, pool: web::Data<MySqlPool>, query: web::Query<Base64QuerystringModel>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Activate your account");
 
@@ -107,19 +89,11 @@ pub async fn account_activate_get(
                     match student.update_account(&pool).await {
                         Ok(_) => {
                             context.insert("email_hash", email_hash);
-                            render_template!(
-                                &tera,
-                                "auth/activate-account/confirmation.html",
-                                &context
-                            )
+                            render_template!(&tera, "auth/activate-account/confirmation.html", &context)
                         }
                         Err(_) => {
                             context.insert("error", "activation failed");
-                            render_template!(
-                                &tera,
-                                "auth/activate-account/confirmation.html",
-                                &context
-                            )
+                            render_template!(&tera, "auth/activate-account/confirmation.html", &context)
                         }
                     }
                 } else {
@@ -140,11 +114,7 @@ pub async fn account_activate_get(
 }
 
 #[get("/activate-account/email-sent")]
-pub async fn activate_account_email_sent_get(
-    tera: web::Data<Tera>,
-    pool: web::Data<MySqlPool>,
-    query: web::Query<EmailSentModel>,
-) -> impl Responder {
+pub async fn activate_account_email_sent_get(tera: web::Data<Tera>, pool: web::Data<MySqlPool>, query: web::Query<EmailSentModel>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Activate your account");
 

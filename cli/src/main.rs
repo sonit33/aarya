@@ -1,17 +1,18 @@
 pub mod question_ops;
 
-use crate::question_ops::save;
 use std::path::PathBuf;
 
 use aarya_models::database::question::QuestionFromJson;
 use aarya_utils::json_ops;
 use clap::{Parser, Subcommand};
 
+use crate::question_ops::save;
+
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
-    command: Option<Commands>,
+    command: Option<Commands>
 }
 
 #[derive(Subcommand)]
@@ -23,8 +24,8 @@ enum Commands {
         schema_file: Option<PathBuf>,
         /// path to the json data
         #[arg(short, long, value_name = "FILE")]
-        data_file: Option<PathBuf>,
-    },
+        data_file: Option<PathBuf>
+    }
 }
 
 #[tokio::main]
@@ -40,7 +41,7 @@ async fn main() {
                             Ok(questions) => {
                                 save(questions).await;
                             }
-                            Err(e) => println!("Failed to convert json to vector of questions: [{}]", e),
+                            Err(e) => println!("Failed to convert json to vector of questions: [{}]", e)
                         },
                         false => {
                             println!("the data file is invalid");

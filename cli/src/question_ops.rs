@@ -1,7 +1,5 @@
 use aarya_models::database::question::{Question, QuestionFromJson};
-use aarya_utils::{
-    db_ops::setup_durable_database, environ::Environ, hasher, random::generate_guid,
-};
+use aarya_utils::{db_ops::setup_durable_database, environ::Environ, hasher, random::generate_guid};
 use serde_json::json;
 use sqlx::{MySql, Pool};
 

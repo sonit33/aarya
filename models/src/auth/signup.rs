@@ -1,7 +1,7 @@
 // models/model_signup
 
-use serde::{ Deserialize, Serialize };
-use validator::{ Validate, ValidationError };
+use serde::{Deserialize, Serialize};
+use validator::{Validate, ValidationError};
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct SignupModel {
@@ -19,7 +19,7 @@ pub struct SignupModel {
     #[validate(custom(function = "must_be_true"))]
     pub over_13: bool,
     #[validate(length(equal = 8))]
-    pub verification_code: String,
+    pub verification_code: String
 }
 
 fn is_unique(email: &str) -> Result<(), ValidationError> {

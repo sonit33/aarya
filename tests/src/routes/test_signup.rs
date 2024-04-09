@@ -4,7 +4,7 @@ use aarya_routes::auth::signup::signup_post;
 use aarya_utils::{
     db_ops::{setup_test_database, teardown_test_database},
     email_sender::EmailSender,
-    random::generate_guid,
+    random::generate_guid
 };
 use actix_web::{http::StatusCode, test, web, App};
 use serde_json::json;
@@ -19,7 +19,7 @@ async fn test_signup_post_success() {
         App::new()
             .app_data(web::Data::new(Arc::new(mock_pool.clone())))
             .app_data(web::Data::new(Arc::new(mock_email_sender)))
-            .service(signup_post),
+            .service(signup_post)
     )
     .await;
 
@@ -33,10 +33,7 @@ async fn test_signup_post_success() {
         "verification_code": "12345678",
     });
 
-    let req = test::TestRequest::post()
-        .uri("/signup")
-        .set_json(&signup_model)
-        .to_request();
+    let req = test::TestRequest::post().uri("/signup").set_json(&signup_model).to_request();
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::OK);
@@ -54,7 +51,7 @@ async fn test_signup_post_validation_failure() {
         App::new()
             .app_data(web::Data::new(Arc::new(mock_pool.clone())))
             .app_data(web::Data::new(Arc::new(mock_email_sender)))
-            .service(signup_post),
+            .service(signup_post)
     )
     .await;
 
@@ -68,10 +65,7 @@ async fn test_signup_post_validation_failure() {
         "verification_code": "1234",
     });
 
-    let req = test::TestRequest::post()
-        .uri("/signup")
-        .set_json(&invalid_signup_model)
-        .to_request();
+    let req = test::TestRequest::post().uri("/signup").set_json(&invalid_signup_model).to_request();
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::BAD_REQUEST);

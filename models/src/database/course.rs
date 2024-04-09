@@ -7,7 +7,7 @@ pub struct Course {
     pub name: String,
     pub added_timestamp: Option<time::OffsetDateTime>,
     pub updated_timestamp: Option<time::OffsetDateTime>,
-    pub description: String,
+    pub description: String
 }
 
 impl Course {
@@ -17,7 +17,7 @@ impl Course {
             name: String::from("not-set"),
             added_timestamp: None,
             updated_timestamp: None,
-            description: String::from("not-set"),
+            description: String::from("not-set")
         }
     }
 }
@@ -31,7 +31,7 @@ impl Course {
             .await;
         match res {
             Ok(result) => Ok(result),
-            Err(e) => Err(e),
+            Err(e) => Err(e)
         }
     }
 
@@ -42,7 +42,7 @@ impl Course {
             .await;
         match course {
             Ok(result) => Ok(result),
-            Err(e) => Err(e),
+            Err(e) => Err(e)
         }
     }
 
@@ -55,18 +55,15 @@ impl Course {
             .await;
         match res {
             Ok(result) => Ok(result),
-            Err(e) => Err(e),
+            Err(e) => Err(e)
         }
     }
 
     pub async fn delete(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
-        let res = sqlx::query("DELETE FROM courses WHERE course_id = ?")
-            .bind(&self.course_id)
-            .execute(pool)
-            .await;
+        let res = sqlx::query("DELETE FROM courses WHERE course_id = ?").bind(&self.course_id).execute(pool).await;
         match res {
             Ok(result) => Ok(result),
-            Err(e) => Err(e),
+            Err(e) => Err(e)
         }
     }
 }

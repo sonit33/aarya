@@ -1,4 +1,4 @@
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 use validator::Validate;
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -9,5 +9,5 @@ pub struct ResetPasswordModel {
     #[validate(must_match(other = "password"))]
     pub confirm_password: String,
     // #[validate(length(equal = 8))]
-    pub email_hash: String,
+    pub email_hash: String
 }
