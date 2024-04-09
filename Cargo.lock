@@ -11,6 +11,7 @@ dependencies = [
  "clap",
  "dotenv",
  "serde_json",
+ "sqlx",
  "tokio",
 ]
 
@@ -53,6 +54,7 @@ dependencies = [
 name = "aarya_tests"
 version = "0.1.0"
 dependencies = [
+ "aarya_cli",
  "aarya_macros",
  "aarya_models",
  "aarya_routes",

@@ -1,6 +1,8 @@
 use sqlx::{Executor, MySql, MySqlPool, Pool};
 use std::fs;
 
+use crate::environ::Environ;
+
 pub async fn setup_durable_database(connection_string: String) -> Result<MySqlPool, sqlx::Error> {
     let pool = MySqlPool::connect(connection_string.as_str()).await;
 
@@ -11,9 +13,8 @@ pub async fn setup_durable_database(connection_string: String) -> Result<MySqlPo
 }
 
 pub async fn setup_test_database(db_name: &str) -> MySqlPool {
-    let database_url = "mysql://root:aarya%40991@localhost";
-
-    // let db_name = generate_guid(8);
+    let env = Environ::default();
+    let database_url = &env.db_connection_string;
 
     let full_url = format!("{}/{}", database_url, db_name);
     let pool = MySqlPool::connect(database_url)
