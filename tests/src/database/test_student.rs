@@ -1,13 +1,13 @@
 use aarya_models::database::student::Student;
-use aarya_utils::random::generate_guid;
-
-use crate::setup_database;
-use crate::teardown_database;
+use aarya_utils::{
+    db_ops::{setup_test_database, teardown_test_database},
+    random::generate_guid,
+};
 
 #[tokio::test]
 async fn test_create_student() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     let student = Student::random(&db_name);
     let result = student.create(&pool).await;
@@ -16,13 +16,13 @@ async fn test_create_student() {
     let result = result.unwrap();
     assert!(result.last_insert_id() > 0);
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
 async fn test_read_student() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     let mut student = Student::random(&db_name);
     let created_res = student.create(&pool).await;
@@ -34,13 +34,13 @@ async fn test_read_student() {
     let student = student.unwrap();
     assert_eq!(student.student_id.unwrap(), student.student_id.unwrap());
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
 async fn test_update_student() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     let mut student = Student::random(&db_name);
     let created_res = student.create(&pool).await;
@@ -57,13 +57,13 @@ async fn test_update_student() {
     // cannot change the email address after creation
     assert_ne!(updated_student.email_address, "jane.doe@example.com");
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
 async fn test_delete_student() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     let mut student = Student::random(&db_name);
     let created_res = student.create(&pool).await;
@@ -76,5 +76,5 @@ async fn test_delete_student() {
     assert!(read_result.is_ok());
     assert!(read_result.unwrap().is_none()); // must be deleted
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }

@@ -109,6 +109,25 @@ impl Question {
         }
     }
 
+    pub async fn create_if(&mut self, pool: &MySqlPool) -> Result<Option<MySqlQueryResult>, Error> {
+        let q_hash = hasher::cook_hash(&self.q_text.to_lowercase().as_str()).unwrap();
+        match self.read_by_q_hash(&pool, &q_hash).await {
+            Ok(q) => match q {
+                // return if hash is found
+                Some(_) => Ok(None),
+                // create new if hash is unique
+                None => {
+                    self.q_hash = q_hash;
+                    match self.create(&pool).await {
+                        Ok(r1) => Ok(Some(r1)),
+                        Err(e) => Err(e),
+                    }
+                }
+            },
+            Err(e) => Err(e),
+        }
+    }
+
     pub async fn read(&self, pool: &MySqlPool) -> Result<Option<Question>, Error> {
         let question =
             sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE question_id = ?")
@@ -152,6 +171,21 @@ impl Question {
         match question {
             Ok(result) => Ok(result),
             Err(e) => Err(e),
+        }
+    }
+
+    pub async fn read_by_q_hash(
+        &self,
+        pool: &MySqlPool,
+        q_hash: &str,
+    ) -> Result<Option<Question>, Error> {
+        let question = sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE q_hash = ?")
+            .bind(q_hash)
+            .fetch_one(pool)
+            .await;
+        match question {
+            Ok(result) => Ok(Some(result)),
+            Err(_) => Ok(None),
         }
     }
 

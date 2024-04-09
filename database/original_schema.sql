@@ -21,8 +21,33 @@ create table chapters (
     description varchar(512)
 );
 
-create table questions (
-    question_id       int unsigned auto_increment primary key,
+-- create table questions (
+--     question_id       int unsigned auto_increment primary key,
+--     course_id         int unsigned                          not null,
+--     chapter_id        int unsigned                          not null,
+--     id_hash           varchar(32)                           not null,
+--     q_text            varchar(2048)                         not null,
+--     choices           varchar(2048) collate utf8mb4_bin     not null
+--         check (json_valid(`choices`)),
+--     answers           varchar(2048) collate utf8mb4_bin     not null
+--         check (json_valid(`answers`)),
+--     a_explanation     varchar(2048)                         not null,
+--     a_hint            varchar(1024)                         not null,
+--     difficulty        tinyint                               not null,
+--     diff_reason       varchar(1024)                         not null,
+--     added_timestamp   timestamp default current_timestamp() null,
+--     updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
+--     q_hash            varchar(2048)                           not null,
+--     constraint questions_ibfk_1
+--         foreign key (course_id) references courses (course_id)
+-- );
+
+-- create index idx_question_course on questions (course_id);
+
+create table questions
+(
+    question_id       int unsigned auto_increment
+        primary key,
     course_id         int unsigned                          not null,
     chapter_id        int unsigned                          not null,
     id_hash           varchar(32)                           not null,
@@ -33,16 +58,21 @@ create table questions (
         check (json_valid(`answers`)),
     a_explanation     varchar(2048)                         not null,
     a_hint            varchar(1024)                         not null,
-    difficulty        tinyint                               not null,
+    difficulty      tinyint                               not null,
     diff_reason       varchar(1024)                         not null,
     added_timestamp   timestamp default current_timestamp() null,
     updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
-    q_hash            varchar(2048)                           not null,
+    q_hash            varchar(2048)                         null,
+    constraint questions_q_hash_uindex
+        unique (q_hash) using hash,
     constraint questions_ibfk_1
         foreign key (course_id) references courses (course_id)
 );
 
-create index idx_question_course on questions (course_id);
+create index idx_question_course
+    on questions (course_id);
+
+
 
 
 create table students (

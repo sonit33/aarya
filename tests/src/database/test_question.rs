@@ -1,18 +1,17 @@
 use aarya_models::database::course::Course;
 use aarya_models::database::question::Question;
 use aarya_models::database::question::QuestionFromJson;
+use aarya_utils::db_ops::setup_test_database;
+use aarya_utils::db_ops::teardown_test_database;
 use aarya_utils::hasher;
 use aarya_utils::json_ops;
 use aarya_utils::random::generate_guid;
 use serde_json::json;
 
-use crate::setup_database;
-use crate::teardown_database;
-
 #[tokio::test]
 async fn test_create_question() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     // First, create a course to satisfy the foreign key constraint
     let course_result = Course::new().create(&pool).await;
@@ -28,13 +27,13 @@ async fn test_create_question() {
     let result = result.unwrap();
     assert!(result.last_insert_id() > 0);
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
 async fn test_read_question() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     let course_result = Course::new().create(&pool).await;
     assert!(course_result.is_ok());
@@ -51,13 +50,13 @@ async fn test_read_question() {
     assert!(q2.is_some());
     assert_eq!(q2.unwrap().question_id.unwrap(), q1.question_id.unwrap());
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
 async fn test_update_question() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     let course_result = Course::new().create(&pool).await;
     assert!(course_result.is_ok());
@@ -79,13 +78,13 @@ async fn test_update_question() {
     let q3 = q1.read(&pool).await.unwrap().unwrap();
     assert_eq!(q3.q_text, q1.q_text);
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
 async fn test_delete_question() {
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     // create a new question
     let mut q1 = Question::new();
@@ -99,14 +98,14 @@ async fn test_delete_question() {
     let r2 = q1.read(&pool).await.unwrap();
     assert!(r2.is_none());
 
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }
 
 #[tokio::test]
 async fn test_create_questions_from_file() {
     // setup
     let db_name = generate_guid(8);
-    let pool = setup_database(&db_name).await;
+    let pool = setup_test_database(&db_name).await;
 
     // validate schema
     let schema_path = "../.schema/question-schema.json";
@@ -138,5 +137,48 @@ async fn test_create_questions_from_file() {
     let results = q.read_by_chapter(&pool).await.unwrap();
     assert_eq!(results.len(), 5);
     // teardown
-    teardown_database(&pool, &db_name).await.unwrap();
+    teardown_test_database(&pool, &db_name).await.unwrap();
+}
+
+#[tokio::test]
+async fn test_create_if_hash_unavailable() {
+    // setup
+    let db_name = generate_guid(8);
+    let pool = setup_test_database(&db_name).await;
+
+    // create a new question
+    let mut q1 = Question::new();
+    q1.question_id = Some(1);
+    q1.course_id = 2;
+    q1.chapter_id = 2;
+    q1.q_text = "abcd".to_string();
+    q1.create(&pool).await.unwrap();
+
+    // create another one with the same hash
+    let mut q2 = Question::new();
+    q2.question_id = Some(2);
+    q2.course_id = 2;
+    q2.chapter_id = 2;
+    q2.q_text = "abcd".to_string();
+    match q2.create_if(&pool).await {
+        Ok(q) => match q {
+            Some(_) => {
+                println!("duplicate inserted");
+            }
+            None => {
+                println!("no duplicate");
+            }
+        },
+        Err(e) => {
+            println!("error: [{}]", e)
+        }
+    }
+    // verify that 2 doesn't exist
+    let mut q3 = Question::new();
+    q3.question_id = Some(2);
+    let r = q3.read(&pool).await.unwrap().unwrap();
+    assert!(r.question_id != Some(2));
+
+    // teardown
+    teardown_test_database(&pool, &db_name).await.unwrap();
 }

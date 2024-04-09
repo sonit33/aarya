@@ -1,14 +1,16 @@
 use aarya_routes::auth::forgot_password::forgot_password_email_post;
-use aarya_utils::{email_sender::EmailSender, random::generate_guid};
+use aarya_utils::{
+    db_ops::{setup_test_database, teardown_test_database},
+    email_sender::EmailSender,
+    random::generate_guid,
+};
 use actix_web::{http::StatusCode, test, web, App};
 use serde_json::json;
-
-use crate::{setup_database, teardown_database};
 
 #[actix_web::test]
 async fn forgot_password_email_post_email_not_found() {
     let db_name = generate_guid(8);
-    let mock_pool = setup_database(&db_name).await;
+    let mock_pool = setup_test_database(&db_name).await;
     let mock_email_sender = EmailSender {};
     let app = test::init_service(
         App::new()
@@ -26,7 +28,7 @@ async fn forgot_password_email_post_email_not_found() {
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::NOT_FOUND);
-    teardown_database(&mock_pool, &db_name).await.unwrap();
+    teardown_test_database(&mock_pool, &db_name).await.unwrap();
 }
 
 #[actix_web::test]
@@ -44,7 +46,7 @@ async fn forgot_password_email_post_email_send_error() {
 #[actix_web::test]
 async fn forgot_password_email_post_success() {
     let db_name = generate_guid(8);
-    let mock_pool = setup_database(&db_name).await;
+    let mock_pool = setup_test_database(&db_name).await;
     let mock_email_sender = EmailSender {};
     let app = test::init_service(
         App::new()
@@ -62,5 +64,5 @@ async fn forgot_password_email_post_success() {
 
     let resp = test::call_service(&app, req).await;
     assert_eq!(resp.status(), StatusCode::OK);
-    teardown_database(&mock_pool, &db_name).await.unwrap();
+    teardown_test_database(&mock_pool, &db_name).await.unwrap();
 }
