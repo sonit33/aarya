@@ -3,16 +3,15 @@ pub mod question_ops;
 use std::path::PathBuf;
 
 use aarya_models::database::question::QuestionFromJson;
-use aarya_utils::json_ops;
+use aarya_utils::{db_ops::setup_durable_database, json_ops};
 use clap::{Parser, Subcommand};
-
-use crate::question_ops::save;
+use question_ops::save_with;
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
 struct Cli {
     #[command(subcommand)]
-    command: Option<Commands>
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
@@ -20,12 +19,34 @@ enum Commands {
     /// upload questions from json files to database
     Questions {
         /// path to the json schema
-        #[arg(short, long, value_name = "FILE")]
+        #[arg(long, value_name = "FILE")]
         schema_file: Option<PathBuf>,
         /// path to the json data
-        #[arg(short, long, value_name = "FILE")]
-        data_file: Option<PathBuf>
-    }
+        #[arg(long, value_name = "FILE")]
+        data_file: Option<PathBuf>,
+    },
+    /// autogenerate questions using OpenAI API calls using a prompt template and a screenshot
+    Autogenerate {
+        /// path to the prompt file
+        #[arg(long)]
+        prompt_path: Option<String>,
+
+        /// course id
+        #[arg(long, default_value_t = 2)]
+        course_id: u8,
+
+        /// chapter id
+        #[arg(long, default_value_t = 2)]
+        chapter_id: u8,
+
+        /// number of questions to generate
+        #[arg(long, default_value_t = 10)]
+        count: u8,
+
+        /// path to the screenshot file
+        #[arg(long, value_name = "FILE")]
+        screenshot_path: Option<PathBuf>,
+    },
 }
 
 #[tokio::main]
@@ -39,9 +60,9 @@ async fn main() {
                     Ok(r) => match r {
                         true => match json_ops::json_to_vec::<QuestionFromJson>(&data_file.to_str().unwrap()) {
                             Ok(questions) => {
-                                save(questions).await;
+                                save_with(questions, setup_durable_database).await;
                             }
-                            Err(e) => println!("Failed to convert json to vector of questions: [{}]", e)
+                            Err(e) => println!("Failed to convert json to vector of questions: [{}]", e),
                         },
                         false => {
                             println!("the data file is invalid");
@@ -65,6 +86,19 @@ async fn main() {
                 }
             }
         }
-        None => {}
+        Some(Commands::Autogenerate {
+            prompt_path,
+            course_id,
+            chapter_id,
+            count,
+            screenshot_path,
+        }) => {
+            println!("Prompt path: {:?}", prompt_path);
+            println!("Course ID: {}", course_id); // Assuming default values if not provided
+            println!("Chapter ID: {}", chapter_id);
+            println!("Count: {}", count);
+            println!("Screenshot path: {:?}", screenshot_path);
+        }
+        _ => (),
     }
 }
