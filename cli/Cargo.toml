@@ -18,3 +18,5 @@ sqlx = { version = "0.7.4", features = [
     "time",
     "macros",
 ] }
+async-openai = "0.20.0"
+reqwest = { version = "0.12", features = ["json"] }

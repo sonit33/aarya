@@ -11,6 +11,7 @@ pub struct Environ {
     pub email_port: String,
     pub email_username: String,
     pub email_password: String,
+    pub openai_key: String,
 }
 
 impl Environ {
@@ -30,6 +31,7 @@ impl Default for Environ {
         let email_port = env::var("EMAIL_PORT").expect("Missing Email server name");
         let email_username = env::var("EMAIL_USERNAME").expect("Missing Email server name");
         let email_password = env::var("EMAIL_PASSWORD").expect("Missing Email server name");
+        let openai_key = env::var("OPENAI_KEY").expect("Missing OpenAI key");
         Environ {
             db_connection_string: db_cs,
             db_name,
@@ -37,6 +39,7 @@ impl Default for Environ {
             email_port,
             email_username,
             email_password,
+            openai_key,
         }
     }
 }
