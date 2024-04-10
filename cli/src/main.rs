@@ -3,7 +3,7 @@ pub mod question_ops;
 use std::path::PathBuf;
 
 use aarya_models::database::question::QuestionFromJson;
-use aarya_utils::json_ops;
+use aarya_utils::{db_ops::DbOps, json_ops};
 use clap::{Parser, Subcommand};
 use question_ops::save;
 
@@ -60,7 +60,7 @@ async fn main() {
                     Ok(r) => match r {
                         true => match json_ops::json_to_vec::<QuestionFromJson>(&data_file.to_str().unwrap()) {
                             Ok(questions) => {
-                                save(questions).await;
+                                save(questions, DbOps).await;
                             }
                             Err(e) => println!("Failed to convert json to vector of questions: [{}]", e),
                         },

@@ -1,0 +1,23 @@
+// Zed settings
+//
+// For information on how to configure Zed, see the Zed
+// documentation: https://zed.dev/docs/configuring-zed
+//
+// To see all of Zed's default settings without changing your
+// custom settings, run the `open default settings` command
+// from the command palette or from `Zed` application menu.
+{
+  "theme": "New Darcula",
+  "format_on_save": "language_server",
+  "formatter": "language_server",
+  "buffer_font_features": {
+    "calt": true
+  },
+  "ui_font_family": "CamingoCode",
+  "buffer_font_family": "JetBrains Mono",
+  "ui_font_size": 11,
+  "buffer_font_size": 11,
+  "features": {
+    "copilot": false
+  }
+}

@@ -1,12 +1,13 @@
 use aarya_models::database::question::{Question, QuestionFromJson};
-use aarya_utils::{db_ops::setup_durable_database, environ::Environ, hasher, random::generate_guid};
+use aarya_utils::{db_ops::CanManageDbConnections, environ::Environ, hasher, random::generate_guid};
 use serde_json::json;
 use sqlx::{MySql, Pool};
 
 // extract database and environ to make it testable
-pub async fn save(questions: Vec<QuestionFromJson>) {
+pub async fn save(questions: Vec<QuestionFromJson>, db: impl CanManageDbConnections) {
     let env_default = Environ::default();
-    match setup_durable_database(format!("{}/{}", env_default.db_connection_string, env_default.db_name)).await {
+
+    match db.setup_durable_database(format!("{}/{}", env_default.db_connection_string, env_default.db_name)).await {
         Ok(pool) => {
             for question in questions {
                 save_question(&pool, question).await;
