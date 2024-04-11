@@ -22,15 +22,6 @@ impl CanManageDbConnections for DbOps {
     }
 }
 
-// pub async fn setup_durable_database(connection_string: String) -> Result<MySqlPool, sqlx::Error> {
-//     let pool = MySqlPool::connect(connection_string.as_str()).await;
-
-//     match pool {
-//         Ok(p) => Ok(p),
-//         Err(e) => Err(e),
-//     }
-// }
-
 pub async fn setup_test_database(db_name: &str) -> MySqlPool {
     let env = Environ::default();
     let database_url = &env.db_connection_string;

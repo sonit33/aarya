@@ -19,5 +19,12 @@ pub enum AaryaUtilError {
     ResponseError(String),
     #[error("Web request failed due to [{0}]")]
     PostRequestError(String),
+    #[error("File write failed due to [{0}]")]
+    // file errors
+    FileWriteError(String, String),
+    #[error("File creation failed due to [{0}]")]
+    FileCreateError(String, String),
+    #[error("Failed to parse JSON [{0}]")]
+    JsonParseError(String, String),
     // database errors
 }

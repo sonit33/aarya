@@ -24,12 +24,12 @@ async fn save_question(pool: &Pool<MySql>, question: QuestionFromJson) {
     q.course_id = 2;
     q.chapter_id = 2;
     q.id_hash = hasher::fast_hash(generate_guid(8).as_str());
-    q.q_text = question.q_text.to_string();
+    q.q_text = question.que_text.to_string();
     q.choices = json!(question.choices);
     q.answers = json!(question.answers);
-    q.a_explanation = question.a_explanation;
-    q.a_hint = question.a_hint;
-    q.difficulty = question.difficulty;
+    q.a_explanation = question.ans_explanation;
+    q.a_hint = question.ans_hint;
+    q.difficulty = question.que_difficulty as i8;
     q.diff_reason = question.diff_reason;
     match q.create_if(&pool).await {
         Ok(q) => match q {

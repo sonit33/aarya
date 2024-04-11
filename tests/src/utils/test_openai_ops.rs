@@ -1,7 +1,7 @@
 use aarya_utils::{
     environ::Environ,
     image_ops::encode_to_base64,
-    openai_ops::{prep_header, prep_payload, send_request},
+    openai_ops::openai_ops::{prep_header, prep_payload, send_request},
 };
 
 #[test]
@@ -29,7 +29,7 @@ async fn test_openai_api_call() {
         }
     };
 
-    let payload = prep_payload(encoded_image, 300, "Explain the contents of this image".to_string());
+    let payload = prep_payload(encoded_image, "Explain the contents of this image".to_string());
 
     match send_request(h, payload).await {
         Ok(response) => {

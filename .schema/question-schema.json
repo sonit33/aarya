@@ -63,12 +63,12 @@
       }
     },
     "required": [
-      "q_text",
+      "que_text",
       "choices",
       "answers",
-      "a_explanation",
-      "a_hint",
-      "difficulty",
+      "ans_explanation",
+      "ans_hint",
+      "que_difficulty",
       "diff_reason"
     ]
   }

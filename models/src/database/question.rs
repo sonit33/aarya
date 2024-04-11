@@ -8,23 +8,23 @@ use time::OffsetDateTime;
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Choice {
     id: String,
-    text: String
+    text: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Answer {
-    id: String
+    id: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct QuestionFromJson {
-    pub q_text: String,
+    pub que_text: String,
     pub choices: Vec<Choice>,
     pub answers: Vec<Answer>,
-    pub a_explanation: String,
-    pub a_hint: String,
-    pub difficulty: i8,
-    pub diff_reason: String
+    pub ans_explanation: String,
+    pub ans_hint: String,
+    pub que_difficulty: i8,
+    pub diff_reason: String,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -42,7 +42,7 @@ pub struct Question {
     pub diff_reason: String,
     pub added_timestamp: Option<OffsetDateTime>,
     pub updated_timestamp: Option<OffsetDateTime>,
-    pub q_hash: String
+    pub q_hash: String,
 }
 
 impl Question {
@@ -61,7 +61,7 @@ impl Question {
             diff_reason: "not-set".to_string(),
             added_timestamp: None,
             updated_timestamp: None,
-            q_hash: String::from("random")
+            q_hash: String::from("random"),
         }
     }
 
@@ -80,7 +80,7 @@ impl Question {
             diff_reason: hash.to_string(),
             added_timestamp: None,
             updated_timestamp: None,
-            q_hash: String::from("random")
+            q_hash: String::from("random"),
         }
     }
 }
@@ -89,7 +89,7 @@ impl Question {
     pub async fn create(&self, pool: &MySqlPool) -> Result<MySqlQueryResult, Error> {
         let q_hash = hasher::string_hasher(self.q_text.to_lowercase().as_str());
         let res = sqlx::query(
-            "INSERT INTO questions (course_id, chapter_id, id_hash, q_text, answers, choices, difficulty, diff_reason, a_explanation, a_hint, q_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
+            "INSERT INTO questions (course_id, chapter_id, id_hash, q_text, answers, choices, difficulty, diff_reason, a_explanation, a_hint, q_hash) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(&self.course_id)
         .bind(&self.chapter_id)
@@ -106,7 +106,7 @@ impl Question {
         .await;
         match res {
             Ok(result) => Ok(result),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -122,11 +122,11 @@ impl Question {
                     self.q_hash = q_hash;
                     match self.create(&pool).await {
                         Ok(r1) => Ok(Some(r1)),
-                        Err(e) => Err(e)
+                        Err(e) => Err(e),
                     }
                 }
             },
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -137,7 +137,7 @@ impl Question {
             .await;
         match question {
             Ok(result) => Ok(result),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -148,7 +148,7 @@ impl Question {
             .await;
         match question {
             Ok(result) => Ok(result),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -156,7 +156,7 @@ impl Question {
         let question = sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE course_id = ?").bind(&self.course_id).fetch_all(pool).await;
         match question {
             Ok(result) => Ok(result),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -167,7 +167,7 @@ impl Question {
             .await;
         match question {
             Ok(result) => Ok(result),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -175,7 +175,7 @@ impl Question {
         let question = sqlx::query_as::<_, Question>("SELECT * FROM questions WHERE q_hash = ?").bind(q_hash).fetch_one(pool).await;
         match question {
             Ok(result) => Ok(Some(result)),
-            Err(_) => Ok(None)
+            Err(_) => Ok(None),
         }
     }
 
@@ -198,7 +198,7 @@ impl Question {
             .execute(pool).await;
         match res {
             Ok(result) => Ok(result),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 
@@ -206,7 +206,7 @@ impl Question {
         let res = sqlx::query("DELETE FROM questions WHERE question_id = ?").bind(&self.question_id).execute(pool).await;
         match res {
             Ok(result) => Ok(result),
-            Err(e) => Err(e)
+            Err(e) => Err(e),
         }
     }
 }
