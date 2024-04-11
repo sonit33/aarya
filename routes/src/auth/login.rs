@@ -43,15 +43,11 @@ async fn login_post(pool: web::Data<MySqlPool>, model: web::Json<LoginModel>) ->
 
                 // Check if the user's account is active and email is verified
                 if !user.email_verified || !user.account_active {
-                    return forbidden!(
-                            "Your account is not verified. Follow this link to <a href='/activate-account'>activate your account</a>"
-                        );
+                    return forbidden!("Your account is not verified. Follow this link to <a href='/activate-account'>activate your account</a>");
                 }
             }
             None => {
-                return not_found!(
-                        "We did not find any user with that email address. Please check your email and try again."
-                    );
+                return not_found!("We did not find any user with that email address. Please check your email and try again.");
             }
         },
         Err(e) => {

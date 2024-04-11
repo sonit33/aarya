@@ -1,6 +1,6 @@
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct EmailSentModel {
-    pub e: String,
+    pub e: String
 }

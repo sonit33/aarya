@@ -4,9 +4,9 @@ use aarya_models::default_response::DefaultResponseModel;
 use aarya_models::{
     auth::{
         base64_qs_model::{extract_values, Base64QuerystringModel},
-        reset_password::ResetPasswordModel,
+        reset_password::ResetPasswordModel
     },
-    database::student::Student,
+    database::student::Student
 };
 use aarya_utils::{hasher, timestamps};
 use actix_web::{get, post, web, HttpResponse, Responder};
@@ -16,11 +16,7 @@ use tera::{Context, Tera};
 use validator::Validate;
 
 #[get("/reset-password")]
-pub async fn reset_password_get(
-    tera: web::Data<Tera>,
-    pool: web::Data<MySqlPool>,
-    query: web::Query<Base64QuerystringModel>,
-) -> impl Responder {
+pub async fn reset_password_get(tera: web::Data<Tera>, pool: web::Data<MySqlPool>, query: web::Query<Base64QuerystringModel>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Reset your password");
 
@@ -65,10 +61,7 @@ pub async fn reset_password_get(
 }
 
 #[post("/reset-password")]
-pub async fn reset_password_post(
-    pool: web::Data<MySqlPool>,
-    model: web::Json<ResetPasswordModel>,
-) -> impl Responder {
+pub async fn reset_password_post(pool: web::Data<MySqlPool>, model: web::Json<ResetPasswordModel>) -> impl Responder {
     log::debug!("{:?}", model);
     // validate model
     if let Err(e) = model.validate() {
@@ -92,8 +85,8 @@ pub async fn reset_password_post(
                     }
                 }
             }
-            None => not_found!("Student not found"),
+            None => not_found!("Student not found")
         },
-        Err(e) => server_error!("Failed to retrieve student", e),
+        Err(e) => server_error!("Failed to retrieve student", e)
     }
 }

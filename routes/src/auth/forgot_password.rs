@@ -12,11 +12,7 @@ use validator::Validate;
 
 // emails a password reset link to the user
 #[post("/forgot-password")]
-pub async fn forgot_password_email_post(
-    pool: web::Data<MySqlPool>,
-    email_sender: web::Data<EmailSender>,
-    model: web::Json<VerifyEmailModel>,
-) -> impl Responder {
+pub async fn forgot_password_email_post(pool: web::Data<MySqlPool>, email_sender: web::Data<EmailSender>, model: web::Json<VerifyEmailModel>) -> impl Responder {
     // println!("{}", "inside forgot_password_email_post".green());
     // validate the model
     if let Err(e) = model.validate() {
@@ -37,34 +33,24 @@ pub async fn forgot_password_email_post(
                     // generate a url-encoded link to reset password e.g. /reset-password?e=<email-hash>&t=<timestamp>
                     let reset_password_link = format!(
                         "/reset-password?q={}",
-                        UrlEncoderDecoder::encode(
-                            format!(
-                                "e={}&t={}",
-                                student.email_hash,
-                                time::OffsetDateTime::now_utc().unix_timestamp().to_string()
-                            )
-                            .as_str()
-                        )
+                        UrlEncoderDecoder::encode(format!("e={}&t={}", student.email_hash, time::OffsetDateTime::now_utc().unix_timestamp().to_string()).as_str())
                     );
                     match email_sender
                         .send_email(
                             "postmaster@aarya.ai",
                             &student.email_address,
                             format!("{}'s password reset link", &student.first_name).as_str(),
-                            &reset_password_link,
+                            &reset_password_link
                         )
                         .await
                     {
-                        Ok(_) => ok_action!(
-                            ActionType::Redirect,
-                            format!("/forgot-password/email-sent?e={}", student.email_hash)
-                        ),
-                        Err(e) => server_error!("Error sending email", e),
+                        Ok(_) => ok_action!(ActionType::Redirect, format!("/forgot-password/email-sent?e={}", student.email_hash)),
+                        Err(e) => server_error!("Error sending email", e)
                     }
                 }
             }
         }
-        Err(e) => server_error!("Server error", e),
+        Err(e) => server_error!("Server error", e)
     }
 }
 
@@ -77,11 +63,7 @@ pub async fn forgot_password_get(tera: web::Data<Tera>) -> impl Responder {
 }
 
 #[get("/forgot-password/email-sent")]
-pub async fn forgot_password_email_sent_get(
-    tera: web::Data<Tera>,
-    pool: web::Data<MySqlPool>,
-    query: web::Query<EmailSentModel>,
-) -> impl Responder {
+pub async fn forgot_password_email_sent_get(tera: web::Data<Tera>, pool: web::Data<MySqlPool>, query: web::Query<EmailSentModel>) -> impl Responder {
     let mut context = Context::new();
     context.insert("title", &"Forgot password?");
 

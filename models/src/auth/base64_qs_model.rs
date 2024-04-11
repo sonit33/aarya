@@ -1,8 +1,8 @@
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 
 #[derive(Serialize, Deserialize, Debug)]
 pub struct Base64QuerystringModel {
-    pub q: String,
+    pub q: String
 }
 
 pub fn extract_values(s: &str) -> (Option<&str>, Option<&str>) {

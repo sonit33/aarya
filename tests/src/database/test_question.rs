@@ -122,12 +122,12 @@ async fn test_create_questions_from_file() {
         q.course_id = 2;
         q.chapter_id = 2;
         q.id_hash = hasher::fast_hash(generate_guid(8).as_str());
-        q.q_text = question.q_text.to_string();
+        q.q_text = question.que_text.to_string();
         q.choices = json!(question.choices);
         q.answers = json!(question.answers);
-        q.a_explanation = question.a_explanation;
-        q.a_hint = question.a_hint;
-        q.difficulty = question.difficulty;
+        q.a_explanation = question.ans_explanation;
+        q.a_hint = question.ans_hint;
+        q.difficulty = question.que_difficulty;
         q.diff_reason = question.diff_reason;
         q.create(&pool).await.unwrap();
     }
@@ -168,15 +168,14 @@ async fn test_create_if_hash_unavailable() {
     assert_eq!(h1, h2);
 
     match q2.create_if(&pool).await {
-        Ok(q) =>
-            match q {
-                Some(_) => {
-                    println!("duplicate inserted");
-                }
-                None => {
-                    println!("no duplicate");
-                }
+        Ok(q) => match q {
+            Some(_) => {
+                println!("duplicate inserted");
             }
+            None => {
+                println!("no duplicate");
+            }
+        },
         Err(e) => {
             println!("error: [{}]", e);
         }

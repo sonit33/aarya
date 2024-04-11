@@ -1,14 +1,9 @@
 use aarya_routes::auth::{
-    activate_account::{
-        account_activate_get, activate_account_email_sent_get, activate_account_get,
-        activate_account_post,
-    },
-    forgot_password::{
-        forgot_password_email_post, forgot_password_email_sent_get, forgot_password_get,
-    },
+    activate_account::{account_activate_get, activate_account_email_sent_get, activate_account_get, activate_account_post},
+    forgot_password::{forgot_password_email_post, forgot_password_email_sent_get, forgot_password_get},
     login::{login_get, login_post},
     reset_password::{reset_password_get, reset_password_post},
-    signup::{signup_get, signup_post},
+    signup::{signup_get, signup_post}
 };
 use aarya_utils::email_sender::EmailSender;
 use aarya_utils::environ::Environ;
@@ -19,11 +14,7 @@ use tera::Tera;
 
 #[actix_web::main] // or #[tokio::main]
 async fn main() -> std::io::Result<()> {
-    let env_file = if cfg!(debug_assertions) {
-        ".env.dev"
-    } else {
-        ".env.prod"
-    };
+    let env_file = if cfg!(debug_assertions) { ".env.dev" } else { ".env.prod" };
 
     from_filename(env_file).ok();
 
@@ -37,9 +28,7 @@ async fn main() -> std::io::Result<()> {
     log::debug!("{:?}", env_default);
 
     let database_url = env_default.db_connection_string;
-    let pool = MySqlPool::connect(database_url.as_str())
-        .await
-        .expect("Failed to connect to database");
+    let pool = MySqlPool::connect(database_url.as_str()).await.expect("Failed to connect to database");
     let tera = Tera::new("web/templates/**/*").expect("Failed to initialize Tera");
     // let e_port: Result<u16, _> = env_default.email_port.parse();
     let email_sender = EmailSender {};

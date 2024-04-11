@@ -10,6 +10,7 @@ aarya_utils = { path = "../utils", version = "*" }
 aarya_models = { path = "../models", version = "*" }
 aarya_macros = { path = "../macros", version = "*" }
 aarya_routes = { path = "../routes", version = "*" }
+aarya_cli = { path = "../cli", version = "*" }
 sqlx = { version = "0.7.4", features = [
     "mysql",
     "runtime-tokio-native-tls",

@@ -13,11 +13,7 @@ use tera::{Context, Tera};
 use validator::Validate;
 
 #[post("/signup")]
-pub async fn signup_post(
-    pool: web::Data<Arc<MySqlPool>>,
-    email_sender: web::Data<Arc<EmailSender>>,
-    model: web::Json<SignupModel>,
-) -> impl Responder {
+pub async fn signup_post(pool: web::Data<Arc<MySqlPool>>, email_sender: web::Data<Arc<EmailSender>>, model: web::Json<SignupModel>) -> impl Responder {
     // Validate the SignupModel
     if let Err(e) = model.validate() {
         return bad_request!(format!("Validation error: {}", e));
@@ -36,41 +32,29 @@ pub async fn signup_post(
         over_13: signup.over_13,
         email_verified: false,
         account_active: false,
-        added_timestamp: None,
+        added_timestamp: None
     };
 
     let student_id = match student.create(&pool).await {
         Ok(r) => r.last_insert_id(),
-        Err(e) => return server_error!("Failed to create new user", e),
+        Err(e) => return server_error!("Failed to create new user", e)
     };
 
     // retrieve the student for email_hash and added_timestamp
     student.student_id = Some(student_id as u32);
     let created_student = match student.read(&pool).await {
         Ok(r) => r.unwrap(),
-        Err(e) => return server_error!("Failed to retrieve new user", e),
+        Err(e) => return server_error!("Failed to retrieve new user", e)
     };
 
     let link = format!(
         "/activate-account/{}",
-        UrlEncoderDecoder::encode(
-            format!(
-                "e={}&t={}",
-                created_student.email_hash,
-                created_student.added_timestamp.unwrap()
-            )
-            .as_str()
-        )
+        UrlEncoderDecoder::encode(format!("e={}&t={}", created_student.email_hash, created_student.added_timestamp.unwrap()).as_str())
     );
 
     // Email the verification code
     match email_sender
-        .send_email(
-            "admin@aarya.ai",
-            &student.email_address,
-            format!("{} activate your Aarya account", &student.first_name).as_str(),
-            &link,
-        )
+        .send_email("admin@aarya.ai", &student.email_address, format!("{} activate your Aarya account", &student.first_name).as_str(), &link)
         .await
     {
         Ok(_) => {}
