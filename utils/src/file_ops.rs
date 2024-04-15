@@ -1,11 +1,13 @@
 use std::{ fs::File, io::{ Read, Write } };
 
+#[derive(Debug)]
 pub enum FileOpsErrorTypes {
     FileOpenError(String, String),
     FileReadError(String, String),
     FileCreateError(String, String),
     FileWriteError(String, String),
 }
+#[derive(Debug)]
 pub enum FileOpsResult {
     Success(String),
     Error(FileOpsErrorTypes),

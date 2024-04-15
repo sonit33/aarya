@@ -1,4 +1,4 @@
-use serde::{ Deserialize, Serialize };
+use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use validator::Validate;
 
@@ -23,7 +23,7 @@ pub struct QuestionModel {
     #[validate(length(min = 8, max = 1024))]
     pub ans_hint: String,
     #[validate(range(min = 1, max = 5))]
-    pub difficulty: u8,
+    pub que_difficulty: u8,
     #[validate(length(min = 8, max = 1024))]
     pub diff_reason: String,
 }

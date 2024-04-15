@@ -18,7 +18,27 @@ Respond in a json document (without code block formatting) that conforms to the 
   "items": {
     "type": "object",
     "properties": {
+      "question_id": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 99999
+      },
+      "course_id": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 999
+      },
+      "chapter_id": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 999
+      },
       "que_text": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 2048
+      },
+      "que_description": {
         "type": "string",
         "minLength": 1,
         "maxLength": 2048
@@ -74,19 +94,30 @@ Respond in a json document (without code block formatting) that conforms to the 
         "type": "string",
         "minLength": 1,
         "maxLength": 1024
+      },
+      "id_hash": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 8
       }
     },
     "required": [
+      "question_id",
+      "course_id",
+      "chapter_id",
       "que_text",
+      "que_description",
       "choices",
       "answers",
       "ans_explanation",
       "ans_hint",
       "que_difficulty",
-      "diff_reason"
+      "diff_reason",
+      "id_hash"
     ]
   }
 }
+
 
 The question may have 4 to 5 choices.
 The question may have 1 or more correct answers from the given choices.
