@@ -239,7 +239,7 @@ async fn main() {
             }
         }
         None => {
-            println!("No command provided");
+            println!("No command provided. Use --help to see available commands.");
         }
     }
 }
