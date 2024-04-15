@@ -6,24 +6,24 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+time = "0.3.36"
 rand = "0.8.5"
-serde_json = "1.0"
+dotenv = "0.15.0"
+serde = { version = "1.0", features = ["derive"] }
+validator = { version = "0.18.1", features = ["derive"] }
+reqwest = { version = "0.12", features = ["json"] }
+tokio = { version = "1", features = ["full"] }
+serde_json = "1.0.115"
+jsonschema = "0.17.1"
 bcrypt = "0.15.1"
 crc32fast = "1.4.0"
-serde = { version = "1.0", features = ["derive"] }
-log = "0.4.21"
-time = "0.3.34"
-jsonschema = "0.17.1"
+hex = "0.4.3"
+sha2 = "0.10.8"
 url = "2.5.0"
-thiserror = "1.0.58"
+base64 = "0.22.0"
 sqlx = { version = "0.7.4", features = [
     "mysql",
     "runtime-tokio-native-tls",
     "time",
     "macros",
 ] }
-dotenv = "0.15.0"
-sha2 = "0.10.8"
-hex = "0.4.3"
-base64 = "0.22.0"
-reqwest = { version = "0.12", features = ["json"] }

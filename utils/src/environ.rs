@@ -1,7 +1,7 @@
 use std::env;
 
 use dotenv::from_filename;
-use serde::{Deserialize, Serialize};
+use serde::{ Deserialize, Serialize };
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct Environ {

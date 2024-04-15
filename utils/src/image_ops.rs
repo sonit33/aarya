@@ -2,9 +2,16 @@ use base64::prelude::*;
 use std::fs::File;
 use std::io::Read;
 
-use crate::util_error::AaryaUtilError;
+pub enum ImageOpsErrorTypes {
+    FileOpenError(String, String),
+    FileReadError(String, String),
+}
+pub enum ImageOpsResult {
+    Success(String),
+    Error(ImageOpsErrorTypes),
+}
 
-pub fn encode_to_base64(image_path: &str) -> Result<String, AaryaUtilError> {
+pub fn encode_to_base64(image_path: &str) -> ImageOpsResult {
     match File::open(image_path) {
         Ok(mut file) => {
             // Read the file's contents into a vector
@@ -12,11 +19,19 @@ pub fn encode_to_base64(image_path: &str) -> Result<String, AaryaUtilError> {
             match file.read_to_end(&mut buffer) {
                 Ok(_) => {
                     let encoded_image = BASE64_STANDARD.encode(&buffer);
-                    Ok(encoded_image)
+                    ImageOpsResult::Success(encoded_image)
                 }
-                Err(e) => return Err(AaryaUtilError::FileReadError(format!("{}", e), image_path.to_string())),
+                Err(e) => {
+                    return ImageOpsResult::Error(
+                        ImageOpsErrorTypes::FileReadError(format!("{}", e), image_path.to_string())
+                    );
+                }
             }
         }
-        Err(e) => Err(AaryaUtilError::FileOpenError(format!("{}", e), image_path.to_string())),
+        Err(e) => {
+            return ImageOpsResult::Error(
+                ImageOpsErrorTypes::FileOpenError(format!("{}", e), image_path.to_string())
+            );
+        }
     }
 }
