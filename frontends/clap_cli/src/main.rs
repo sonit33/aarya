@@ -1,15 +1,16 @@
 use aarya_utils::{
-    api::models::question_model::QuestionModel,
     environ::Environ,
-    file_ops::{read_file_contents, write_to_file, FileOpsResult},
+    file_ops::{file_exists, read_file_contents, write_to_file, FileOpsResult},
     image_ops::{encode_to_base64, ImageOpsResult},
-    json_ops::{self, validate_json_text, JsonOpsResult},
+    json_ops::{self, JsonOpsResult},
+    models::question_model::QuestionModel,
     openai::{
         completion_model::CompletionResponse,
         openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse, Payload},
     },
 };
 use clap::{Parser, Subcommand};
+use serde_json::Value;
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -22,27 +23,43 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// upload questions from json files to database
-    Questions {
+    /// aarya_cli validate --schema-file --data-file
+    Validate {
         /// path to the json schema
         #[arg(long, value_name = "FILE")]
-        schema_file: Option<PathBuf>,
+        schema_file: PathBuf,
+
         /// path to the json data
         #[arg(long, value_name = "FILE")]
-        data_file: Option<PathBuf>,
+        data_file: PathBuf,
     },
     /// autogenerate questions using OpenAI API calls using a prompt template and a screenshot
-    Autogenerate {
-        /// course id
-        #[arg(long, default_value_t = 2)]
-        course_id: u8,
-
-        /// chapter id
-        #[arg(long, default_value_t = 2)]
-        chapter_id: u8,
-
+    /// aarya_cli autogen --screenshot-path --output-path --prompt-path
+    Autogen {
         /// path to the screenshot file
         #[arg(long, value_name = "FILE")]
         screenshot_path: Option<PathBuf>,
+
+        #[arg(long, value_name = "FILE")]
+        output_path: Option<PathBuf>,
+
+        #[arg(long, value_name = "FILE")]
+        prompt_path: PathBuf,
+    },
+    /// upload questions from json files to database
+    /// aarya_cli upload --data-file --chapter-id --course-id
+    Upload {
+        /// course id
+        #[arg(long)]
+        course_id: u8,
+
+        /// chapter id
+        #[arg(long)]
+        chapter_id: u8,
+
+        /// path to the json data
+        #[arg(long, value_name = "FILE")]
+        data_file: PathBuf,
     },
 }
 
@@ -50,50 +67,57 @@ enum Commands {
 async fn main() {
     let cli = Cli::parse();
     match &cli.command {
-        Some(Commands::Questions { schema_file, data_file }) => {
-            match (schema_file, data_file) {
-                (Some(schema), Some(data)) => {
-                    println!("Uploading questions to database");
-                    // validate the data file against the schema file
-                    match json_ops::validate_json_file(schema.to_str().unwrap(), data.to_str().unwrap()) {
-                        JsonOpsResult::Success(_) => {
-                            println!("Validation successful");
-                            match json_ops::json_to_vec::<QuestionModel>(&data.to_str().unwrap()) {
-                                JsonOpsResult::Success(questions) => {
-                                    println!("Questions: {:?}", questions);
-                                    let client = reqwest::Client::new();
-                                    for question in questions {
-                                        println!("Uploading question: {:?}", question);
-                                        match client.post("http://127.0.0.1:8080/question").json(&question).send().await {
-                                            Ok(_) => {
-                                                println!("Question uploaded successfully");
-                                            }
-                                            Err(e) => {
-                                                println!("Failed to upload question: {:?}", e);
-                                            }
-                                        }
-                                    }
-                                }
-                                JsonOpsResult::Error(e) => {
-                                    println!("Failed to parse questions: {:?}", e);
-                                }
-                            }
-                        }
-                        JsonOpsResult::Error(e) => {
-                            println!("Validation failed: {:?}", e);
-                        }
-                    }
+        Some(Commands::Validate { schema_file, data_file }) => {
+            let schema_file = schema_file.to_str().unwrap();
+            let data_file = data_file.to_str().unwrap();
+
+            if !file_exists(schema_file) {
+                println!("Schema file does not exist");
+                return;
+            }
+
+            if !file_exists(data_file) {
+                println!("Data file does not exist");
+                return;
+            }
+
+            println!("Validating schema file: {:?} and data file: {:?}", schema_file, data_file);
+
+            match json_ops::validate_json_file(schema_file, data_file) {
+                JsonOpsResult::Success(_) => {
+                    println!("Validation successful");
                 }
-                _ => {
-                    println!("Missing required arguments");
+                JsonOpsResult::Error(e) => {
+                    println!("Validation failed: {:?}", e);
                 }
             }
         }
-        Some(Commands::Autogenerate {
-            course_id,
-            chapter_id,
+        Some(Commands::Autogen {
             screenshot_path,
+            output_path,
+            prompt_path,
         }) => {
+            if screenshot_path.is_none() {
+                println!("Screenshot path not provided");
+            }
+
+            let mut output_folder = ".openai_output";
+
+            if output_path.is_none() {
+                println!("Output path not provided. Using the .openai_output directory");
+            } else {
+                output_folder = output_path.as_ref().unwrap().to_str().unwrap();
+            }
+
+            let prompt_path = prompt_path.to_str().unwrap();
+
+            if !file_exists(prompt_path) {
+                println!("Prompt file is required and it does not exist");
+                return;
+            }
+
+            println!("Autogenerating questions using prompt file: {:?}", prompt_path);
+
             let env = Environ::default();
 
             let header_map = match prep_header(env.openai_key) {
@@ -103,12 +127,7 @@ async fn main() {
                 }
             };
 
-            let folder = format!(".temp-data/co-{course_id}-ch-{chapter_id}");
-            let prompt_path = format!(".prompts/co-{course_id}-ch-{chapter_id}/prompt.txt");
-            let schema_path = ".schema/question-schema.json";
-
             println!("reading {prompt_path}");
-            // read the prompt file
             let prompt = match read_file_contents(&prompt_path) {
                 FileOpsResult::Success(p) => p,
                 FileOpsResult::Error(e) => {
@@ -119,10 +138,10 @@ async fn main() {
 
             // encode the image to base64 if path is provided
             let mut encoded_image = String::new();
-            if !screenshot_path.is_none() {
-                let image_path = screenshot_path.as_ref().unwrap().to_str().unwrap();
-                println!("reading {}", image_path);
-                encoded_image = match encode_to_base64(image_path) {
+            if screenshot_path.is_some() {
+                let screenshot_path = screenshot_path.as_ref().unwrap().to_str().unwrap();
+                println!("reading {}", screenshot_path);
+                encoded_image = match encode_to_base64(screenshot_path) {
                     ImageOpsResult::Success(img) => img,
                     ImageOpsResult::Error(_) => {
                         panic!("Failed to encode image to base64");
@@ -138,56 +157,20 @@ async fn main() {
             }
 
             println!("sending request to OpenAI API");
-
             match send_request(header_map, payload).await {
                 OpenAiResponse::Success(r) => {
                     let completion_res: CompletionResponse = match serde_json::from_str(&r) {
-                        Ok(completion_res) => completion_res,
+                        Ok(res) => res,
                         Err(e) => {
                             println!("Error parsing to json: {:?}", e);
                             return;
                         }
                     };
                     println!("recieved response");
-                    match write_to_file(format!("{folder}/{}.txt", &completion_res.id).as_str(), &r) {
+                    let output_file = format!("{output_folder}/{}.txt", &completion_res.id);
+                    match write_to_file(output_file.as_str(), &r) {
                         FileOpsResult::Success(_) => {
-                            println!("written to file");
-                            let content = completion_res.choices[0].message.content.clone();
-                            // validate content against the schema
-                            match validate_json_text(schema_path, content.as_str()) {
-                                JsonOpsResult::Success(_) => {
-                                    println!("json file is valid");
-                                    let questions: Vec<QuestionModel> = match serde_json::from_str(&content) {
-                                        Ok(questions) => questions,
-                                        Err(e) => {
-                                            println!("Failed to parse questions: {:?}", e);
-                                            return;
-                                        }
-                                    };
-                                    println!("saving question to database");
-                                    // call API to save questions to database
-                                    let client = reqwest::Client::new();
-                                    for mut question in questions {
-                                        //question_id required but its value doesn't matter
-                                        question.question_id = 0;
-                                        question.course_id = *course_id as u32;
-                                        question.chapter_id = *chapter_id as u32;
-                                        question.id_hash = "not-set".to_string();
-                                        match client.post("http://127.0.0.1:8080/question").json(&question).send().await {
-                                            Ok(_) => {
-                                                println!("Question uploaded successfully");
-                                            }
-                                            Err(e) => {
-                                                println!("Failed to upload question: {:?}", e);
-                                            }
-                                        }
-                                    }
-                                }
-                                JsonOpsResult::Error(e) => {
-                                    println!("Failed to validate json: {:?}", e);
-                                    return;
-                                }
-                            }
+                            println!("Written to file: [{output_file}]");
                         }
                         FileOpsResult::Error(e) => {
                             println!("Failed to write to file: {:?}", e);
@@ -201,8 +184,62 @@ async fn main() {
                 }
             }
         }
-        _ => {
-            println!("Missing required arguments");
+        Some(Commands::Upload { course_id, chapter_id, data_file }) => {
+            let data_file = data_file.to_str().unwrap();
+            if !file_exists(data_file) {
+                println!("Data file is required and does not exist");
+                return;
+            }
+
+            println!("Uploading data file: {:?} to course_id: {} and chapter_id: {}", data_file, course_id, chapter_id);
+
+            let file_contents = match read_file_contents(data_file) {
+                FileOpsResult::Success(c) => c,
+                FileOpsResult::Error(e) => {
+                    println!("Failed to read data file: {:?}", e);
+                    return;
+                }
+            };
+
+            let message: Value = match serde_json::from_str(file_contents.as_str()) {
+                Ok(m) => m,
+                Err(e) => {
+                    println!("Failed to parse json: {:?}", e);
+                    return;
+                }
+            };
+
+            let content = message["choices"][0]["message"]["content"].to_string();
+
+            let questions: Vec<QuestionModel> = match serde_json::from_str(&content) {
+                Ok(q) => q,
+                Err(e) => {
+                    println!("Failed to parse questions: {:?}", e);
+                    return;
+                }
+            };
+
+            println!("saving question to database");
+            // call API to save questions to database
+            let client = reqwest::Client::new();
+            for mut question in questions {
+                //question_id and id_hash required but their values do not matter
+                question.question_id = 0;
+                question.course_id = *course_id as u32;
+                question.chapter_id = *chapter_id as u32;
+                question.id_hash = "not-set".to_string();
+                match client.post("http://127.0.0.1:8080/question").json(&question).send().await {
+                    Ok(_) => {
+                        println!("Question uploaded successfully");
+                    }
+                    Err(e) => {
+                        println!("Failed to upload question: {:?}", e);
+                    }
+                }
+            }
+        }
+        None => {
+            println!("No command provided");
         }
     }
 }

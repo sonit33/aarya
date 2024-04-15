@@ -1,10 +1,11 @@
 use aarya_utils::environ::Environ;
-use actix_web::{ web, App, HttpServer };
+use actix_web::{web, App, HttpServer};
 use dotenv::from_filename;
 use sqlx::MySqlPool;
 
 use crate::services::question_service::*;
 
+pub mod entities;
 pub mod services;
 
 #[actix_web::main]
@@ -23,9 +24,7 @@ async fn main() -> std::io::Result<()> {
     log::debug!("{:?}", env_default);
 
     let database_url = env_default.db_connection_string;
-    let pool = MySqlPool::connect(database_url.as_str()).await.expect(
-        "Failed to connect to database"
-    );
+    let pool = MySqlPool::connect(database_url.as_str()).await.expect("Failed to connect to database");
 
     println!("Actix running at http://{ip}:{port}");
 
@@ -42,6 +41,7 @@ async fn main() -> std::io::Result<()> {
             .service(update_question_by_id)
             .service(delete_question_by_id)
     })
-        .bind((ip, port))?
-        .run().await
+    .bind((ip, port))?
+    .run()
+    .await
 }

@@ -1,13 +1,9 @@
-use aarya_utils::{
-    api::{
-        entities::{error_type::EntityResult, question_entity::QuestionEntity},
-        models::question_model::QuestionModel,
-    },
-    hash_ops,
-};
+use aarya_utils::{hash_ops, models::question_model::QuestionModel};
 use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
 use sqlx::MySqlPool;
 use validator::Validate;
+
+use crate::entities::{error_type::EntityResult, question_entity::QuestionEntity};
 
 #[post("/question")]
 pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<QuestionModel>) -> impl Responder {

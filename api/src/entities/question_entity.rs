@@ -1,12 +1,11 @@
-use serde::{ Deserialize, Serialize };
-use serde_json::{ json, Value };
+use aarya_utils::hash_ops;
+use serde::{Deserialize, Serialize};
+use serde_json::{json, Value};
 use sqlx::mysql::MySqlQueryResult;
 use sqlx::MySqlPool;
 use time::OffsetDateTime;
 
-use crate::hash_ops;
-
-use super::error_type::{ DatabaseErrorType, EntityResult };
+use super::error_type::{DatabaseErrorType, EntityResult};
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct Choice {
@@ -95,111 +94,68 @@ impl QuestionEntity {
             .execute(pool).await;
         match res {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to create question".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to create question".to_string(), e.to_string())),
         }
     }
 
     pub async fn read_all(&self, pool: &MySqlPool) -> EntityResult<Vec<QuestionEntity>> {
-        let questions = sqlx
-            ::query_as::<_, QuestionEntity>("SELECT * FROM questions")
-            .fetch_all(pool).await;
+        let questions = sqlx::query_as::<_, QuestionEntity>("SELECT * FROM questions").fetch_all(pool).await;
         match questions {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to read questions".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read questions".to_string(), e.to_string())),
         }
     }
 
     pub async fn read_by_chapter(&self, pool: &MySqlPool) -> EntityResult<Vec<QuestionEntity>> {
-        let question = sqlx
-            ::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE chapter_id = ?")
+        let question = sqlx::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE chapter_id = ?")
             .bind(&self.chapter_id)
-            .fetch_all(pool).await;
+            .fetch_all(pool)
+            .await;
         match question {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to read question by chapter".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read question by chapter".to_string(), e.to_string())),
         }
     }
 
     pub async fn read_by_course(&self, pool: &MySqlPool) -> EntityResult<Vec<QuestionEntity>> {
-        let question = sqlx
-            ::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE course_id = ?")
+        let question = sqlx::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE course_id = ?")
             .bind(&self.course_id)
-            .fetch_all(pool).await;
+            .fetch_all(pool)
+            .await;
         match question {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to read question by course".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read question by course".to_string(), e.to_string())),
         }
     }
 
-    pub async fn read_by_chapter_course(
-        &self,
-        pool: &MySqlPool
-    ) -> EntityResult<Vec<QuestionEntity>> {
-        let question = sqlx
-            ::query_as::<_, QuestionEntity>(
-                "SELECT * FROM questions WHERE course_id = ? and chapter_id = ?"
-            )
+    pub async fn read_by_chapter_course(&self, pool: &MySqlPool) -> EntityResult<Vec<QuestionEntity>> {
+        let question = sqlx::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE course_id = ? and chapter_id = ?")
             .bind(&self.course_id)
             .bind(&self.chapter_id)
-            .fetch_all(pool).await;
+            .fetch_all(pool)
+            .await;
         match question {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to read question by chapter and course".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read question by chapter and course".to_string(), e.to_string())),
         }
     }
 
     pub async fn read_by_hash(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionEntity>> {
-        let question = sqlx
-            ::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE id_hash = ?")
+        let question = sqlx::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE id_hash = ?")
             .bind(&self.id_hash)
-            .fetch_optional(pool).await;
+            .fetch_optional(pool)
+            .await;
         match question {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to read question by hash".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read question by hash".to_string(), e.to_string())),
         }
     }
 
     pub async fn read_by_q_hash(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionEntity>> {
-        let question = sqlx
-            ::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE que_hash = ?")
+        let question = sqlx::query_as::<_, QuestionEntity>("SELECT * FROM questions WHERE que_hash = ?")
             .bind(&self.que_hash)
-            .fetch_one(pool).await;
+            .fetch_one(pool)
+            .await;
         match question {
             Ok(result) => EntityResult::Success(Some(result)),
             Err(_) => EntityResult::Success(None),
@@ -228,30 +184,15 @@ impl QuestionEntity {
             .execute(pool).await;
         match res {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to update question".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to update question".to_string(), e.to_string())),
         }
     }
 
     pub async fn delete(&self, pool: &MySqlPool) -> EntityResult<MySqlQueryResult> {
-        let res = sqlx
-            ::query("DELETE FROM questions WHERE question_id = ?")
-            .bind(&self.question_id)
-            .execute(pool).await;
+        let res = sqlx::query("DELETE FROM questions WHERE question_id = ?").bind(&self.question_id).execute(pool).await;
         match res {
             Ok(result) => EntityResult::Success(result),
-            Err(e) =>
-                EntityResult::Error(
-                    DatabaseErrorType::QueryError(
-                        "Failed to delete question".to_string(),
-                        e.to_string()
-                    )
-                ),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to delete question".to_string(), e.to_string())),
         }
     }
 }
