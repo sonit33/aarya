@@ -1,15 +1,22 @@
 use aarya_utils::{
     environ::Environ,
-    file_ops::{file_exists, read_file_contents, write_to_file, FileOpsResult},
-    image_ops::{encode_to_base64, ImageOpsResult},
-    json_ops::{self, JsonOpsResult},
+    file_ops::{ file_exists, read_file_contents, write_to_file, FileOpsResult },
+    image_ops::{ encode_to_base64, ImageOpsResult },
+    json_ops::{ self, JsonOpsResult },
     models::question_model::QuestionModel,
     openai::{
         completion_model::CompletionResponse,
-        openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse, Payload},
+        openai_ops::{
+            prep_header,
+            prep_payload,
+            prep_payload_wo_image,
+            send_request,
+            OpenAiResponse,
+            Payload,
+        },
     },
 };
-use clap::{Parser, Subcommand};
+use clap::{ Parser, Subcommand };
 
 use std::path::PathBuf;
 
@@ -92,11 +99,7 @@ async fn main() {
                 }
             }
         }
-        Some(Commands::Autogen {
-            screenshot_path,
-            output_path,
-            prompt_path,
-        }) => {
+        Some(Commands::Autogen { screenshot_path, output_path, prompt_path }) => {
             if screenshot_path.is_none() {
                 println!("Screenshot path not provided");
             }
@@ -194,7 +197,12 @@ async fn main() {
                 return;
             }
 
-            println!("Uploading data file: {:?} to course_id: {} and chapter_id: {}", data_file, course_id, chapter_id);
+            println!(
+                "Uploading data file: {:?} to course_id: {} and chapter_id: {}",
+                data_file,
+                course_id,
+                chapter_id
+            );
 
             let file_contents = match read_file_contents(data_file) {
                 FileOpsResult::Success(c) => c,
@@ -212,7 +220,6 @@ async fn main() {
                 }
             };
 
-            println!("saving question to database");
             // call API to save questions to database
             let client = reqwest::Client::new();
             for mut question in questions {
@@ -221,9 +228,10 @@ async fn main() {
                 question.course_id = *course_id as u32;
                 question.chapter_id = *chapter_id as u32;
                 question.id_hash = "not-set".to_string();
-                match client.post("http://127.0.0.1:8080/question").json(&question).send().await {
-                    Ok(_) => {
-                        println!("Question uploaded successfully");
+                println!("Uploading question: {:?}", question);
+                match client.post("http://localhost:8080/question").json(&question).send().await {
+                    Ok(r) => {
+                        println!("Question uploaded successfully: {:?}", r);
                     }
                     Err(e) => {
                         println!("Failed to upload question: {:?}", e);

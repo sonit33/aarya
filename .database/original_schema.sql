@@ -1,3 +1,9 @@
+-- drop database if exists aarya_v1;
+
+-- create database aarya_v1;
+
+-- use aarya_v1;
+
 DROP TABLE IF EXISTS chapters;
 DROP TABLE IF EXISTS questions;
 DROP TABLE IF EXISTS students;
