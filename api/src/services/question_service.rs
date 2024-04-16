@@ -1,6 +1,7 @@
 use aarya_utils::{ hash_ops, models::question_model::QuestionModel };
 use actix_web::{ delete, get, post, put, web, HttpResponse, Responder };
 use sqlx::MySqlPool;
+use time::OffsetDateTime;
 use validator::Validate;
 
 use crate::entities::{ result_type::EntityResult, question_entity::QuestionEntity };
@@ -10,17 +11,21 @@ pub async fn question_create(
     pool: web::Data<MySqlPool>,
     model: web::Json<QuestionModel>
 ) -> impl Responder {
-    match model.0.validate() {
+    let model = model.0;
+    println!("{:?}", model);
+    match model.validate() {
         Ok(_) => (),
         Err(e) => {
+            println!("{:?}", e);
             return HttpResponse::BadRequest().body(format!("Validation error: [{:?}]", e));
         }
     }
+    println!("transforming model to entity");
     let question = QuestionEntity {
         question_id: model.question_id,
         course_id: model.course_id,
         chapter_id: model.chapter_id,
-        id_hash: model.id_hash.clone(),
+        id_hash: hash_ops::fast_hash(OffsetDateTime::now_utc().nanosecond().to_string().as_str()),
         que_text: model.que_text.clone(),
         que_description: model.que_description.clone(),
         choices: model.choices.clone(),
@@ -33,6 +38,7 @@ pub async fn question_create(
         updated_timestamp: None,
         que_hash: hash_ops::string_hasher(&model.que_text),
     };
+    println!("{:?}", question);
     match question.create(&pool).await {
         EntityResult::Success(r) => HttpResponse::Ok().body(format!("Question created: [{:?}]", r)),
         EntityResult::Error(e) =>

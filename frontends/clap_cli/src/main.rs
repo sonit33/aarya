@@ -176,7 +176,7 @@ async fn main() {
 
                     match write_to_file(output_file.as_str(), &message.choices[0].message.content) {
                         FileOpsResult::Success(_) => {
-                            println!("Written to file: [{output_file}]");
+                            println!("{output_file}");
                         }
                         FileOpsResult::Error(e) => {
                             println!("Failed to write to file: {:?}", e);
@@ -224,14 +224,13 @@ async fn main() {
             let client = reqwest::Client::new();
             for mut question in questions {
                 //question_id and id_hash required but their values do not matter
-                question.question_id = 0;
+                question.question_id = 1;
                 question.course_id = *course_id as u32;
                 question.chapter_id = *chapter_id as u32;
                 question.id_hash = "not-set".to_string();
-                println!("Uploading question: {:?}", question);
                 match client.post("http://localhost:8080/question").json(&question).send().await {
                     Ok(r) => {
-                        println!("Question uploaded successfully: {:?}", r);
+                        println!("Uploaded question: {:?}", r.status());
                     }
                     Err(e) => {
                         println!("Failed to upload question: {:?}", e);
