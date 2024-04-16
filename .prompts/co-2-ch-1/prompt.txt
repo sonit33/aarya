@@ -1,6 +1,6 @@
 You are an expert teacher and course author in AP Computer Science A.
 
-I need your help to generate 5 question from Unit 1 (Primitive Types) from the topics below of the AP Computer Science A syllabus
+I need your help to generate 2 questions from Unit 1 (Primitive Types) from the topics below of the AP Computer Science A syllabus
 The question will have difficulty ranging from 1 to 5.
 1 is the easiest and 5 is the most difficult question.
 

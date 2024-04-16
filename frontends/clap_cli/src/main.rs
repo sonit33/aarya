@@ -10,7 +10,7 @@ use aarya_utils::{
     },
 };
 use clap::{Parser, Subcommand};
-use serde_json::Value;
+
 use std::path::PathBuf;
 
 #[derive(Parser)]
@@ -101,10 +101,10 @@ async fn main() {
                 println!("Screenshot path not provided");
             }
 
-            let mut output_folder = ".openai_output";
+            let mut output_folder = "./.temp-data";
 
             if output_path.is_none() {
-                println!("Output path not provided. Using the .openai_output directory");
+                println!("Output path not provided. Using the ./.temp-data directory");
             } else {
                 output_folder = output_path.as_ref().unwrap().to_str().unwrap();
             }
@@ -159,16 +159,19 @@ async fn main() {
             println!("sending request to OpenAI API");
             match send_request(header_map, payload).await {
                 OpenAiResponse::Success(r) => {
-                    let completion_res: CompletionResponse = match serde_json::from_str(&r) {
+                    let message: CompletionResponse = match serde_json::from_str(&r) {
                         Ok(res) => res,
                         Err(e) => {
                             println!("Error parsing to json: {:?}", e);
                             return;
                         }
                     };
+
                     println!("recieved response");
-                    let output_file = format!("{output_folder}/{}.txt", &completion_res.id);
-                    match write_to_file(output_file.as_str(), &r) {
+
+                    let output_file = format!("{output_folder}/{}.json", &message.id);
+
+                    match write_to_file(output_file.as_str(), &message.choices[0].message.content) {
                         FileOpsResult::Success(_) => {
                             println!("Written to file: [{output_file}]");
                         }
@@ -201,20 +204,10 @@ async fn main() {
                 }
             };
 
-            let message: Value = match serde_json::from_str(file_contents.as_str()) {
+            let questions: Vec<QuestionModel> = match serde_json::from_str(file_contents.as_str()) {
                 Ok(m) => m,
                 Err(e) => {
                     println!("Failed to parse json: {:?}", e);
-                    return;
-                }
-            };
-
-            let content = message["choices"][0]["message"]["content"].to_string();
-
-            let questions: Vec<QuestionModel> = match serde_json::from_str(&content) {
-                Ok(q) => q,
-                Err(e) => {
-                    println!("Failed to parse questions: {:?}", e);
                     return;
                 }
             };
@@ -239,7 +232,7 @@ async fn main() {
             }
         }
         None => {
-            println!("No command provided. Use --help to see available commands.");
+            println!("No command provided. Use aarya_cli --help to see available commands.");
         }
     }
 }
