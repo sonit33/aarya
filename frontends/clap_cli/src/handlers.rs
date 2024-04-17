@@ -1,21 +1,14 @@
 use aarya_utils::{
     environ::Environ,
-    file_ops::{ file_exists, read_file_contents, write_to_file, FileOpsResult },
-    image_ops::{ encode_to_base64, ImageOpsResult },
-    json_ops::{ self, JsonOpsResult },
-    models::question_model::QuestionModel,
+    file_ops::{file_exists, read_file_contents, write_to_file, FileOpsResult},
+    image_ops::{encode_to_base64, ImageOpsResult},
+    json_ops::{self, JsonOpsResult},
     openai::{
         completion_model::CompletionResponse,
-        openai_ops::{
-            prep_header,
-            prep_payload,
-            prep_payload_wo_image,
-            send_request,
-            OpenAiResponse,
-            Payload,
-        },
+        openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse, Payload},
     },
 };
+use models::question_model::QuestionModel;
 
 use std::path::PathBuf;
 
@@ -45,11 +38,7 @@ pub async fn handle_validate(schema_file: &PathBuf, data_file: &PathBuf) {
     }
 }
 
-pub async fn handle_autogen(
-    screenshot_path: &Option<PathBuf>,
-    output_path: &Option<PathBuf>,
-    prompt_path: &PathBuf
-) {
+pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &PathBuf) {
     if screenshot_path.is_none() {
         println!("Screenshot path not provided");
     }
@@ -148,12 +137,7 @@ pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &PathBuf)
         return;
     }
 
-    println!(
-        "Uploading data file: {:?} to course_id: {} and chapter_id: {}",
-        data_file,
-        course_id,
-        chapter_id
-    );
+    println!("Uploading data file: {:?} to course_id: {} and chapter_id: {}", data_file, course_id, chapter_id);
 
     let file_contents = match read_file_contents(data_file) {
         FileOpsResult::Success(c) => c,

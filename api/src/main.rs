@@ -1,5 +1,6 @@
 use aarya_utils::environ::Environ;
-use actix_web::{ web, App, HttpServer };
+use actix_cors::Cors;
+use actix_web::{web, App, HttpServer};
 use dotenv::from_filename;
 use sqlx::MySqlPool;
 
@@ -24,14 +25,15 @@ async fn main() -> std::io::Result<()> {
     log::debug!("{:?}", env_default);
 
     let database_url = format!("{}/{}", env_default.db_connection_string, env_default.db_name);
-    let pool = MySqlPool::connect(database_url.as_str()).await.expect(
-        "Failed to connect to database"
-    );
+    let pool = MySqlPool::connect(database_url.as_str()).await.expect("Failed to connect to database");
 
     println!("Actix running at http://{ip}:{port}");
 
     HttpServer::new(move || {
+        let cors = Cors::permissive();
+
         App::new()
+            .wrap(cors)
             .app_data(web::Data::new(pool.clone()))
             .service(question_create)
             .service(get_all_questions)
@@ -43,6 +45,7 @@ async fn main() -> std::io::Result<()> {
             .service(update_question_by_id)
             .service(delete_question_by_id)
     })
-        .bind((ip, port))?
-        .run().await
+    .bind((ip, port))?
+    .run()
+    .await
 }

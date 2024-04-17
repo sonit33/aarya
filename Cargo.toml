@@ -1,3 +1,3 @@
 [workspace]
 resolver = "2"
-members = ["api", "frontends/yew_wasm", "frontends/clap_cli", "utils"]
+members = ["api", "frontends/clap_cli", "utils", "frontends/leptos_wasm", "models"]

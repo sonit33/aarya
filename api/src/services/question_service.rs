@@ -1,16 +1,14 @@
-use aarya_utils::{ hash_ops, models::question_model::QuestionModel };
-use actix_web::{ delete, get, post, put, web, HttpResponse, Responder };
+use aarya_utils::hash_ops;
+use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
+use models::question_model::QuestionModel;
 use sqlx::MySqlPool;
 use time::OffsetDateTime;
 use validator::Validate;
 
-use crate::entities::{ result_type::EntityResult, question_entity::QuestionEntity };
+use crate::entities::{question_entity::QuestionEntity, result_type::EntityResult};
 
 #[post("/question")]
-pub async fn question_create(
-    pool: web::Data<MySqlPool>,
-    model: web::Json<QuestionModel>
-) -> impl Responder {
+pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<QuestionModel>) -> impl Responder {
     let model = model.0;
     println!("{:?}", model);
     match model.validate() {
@@ -41,8 +39,7 @@ pub async fn question_create(
     println!("{:?}", question);
     match question.create(&pool).await {
         EntityResult::Success(r) => HttpResponse::Ok().body(format!("Question created: [{:?}]", r)),
-        EntityResult::Error(e) =>
-            HttpResponse::InternalServerError().body(format!("Failed to post question: [{:?}]", e)),
+        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to post question: [{:?}]", e)),
     }
 }
 
@@ -70,53 +67,42 @@ pub async fn get_all_questions(pool: web::Data<MySqlPool>) -> impl Responder {
             }
             HttpResponse::Ok().json(questions)
         }
-        EntityResult::Error(e) =>
-            HttpResponse::InternalServerError().body(
-                format!("Failed to fetch questions: [{:?}]", e)
-            ),
+        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch questions: [{:?}]", e)),
     }
 }
 
 #[get("/question/id/{id}")]
-pub async fn get_questions_by_id_hash(
-    pool: web::Data<MySqlPool>,
-    path: web::Path<String>
-) -> impl Responder {
+pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
     let id_hash = path.into_inner();
     let mut question = QuestionEntity::new();
     question.id_hash = id_hash;
     match question.read_by_hash(&pool).await {
-        EntityResult::Success(result) =>
-            match result {
-                Some(row) => {
-                    let question = QuestionModel {
-                        question_id: row.question_id,
-                        course_id: row.course_id,
-                        chapter_id: row.chapter_id,
-                        id_hash: row.id_hash.clone(),
-                        que_text: row.que_text.clone(),
-                        que_description: row.que_description.clone(),
-                        choices: row.choices.clone(),
-                        answers: row.answers.clone(),
-                        ans_explanation: row.ans_explanation.clone(),
-                        ans_hint: row.ans_hint.clone(),
-                        que_difficulty: row.difficulty as u8,
-                        diff_reason: row.diff_reason.clone(),
-                    };
-                    HttpResponse::Ok().json(question)
-                }
-                None => HttpResponse::NotFound().body("Question not found"),
+        EntityResult::Success(result) => match result {
+            Some(row) => {
+                let question = QuestionModel {
+                    question_id: row.question_id,
+                    course_id: row.course_id,
+                    chapter_id: row.chapter_id,
+                    id_hash: row.id_hash.clone(),
+                    que_text: row.que_text.clone(),
+                    que_description: row.que_description.clone(),
+                    choices: row.choices.clone(),
+                    answers: row.answers.clone(),
+                    ans_explanation: row.ans_explanation.clone(),
+                    ans_hint: row.ans_hint.clone(),
+                    que_difficulty: row.difficulty as u8,
+                    diff_reason: row.diff_reason.clone(),
+                };
+                HttpResponse::Ok().json(question)
             }
-        EntityResult::Error(_) =>
-            HttpResponse::InternalServerError().body("Failed to fetch question"),
+            None => HttpResponse::NotFound().body("Question not found"),
+        },
+        EntityResult::Error(_) => HttpResponse::InternalServerError().body("Failed to fetch question"),
     }
 }
 
 #[get("/question/filter/{chapter_id}/{course_id}")]
-pub async fn get_questions_by_chapter_course(
-    pool: web::Data<MySqlPool>,
-    path: web::Path<(u32, u32)>
-) -> impl Responder {
+pub async fn get_questions_by_chapter_course(pool: web::Data<MySqlPool>, path: web::Path<(u32, u32)>) -> impl Responder {
     let (chapter_id, course_id) = path.into_inner();
     let mut question = QuestionEntity::new();
     question.chapter_id = chapter_id;
@@ -142,16 +128,12 @@ pub async fn get_questions_by_chapter_course(
             }
             HttpResponse::Ok().json(questions)
         }
-        EntityResult::Error(_) =>
-            HttpResponse::InternalServerError().body("Failed to fetch questions"),
+        EntityResult::Error(_) => HttpResponse::InternalServerError().body("Failed to fetch questions"),
     }
 }
 
 #[get("/question/chapter/{chapter_id}")]
-pub async fn get_questions_by_chapter(
-    pool: web::Data<MySqlPool>,
-    path: web::Path<u32>
-) -> impl Responder {
+pub async fn get_questions_by_chapter(pool: web::Data<MySqlPool>, path: web::Path<u32>) -> impl Responder {
     let chapter_id = path.into_inner();
     let mut question = QuestionEntity::new();
     question.chapter_id = chapter_id;
@@ -176,16 +158,12 @@ pub async fn get_questions_by_chapter(
             }
             HttpResponse::Ok().json(questions)
         }
-        EntityResult::Error(_) =>
-            HttpResponse::InternalServerError().body("Failed to fetch questions"),
+        EntityResult::Error(_) => HttpResponse::InternalServerError().body("Failed to fetch questions"),
     }
 }
 
 #[get("/question/course/{course_id}")]
-pub async fn get_questions_by_course(
-    pool: web::Data<MySqlPool>,
-    path: web::Path<u32>
-) -> impl Responder {
+pub async fn get_questions_by_course(pool: web::Data<MySqlPool>, path: web::Path<u32>) -> impl Responder {
     let course_id = path.into_inner();
     let mut question = QuestionEntity::new();
     question.course_id = course_id;
@@ -210,51 +188,42 @@ pub async fn get_questions_by_course(
             }
             HttpResponse::Ok().json(questions)
         }
-        EntityResult::Error(_) =>
-            HttpResponse::InternalServerError().body("Failed to fetch questions"),
+        EntityResult::Error(_) => HttpResponse::InternalServerError().body("Failed to fetch questions"),
     }
 }
 
 #[get("/question/dedup/{que_hash}")]
-pub async fn get_question_by_deduplicating_hash(
-    pool: web::Data<MySqlPool>,
-    path: web::Path<String>
-) -> impl Responder {
+pub async fn get_question_by_deduplicating_hash(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
     let que_hash = path.into_inner();
     let mut question = QuestionEntity::new();
     question.que_hash = que_hash;
     match question.read_by_q_hash(&pool).await {
-        EntityResult::Success(result) =>
-            match result {
-                Some(row) => {
-                    let question = QuestionModel {
-                        question_id: row.question_id,
-                        course_id: row.course_id,
-                        chapter_id: row.chapter_id,
-                        id_hash: row.id_hash.clone(),
-                        que_text: row.que_text.clone(),
-                        que_description: row.que_description.clone(),
-                        choices: row.choices.clone(),
-                        answers: row.answers.clone(),
-                        ans_explanation: row.ans_explanation.clone(),
-                        ans_hint: row.ans_hint.clone(),
-                        que_difficulty: row.difficulty as u8,
-                        diff_reason: row.diff_reason.clone(),
-                    };
-                    HttpResponse::Ok().json(question)
-                }
-                None => HttpResponse::NotFound().body("Question not found"),
+        EntityResult::Success(result) => match result {
+            Some(row) => {
+                let question = QuestionModel {
+                    question_id: row.question_id,
+                    course_id: row.course_id,
+                    chapter_id: row.chapter_id,
+                    id_hash: row.id_hash.clone(),
+                    que_text: row.que_text.clone(),
+                    que_description: row.que_description.clone(),
+                    choices: row.choices.clone(),
+                    answers: row.answers.clone(),
+                    ans_explanation: row.ans_explanation.clone(),
+                    ans_hint: row.ans_hint.clone(),
+                    que_difficulty: row.difficulty as u8,
+                    diff_reason: row.diff_reason.clone(),
+                };
+                HttpResponse::Ok().json(question)
             }
-        EntityResult::Error(_) =>
-            HttpResponse::InternalServerError().body("Failed to fetch question"),
+            None => HttpResponse::NotFound().body("Question not found"),
+        },
+        EntityResult::Error(_) => HttpResponse::InternalServerError().body("Failed to fetch question"),
     }
 }
 
 #[put("/question")]
-pub async fn update_question_by_id(
-    pool: web::Data<MySqlPool>,
-    model: web::Json<QuestionModel>
-) -> impl Responder {
+pub async fn update_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionModel>) -> impl Responder {
     match model.validate() {
         Ok(_) => (),
         Err(e) => {
@@ -280,16 +249,12 @@ pub async fn update_question_by_id(
     };
     match question.update(&pool).await {
         EntityResult::Success(_) => HttpResponse::Ok().body("Question updated"),
-        EntityResult::Error(_) =>
-            HttpResponse::InternalServerError().body("Failed to update question"),
+        EntityResult::Error(_) => HttpResponse::InternalServerError().body("Failed to update question"),
     }
 }
 
 #[delete("/question")]
-pub async fn delete_question_by_id(
-    pool: web::Data<MySqlPool>,
-    model: web::Json<QuestionModel>
-) -> impl Responder {
+pub async fn delete_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionModel>) -> impl Responder {
     match model.validate() {
         Ok(_) => (),
         Err(e) => {
