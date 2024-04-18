@@ -1,7 +1,7 @@
 use leptos::*;
 use leptos_router::*;
 
-use crate::components::courses::AllCourses;
+use crate::components::{chapters::AllChaptersByCourse, courses::AllCourses};
 
 mod components;
 
@@ -28,7 +28,7 @@ fn App() -> impl IntoView {
                         /// get all courses
                         <Route path="/courses" view= move || AllCourses/>
                         /// get all chapters in a course
-                        <Route path="/course/1/chapters" view= move || view!{"All chapters in Course 1"}/>
+                        <Route path="/course/:id_hash/chapters" view= move || AllChaptersByCourse/>
                         /// get all tests in a course
                         <Route path="/course/1/tests" view= move || view!{"All tests in Course 1"}/>
                         /// get all tests in a chapter in a course

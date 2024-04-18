@@ -63,10 +63,10 @@ pub struct TestQueryModel {
 pub struct ChapterQueryModel {
     pub chapter_id: u32,
     pub id_hash: String,
-    pub course_id: u32,
-    pub course_name: Option<String>,
-    pub chapter_name: Option<String>,
+    pub name: String,
     pub description: String,
+    pub course_name: Option<String>,
+    pub course_id_hash: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

@@ -1,24 +1,24 @@
 use actix_web::{get, web, HttpResponse, Responder};
-use models::CourseQueryModel;
+use models::ChapterQueryModel;
 use sqlx::MySqlPool;
 
-use crate::entities::{courses::CourseEntity, result_type::EntityResult};
+use crate::entities::{chapters::ChapterEntity, result_type::EntityResult};
 
-#[get("/chapters/{course_id}")]
-pub async fn get_all_courses(pool: web::Data<MySqlPool>) -> impl Responder {
-    let course = CourseEntity::default();
-    course.course_id = Some(course_id);
-    match course.get_chapters_with_course(&pool).await {
+#[get("/chapters/course/{id_hash}")]
+pub async fn get_all_courses(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
+    let id_hash = path.into_inner();
+    let chapter = ChapterEntity::default();
+    match chapter.get_chapters_by_course(&pool, id_hash).await {
         EntityResult::Success(entities) => {
-            let mut result: Vec<ChapterWithCourse> = Vec::new();
+            let mut result: Vec<ChapterQueryModel> = Vec::new();
             for entity in entities {
-                result.push(ChapterWithCourse {
+                result.push(ChapterQueryModel {
                     chapter_id: entity.chapter_id,
                     id_hash: entity.id_hash,
-                    course_id: entity.course_id,
-                    course_name: entity.course_name,
-                    chapter_name: entity.chapter_name,
+                    name: entity.name,
                     description: entity.description,
+                    course_name: entity.course_name,
+                    course_id_hash: entity.course_id_hash,
                 });
             }
             HttpResponse::Ok().json(result)

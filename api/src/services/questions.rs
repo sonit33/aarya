@@ -73,7 +73,7 @@ pub async fn get_all_questions(pool: web::Data<MySqlPool>) -> impl Responder {
     }
 }
 
-#[get("/question/id/{id}")]
+#[get("/question/id/{id_hash}")]
 pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
     let id_hash = path.into_inner();
     let mut question = QuestionEntity::new();
