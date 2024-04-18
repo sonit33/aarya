@@ -4,7 +4,10 @@ use actix_web::{http, middleware, web, App, HttpServer};
 use dotenv::from_filename;
 use sqlx::MySqlPool;
 
-use crate::services::question_service::*;
+use crate::services::questions::{
+    delete_question_by_id, get_all_questions, get_question_by_deduplicating_hash, get_questions_by_chapter, get_questions_by_chapter_course, get_questions_by_course, get_questions_by_id_hash,
+    question_create, update_question_by_id,
+};
 
 pub mod entities;
 pub mod services;
@@ -32,7 +35,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         let cors = Cors::default()
             .allowed_origin(env_default.allowed_origin.as_str())
-            .allowed_methods(vec!["GET", "POST"])
+            .allowed_methods(vec!["GET", "POST", "PUT", "DELETE"])
             .allowed_headers(vec![http::header::AUTHORIZATION, http::header::ACCEPT])
             .max_age(3600);
 

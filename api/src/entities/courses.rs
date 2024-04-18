@@ -4,8 +4,8 @@ use time::OffsetDateTime;
 use super::result_type::{DatabaseErrorType, EntityResult, SuccessResultType};
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct Course {
-    pub course_id: u32,
+pub struct CourseEntity {
+    pub course_id: Option<u32>,
     pub name: String,
     pub id_hash: String,
     pub added_timestamp: Option<OffsetDateTime>,
@@ -13,10 +13,10 @@ pub struct Course {
     pub description: String,
 }
 
-impl Course {
+impl CourseEntity {
     pub fn new() -> Self {
-        Course {
-            course_id: 0,
+        CourseEntity {
+            course_id: Some(0),
             name: "not-set".to_string(),
             id_hash: "not-set".to_string(),
             added_timestamp: None,
@@ -43,20 +43,20 @@ impl Course {
     }
 
     // get all courses
-    pub async fn get_courses(pool: &MySqlPool) -> EntityResult<Vec<Course>> {
+    pub async fn get_courses(pool: &MySqlPool) -> EntityResult<Vec<CourseEntity>> {
         let query = r#"
             SELECT course_id, name, id_hash, description
             FROM course
         "#;
 
-        match sqlx::query_as::<_, Course>(query).fetch_all(pool).await {
+        match sqlx::query_as::<_, CourseEntity>(query).fetch_all(pool).await {
             Ok(courses) => EntityResult::Success(courses),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching courses".to_string(), e.to_string())),
         }
     }
 }
 
-impl Default for Course {
+impl Default for CourseEntity {
     fn default() -> Self {
         Self::new()
     }

@@ -5,7 +5,7 @@ use sqlx::MySqlPool;
 use time::OffsetDateTime;
 use validator::Validate;
 
-use crate::entities::{question_entity::QuestionEntity, result_type::EntityResult};
+use crate::entities::{questions::QuestionEntity, result_type::EntityResult};
 
 #[post("/question")]
 pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<QuestionMutationModel>) -> impl Responder {
@@ -20,7 +20,7 @@ pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<Questi
     }
     println!("transforming model to entity");
     let question = QuestionEntity {
-        question_id: model.question_id,
+        question_id: Some(model.question_id),
         course_id: model.course_id,
         chapter_id: model.chapter_id,
         id_hash: hash_ops::fast_hash(OffsetDateTime::now_utc().nanosecond().to_string().as_str()),
@@ -62,8 +62,8 @@ pub async fn get_all_questions(pool: web::Data<MySqlPool>) -> impl Responder {
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
-                    course_name: Some(row.course_name),
-                    chapter_name: Some(row.chapter_name),
+                    course_name: row.course_name,
+                    chapter_name: row.chapter_name,
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -92,8 +92,8 @@ pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Pat
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
-                    course_name: Some(row.course_name),
-                    chapter_name: Some(row.chapter_name),
+                    course_name: row.course_name,
+                    chapter_name: row.chapter_name,
                 };
                 HttpResponse::Ok().json(question)
             }
@@ -125,8 +125,8 @@ pub async fn get_questions_by_chapter_course(pool: web::Data<MySqlPool>, path: w
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
-                    course_name: Some(row.course_name),
-                    chapter_name: Some(row.chapter_name),
+                    course_name: row.course_name,
+                    chapter_name: row.chapter_name,
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -156,8 +156,8 @@ pub async fn get_questions_by_chapter(pool: web::Data<MySqlPool>, path: web::Pat
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
-                    course_name: Some(row.course_name),
-                    chapter_name: Some(row.chapter_name),
+                    course_name: row.course_name,
+                    chapter_name: row.chapter_name,
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -187,8 +187,8 @@ pub async fn get_questions_by_course(pool: web::Data<MySqlPool>, path: web::Path
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
-                    course_name: Some(row.course_name),
-                    chapter_name: Some(row.chapter_name),
+                    course_name: row.course_name,
+                    chapter_name: row.chapter_name,
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -217,8 +217,8 @@ pub async fn get_question_by_deduplicating_hash(pool: web::Data<MySqlPool>, path
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
-                    course_name: Some(row.course_name),
-                    chapter_name: Some(row.chapter_name),
+                    course_name: row.course_name,
+                    chapter_name: row.chapter_name,
                 };
                 HttpResponse::Ok().json(question)
             }
@@ -237,7 +237,7 @@ pub async fn update_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<
         }
     }
     let question = QuestionEntity {
-        question_id: model.question_id,
+        question_id: Some(model.question_id),
         course_id: model.course_id,
         chapter_id: model.chapter_id,
         id_hash: model.id_hash.clone(),
@@ -269,7 +269,7 @@ pub async fn delete_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<
     }
 
     let mut question = QuestionEntity::new();
-    question.question_id = model.question_id;
+    question.question_id = Some(model.question_id);
 
     match question.delete(&pool).await {
         EntityResult::Success(_) => HttpResponse::Ok().body("Question deleted"),

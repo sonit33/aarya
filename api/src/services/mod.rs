@@ -1,1 +1,1 @@
-pub mod question_service;
+pub mod questions;

@@ -18,7 +18,7 @@ pub struct Answer {
 }
 #[derive(Debug, sqlx::FromRow)]
 pub struct QuestionEntity {
-    pub question_id: u32,
+    pub question_id: Option<u32>,
     pub course_id: u32,
     pub chapter_id: u32,
     pub id_hash: String,
@@ -48,14 +48,14 @@ pub struct QuestionWithCourseChapter {
     pub diff_reason: String,
     pub ans_explanation: String,
     pub ans_hint: String,
-    pub course_name: String,
-    pub chapter_name: String,
+    pub course_name: Option<String>,
+    pub chapter_name: Option<String>,
 }
 
 impl QuestionEntity {
     pub fn new() -> Self {
         QuestionEntity {
-            question_id: 0,
+            question_id: Some(0),
             course_id: 0,
             chapter_id: 0,
             id_hash: "not-set".to_string(),

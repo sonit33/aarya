@@ -1,11 +1,10 @@
 use sqlx::MySqlPool;
-use time::OffsetDateTime;
 
 use super::result_type::{DatabaseErrorType, EntityResult, SuccessResultType};
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct Chapter {
-    pub chapter_id: u32,
+pub struct ChapterEntity {
+    pub chapter_id: Option<u32>,
     pub id_hash: String,
     pub course_id: Option<u32>,
     pub name: Option<String>,
@@ -17,15 +16,15 @@ pub struct ChapterWithCourse {
     pub chapter_id: u32,
     pub id_hash: String,
     pub course_id: u32,
-    pub course_name: String,
+    pub course_name: Option<String>,
     pub chapter_name: String,
     pub description: String,
 }
 
-impl Chapter {
+impl ChapterEntity {
     pub fn new() -> Self {
-        Chapter {
-            chapter_id: 0,
+        ChapterEntity {
+            chapter_id: Some(0),
             id_hash: "not-set".to_string(),
             course_id: None,
             name: None,
@@ -50,13 +49,13 @@ impl Chapter {
         }
     }
 
-    pub async fn get_chapters(pool: &MySqlPool) -> EntityResult<Vec<Chapter>> {
+    pub async fn get_chapters(pool: &MySqlPool) -> EntityResult<Vec<ChapterEntity>> {
         let query = r#"
             SELECT chapter_id, id_hash, course_id, name, description
             FROM chapter
         "#;
 
-        match sqlx::query_as::<_, Chapter>(query).fetch_all(pool).await {
+        match sqlx::query_as::<_, ChapterEntity>(query).fetch_all(pool).await {
             Ok(chapters) => EntityResult::Success(chapters),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
         }
@@ -74,5 +73,11 @@ impl Chapter {
             Ok(chapters) => EntityResult::Success(chapters),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
         }
+    }
+}
+
+impl Default for ChapterEntity {
+    fn default() -> Self {
+        Self::new()
     }
 }

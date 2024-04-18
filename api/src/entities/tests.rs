@@ -4,8 +4,8 @@ use time::OffsetDateTime;
 use super::result_type::{DatabaseErrorType, EntityResult, SuccessResultType};
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct Test {
-    pub test_id: u32,
+pub struct TestEntity {
+    pub test_id: Option<u32>,
     pub id_hash: String,
     pub name: String,
     pub kind: i8,
@@ -21,9 +21,9 @@ pub struct TestWithCourseChapter {
     pub test_kind: i8,
     pub test_description: String,
     pub course_id: u32,
-    pub course_name: String,
-    pub chapter_id: u32,
-    pub chapter_name: String,
+    pub course_name: Option<String>,
+    pub chapter_id: Option<u32>,
+    pub chapter_name: Option<String>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -38,16 +38,16 @@ pub struct TestQuestion {
     pub question_id: u32,
 }
 
-impl Default for Test {
+impl Default for TestEntity {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl Test {
+impl TestEntity {
     pub fn new() -> Self {
-        Test {
-            test_id: 0,
+        TestEntity {
+            test_id: Some(0),
             id_hash: "not-set".to_string(),
             name: "not-set".to_string(),
             kind: 0,
@@ -143,8 +143,8 @@ impl Test {
     }
 
     // get a test by id_hash
-    pub async fn read_by_hash(pool: &MySqlPool, id_hash: &str) -> EntityResult<Option<Test>> {
-        let test = sqlx::query_as::<_, Test>("SELECT * FROM test WHERE id_hash = ?").bind(id_hash).fetch_optional(pool).await;
+    pub async fn read_by_hash(pool: &MySqlPool, id_hash: &str) -> EntityResult<Option<TestEntity>> {
+        let test = sqlx::query_as::<_, TestEntity>("SELECT * FROM test WHERE id_hash = ?").bind(id_hash).fetch_optional(pool).await;
         match test {
             Ok(result) => EntityResult::Success(result),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read test by hash".to_string(), e.to_string())),

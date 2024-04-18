@@ -2,6 +2,8 @@ use serde::{Deserialize, Serialize};
 use serde_json::Value;
 use validator::Validate;
 
+/// the following types are returned by the API service module (helps to remove sqlx dependency for WASM use)
+
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct QuestionMutationModel {
     #[validate(range(min = 1, max = 99999))]

@@ -1,4 +1,5 @@
-pub mod course_entity;
-pub mod question_entity;
+pub mod chapters;
+pub mod courses;
+pub mod questions;
 pub mod result_type;
-pub mod test_entity;
+pub mod tests;
