@@ -49,27 +49,16 @@ impl ChapterEntity {
         }
     }
 
-    pub async fn get_chapters(pool: &MySqlPool) -> EntityResult<Vec<ChapterEntity>> {
-        let query = r#"
-            SELECT chapter_id, id_hash, course_id, name, description
-            FROM chapter
-        "#;
-
-        match sqlx::query_as::<_, ChapterEntity>(query).fetch_all(pool).await {
-            Ok(chapters) => EntityResult::Success(chapters),
-            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
-        }
-    }
-
     // get all chapters by joining with the course table to get course and chapter details incluidng course name
-    pub async fn get_chapters_with_course(pool: &MySqlPool) -> EntityResult<Vec<ChapterWithCourse>> {
+    pub async fn get_chapters_with_course(&self, pool: &MySqlPool) -> EntityResult<Vec<ChapterWithCourse>> {
         let query = r#"
-            SELECT c.chapter_id, c.id_hash, c.course_id, co.id as course_id, co.name as course_name, c.name as chapter_name, c.description
-            FROM chapter c
-            JOIN course co ON c.course_id = co.course_id
+            SELECT c.chapter_id, c.id_hash, c.course_id, co.name as course_name, c.name as chapter_name, c.description
+            FROM chapters c
+                    JOIN courses co ON c.course_id = co.course_id
+            where co.course_id = ?
         "#;
 
-        match sqlx::query_as::<_, ChapterWithCourse>(query).fetch_all(pool).await {
+        match sqlx::query_as::<_, ChapterWithCourse>(query).bind(self.course_id).fetch_all(pool).await {
             Ok(chapters) => EntityResult::Success(chapters),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
         }

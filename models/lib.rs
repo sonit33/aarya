@@ -71,7 +71,6 @@ pub struct ChapterQueryModel {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct CourseQueryModel {
-    pub course_id: u32,
     pub name: String,
     pub id_hash: String,
     pub description: String,

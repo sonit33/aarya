@@ -11,6 +11,7 @@ use crate::entities::{questions::QuestionEntity, result_type::EntityResult};
 pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<QuestionMutationModel>) -> impl Responder {
     let model = model.0;
     println!("{:?}", model);
+
     match model.validate() {
         Ok(_) => (),
         Err(e) => {
@@ -273,8 +274,6 @@ pub async fn delete_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<
 
     match question.delete(&pool).await {
         EntityResult::Success(_) => HttpResponse::Ok().body("Question deleted"),
-        EntityResult::Error(_) => {
-            return HttpResponse::InternalServerError().body("Failed to delete question");
-        }
+        EntityResult::Error(_) => HttpResponse::InternalServerError().body("Failed to delete question"),
     }
 }

@@ -32,7 +32,7 @@ impl CourseEntity {
         let description = self.description.clone();
 
         let query = r#"
-            INSERT INTO course (name, id_hash, description)
+            INSERT INTO courses (name, id_hash, description)
             VALUES (?, ?, ?)
         "#;
 
@@ -43,10 +43,9 @@ impl CourseEntity {
     }
 
     // get all courses
-    pub async fn get_courses(pool: &MySqlPool) -> EntityResult<Vec<CourseEntity>> {
+    pub async fn read_all(&self, pool: &MySqlPool) -> EntityResult<Vec<CourseEntity>> {
         let query = r#"
-            SELECT course_id, name, id_hash, description
-            FROM course
+            SELECT * FROM courses
         "#;
 
         match sqlx::query_as::<_, CourseEntity>(query).fetch_all(pool).await {

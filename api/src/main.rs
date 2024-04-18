@@ -4,9 +4,12 @@ use actix_web::{http, middleware, web, App, HttpServer};
 use dotenv::from_filename;
 use sqlx::MySqlPool;
 
-use crate::services::questions::{
-    delete_question_by_id, get_all_questions, get_question_by_deduplicating_hash, get_questions_by_chapter, get_questions_by_chapter_course, get_questions_by_course, get_questions_by_id_hash,
-    question_create, update_question_by_id,
+use crate::services::{
+    courses::get_all_courses,
+    questions::{
+        delete_question_by_id, get_all_questions, get_question_by_deduplicating_hash, get_questions_by_chapter, get_questions_by_chapter_course, get_questions_by_course, get_questions_by_id_hash,
+        question_create, update_question_by_id,
+    },
 };
 
 pub mod entities;
@@ -19,7 +22,7 @@ async fn main() -> std::io::Result<()> {
     from_filename(env_file).ok();
 
     let ip = "localhost";
-    let port = 8080;
+    let port = 9090;
 
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
 
@@ -45,6 +48,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(pool.clone()))
             .service(question_create)
             .service(get_all_questions)
+            .service(get_all_courses)
             .service(get_questions_by_id_hash)
             .service(get_questions_by_chapter)
             .service(get_questions_by_course)
