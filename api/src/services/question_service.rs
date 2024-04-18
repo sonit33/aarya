@@ -1,6 +1,6 @@
 use aarya_utils::hash_ops;
 use actix_web::{delete, get, post, put, web, HttpResponse, Responder};
-use models::question_model::QuestionModel;
+use models::{QuestionMutationModel, QuestionQueryModel};
 use sqlx::MySqlPool;
 use time::OffsetDateTime;
 use validator::Validate;
@@ -8,7 +8,7 @@ use validator::Validate;
 use crate::entities::{question_entity::QuestionEntity, result_type::EntityResult};
 
 #[post("/question")]
-pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<QuestionModel>) -> impl Responder {
+pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<QuestionMutationModel>) -> impl Responder {
     let model = model.0;
     println!("{:?}", model);
     match model.validate() {
@@ -50,7 +50,7 @@ pub async fn get_all_questions(pool: web::Data<MySqlPool>) -> impl Responder {
         EntityResult::Success(result) => {
             let mut questions = Vec::new();
             for row in result {
-                questions.push(QuestionModel {
+                questions.push(QuestionQueryModel {
                     question_id: row.question_id,
                     course_id: row.course_id,
                     chapter_id: row.chapter_id,
@@ -58,11 +58,12 @@ pub async fn get_all_questions(pool: web::Data<MySqlPool>) -> impl Responder {
                     que_text: row.que_text.clone(),
                     que_description: row.que_description.clone(),
                     choices: row.choices.clone(),
-                    answers: row.answers.clone(),
                     ans_explanation: row.ans_explanation.clone(),
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
+                    course_name: Some(row.course_name),
+                    chapter_name: Some(row.chapter_name),
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -79,7 +80,7 @@ pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Pat
     match question.read_by_hash(&pool).await {
         EntityResult::Success(result) => match result {
             Some(row) => {
-                let question = QuestionModel {
+                let question = QuestionQueryModel {
                     question_id: row.question_id,
                     course_id: row.course_id,
                     chapter_id: row.chapter_id,
@@ -87,11 +88,12 @@ pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Pat
                     que_text: row.que_text.clone(),
                     que_description: row.que_description.clone(),
                     choices: row.choices.clone(),
-                    answers: row.answers.clone(),
                     ans_explanation: row.ans_explanation.clone(),
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
+                    course_name: Some(row.course_name),
+                    chapter_name: Some(row.chapter_name),
                 };
                 HttpResponse::Ok().json(question)
             }
@@ -101,17 +103,17 @@ pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Pat
     }
 }
 
-#[get("/question/filter/{chapter_id}/{course_id}")]
+#[get("/question/chapter/{chapter_id}/course/{course_id}")]
 pub async fn get_questions_by_chapter_course(pool: web::Data<MySqlPool>, path: web::Path<(u32, u32)>) -> impl Responder {
     let (chapter_id, course_id) = path.into_inner();
     let mut question = QuestionEntity::new();
     question.chapter_id = chapter_id;
     question.course_id = course_id;
-    match question.read_by_chapter_course(&pool).await {
+    match question.read_all_with_course_chapter(&pool).await {
         EntityResult::Success(q) => {
             let mut questions = Vec::new();
             for row in q {
-                questions.push(QuestionModel {
+                questions.push(QuestionQueryModel {
                     question_id: row.question_id,
                     course_id: row.course_id,
                     chapter_id: row.chapter_id,
@@ -119,11 +121,12 @@ pub async fn get_questions_by_chapter_course(pool: web::Data<MySqlPool>, path: w
                     que_text: row.que_text.clone(),
                     que_description: row.que_description.clone(),
                     choices: row.choices.clone(),
-                    answers: row.answers.clone(),
                     ans_explanation: row.ans_explanation.clone(),
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
+                    course_name: Some(row.course_name),
+                    chapter_name: Some(row.chapter_name),
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -137,11 +140,11 @@ pub async fn get_questions_by_chapter(pool: web::Data<MySqlPool>, path: web::Pat
     let chapter_id = path.into_inner();
     let mut question = QuestionEntity::new();
     question.chapter_id = chapter_id;
-    match question.read_by_chapter(&pool).await {
+    match question.read_all_with_course_chapter(&pool).await {
         EntityResult::Success(q) => {
             let mut questions = Vec::new();
             for row in q {
-                questions.push(QuestionModel {
+                questions.push(QuestionQueryModel {
                     question_id: row.question_id,
                     course_id: row.course_id,
                     chapter_id: row.chapter_id,
@@ -149,11 +152,12 @@ pub async fn get_questions_by_chapter(pool: web::Data<MySqlPool>, path: web::Pat
                     que_text: row.que_text.clone(),
                     que_description: row.que_description.clone(),
                     choices: row.choices.clone(),
-                    answers: row.answers.clone(),
                     ans_explanation: row.ans_explanation.clone(),
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
+                    course_name: Some(row.course_name),
+                    chapter_name: Some(row.chapter_name),
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -167,11 +171,11 @@ pub async fn get_questions_by_course(pool: web::Data<MySqlPool>, path: web::Path
     let course_id = path.into_inner();
     let mut question = QuestionEntity::new();
     question.course_id = course_id;
-    match question.read_by_course(&pool).await {
+    match question.read_all_with_course(&pool).await {
         EntityResult::Success(q) => {
             let mut questions = Vec::new();
             for row in q {
-                questions.push(QuestionModel {
+                questions.push(QuestionQueryModel {
                     question_id: row.question_id,
                     course_id: row.course_id,
                     chapter_id: row.chapter_id,
@@ -179,11 +183,12 @@ pub async fn get_questions_by_course(pool: web::Data<MySqlPool>, path: web::Path
                     que_text: row.que_text.clone(),
                     que_description: row.que_description.clone(),
                     choices: row.choices.clone(),
-                    answers: row.answers.clone(),
                     ans_explanation: row.ans_explanation.clone(),
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
+                    course_name: Some(row.course_name),
+                    chapter_name: Some(row.chapter_name),
                 });
             }
             HttpResponse::Ok().json(questions)
@@ -200,7 +205,7 @@ pub async fn get_question_by_deduplicating_hash(pool: web::Data<MySqlPool>, path
     match question.read_by_q_hash(&pool).await {
         EntityResult::Success(result) => match result {
             Some(row) => {
-                let question = QuestionModel {
+                let question = QuestionQueryModel {
                     question_id: row.question_id,
                     course_id: row.course_id,
                     chapter_id: row.chapter_id,
@@ -208,11 +213,12 @@ pub async fn get_question_by_deduplicating_hash(pool: web::Data<MySqlPool>, path
                     que_text: row.que_text.clone(),
                     que_description: row.que_description.clone(),
                     choices: row.choices.clone(),
-                    answers: row.answers.clone(),
                     ans_explanation: row.ans_explanation.clone(),
                     ans_hint: row.ans_hint.clone(),
                     que_difficulty: row.difficulty as u8,
                     diff_reason: row.diff_reason.clone(),
+                    course_name: Some(row.course_name),
+                    chapter_name: Some(row.chapter_name),
                 };
                 HttpResponse::Ok().json(question)
             }
@@ -223,7 +229,7 @@ pub async fn get_question_by_deduplicating_hash(pool: web::Data<MySqlPool>, path
 }
 
 #[put("/question")]
-pub async fn update_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionModel>) -> impl Responder {
+pub async fn update_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionMutationModel>) -> impl Responder {
     match model.validate() {
         Ok(_) => (),
         Err(e) => {
@@ -254,7 +260,7 @@ pub async fn update_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<
 }
 
 #[delete("/question")]
-pub async fn delete_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionModel>) -> impl Responder {
+pub async fn delete_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionQueryModel>) -> impl Responder {
     match model.validate() {
         Ok(_) => (),
         Err(e) => {

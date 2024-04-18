@@ -1,53 +1,49 @@
-use gloo::console::log;
-use gloo_net::http::Request;
 use leptos::*;
-use models::question_model::QuestionModel;
+use leptos_router::*;
 
 #[component()]
 fn App() -> impl IntoView {
-    // load questions from the api
-
-    let load_questions = create_resource(
-        || (),
-        |_| async move {
-            // make the api call
-            match Request::get("http://localhost:8080/questions").send().await {
-                Ok(response) => {
-                    let questions: Vec<QuestionModel> = response.json().await.unwrap();
-                    Some(questions)
-                }
-                Err(e) => {
-                    log!("Failed to load questions", e.to_string());
-                    None
-                }
-            }
-        },
-    );
-
     view! {
-        {move || match load_questions.get() {
-            Some(qq) => {
-                qq.unwrap()
-                    .iter()
-                    .map(|q| {
-                        view! {
-                            <div>
-                                <p>{&q.id_hash}</p>
-                                <p>{&q.que_text}</p>
-                            </div>
-                        }
-                    })
-                    .collect_view()
-            }
-            None => {
-                view! {
-                    <div>
-                        <h1>{"Failed to load questions"}</h1>
-                    </div>
-                }
-                .into_view()
-            }
-        }}
+        <div id="main">
+            <Router>
+                <nav>
+                    <ul>
+                        <li><A href="/">"Home"</A></li>
+                        <li><A href="/courses">"Available courses"</A></li>
+                        <li><A href="/course/1/chapters">"Available chapters in course 1"</A></li>
+                        <li><A href="/course/1/tests">"Available tests in course 1"</A></li>
+                        <li><A href="/course/1/chapter/1/tests">"Available tests in chapter 1 in course 1"</A></li>
+                        <li><A href="/tests">"All tests categorized by courses and chapters"</A></li>
+                        <li><A href="/test/build">"Build a new test"</A></li>
+                    </ul>
+                </nav>
+                <main>
+                    <Routes>
+                        /// home
+                        <Route path="/" view= move || view!{"Home"}/>
+                        /// get all tests
+                        <Route path="/tests" view= move || view!{
+                            <p>"Pick a test"</p>
+                            <A href="/test/1">"Test #1"</A>
+                        }/>
+                        /// get a test by id-hash
+                        <Route path="/test/1" view= move || view!{"You picked test #1"}/>
+                        /// get all courses
+                        <Route path="/courses" view= move || view!{"All courses"}/>
+                        /// get all chapters in a course
+                        <Route path="/course/1/chapters" view= move || view!{"All chapters in Course 1"}/>
+                        /// get all tests in a course
+                        <Route path="/course/1/tests" view= move || view!{"All tests in Course 1"}/>
+                        /// get all tests in a chapter in a course
+                        <Route path="/course/1/chapter/1/tests" view= move || view!{"All tests in Chapter 1, Course 1"}/>
+                        /// build a new test
+                        <Route path="/test/build" view= move || view!{"Start building a new test"}/>
+                        /// not found
+                        <Route path="/*any" view= move || view! { <h1>"Not Found"</h1> }/>
+                    </Routes>
+                </main>
+            </Router>
+        </div>
     }
 }
 
