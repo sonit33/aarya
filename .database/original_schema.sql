@@ -86,7 +86,6 @@ create table students (
     over_13           bit                                   not null,
     email_verified    bit                                   not null,
     account_active    bit                                   not null,
-    added_timestamp   timestamp default current_timestamp() null,
     constraint email_address unique (email_address)
 );
 
