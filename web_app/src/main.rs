@@ -5,19 +5,8 @@ use dotenv::from_filename;
 use handlebars::Handlebars;
 use sqlx::MySqlPool;
 
-use crate::{
-    api::{
-        courses::get_all_courses,
-        questions::{
-            delete_question_by_id, get_all_questions, get_question_by_deduplicating_hash, get_questions_by_chapter, get_questions_by_chapter_course, get_questions_by_course, get_questions_by_id_hash,
-            question_create, update_question_by_id,
-        },
-    },
-    pages::index::{chapter_page, course_page, home_page},
-};
+use crate::pages::{chapters_page, courses_page, home_page};
 
-pub mod api;
-pub mod entities;
 pub mod pages;
 
 fn configure_handlebars() -> Handlebars<'static> {
@@ -63,19 +52,9 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .app_data(web::Data::new(handlebars.clone()))
             .app_data(web::Data::new(pool.clone()))
-            .service(question_create)
-            .service(get_all_questions)
-            .service(get_all_courses)
-            .service(get_questions_by_id_hash)
-            .service(get_questions_by_chapter)
-            .service(get_questions_by_course)
-            .service(get_questions_by_chapter_course)
-            .service(get_question_by_deduplicating_hash)
-            .service(update_question_by_id)
-            .service(delete_question_by_id)
             .service(home_page)
-            .service(course_page)
-            .service(chapter_page)
+            .service(courses_page)
+            .service(chapters_page)
     })
     .bind((ip, port))?
     .run()

@@ -49,14 +49,14 @@ pub struct QuestionQueryModel {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct TestQueryModel {
-    pub test_id: u32,
+    pub id_hash: String,
     pub test_name: String,
     pub test_kind: i8,
     pub test_description: String,
-    pub course_id: Option<u32>,
+    pub course_id_hash: Option<String>,
     pub course_name: Option<String>,
-    pub chapter_id: Option<u32>,
     pub chapter_name: Option<String>,
+    pub chapter_id_hash: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]

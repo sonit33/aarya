@@ -8,11 +8,11 @@ use aarya_utils::{
         openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse, Payload},
     },
 };
-use models::QuestionMutationModel;
+use models::models::QuestionMutationModel;
 
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
-pub async fn handle_validate(schema_file: &PathBuf, data_file: &PathBuf) {
+pub async fn handle_validate(schema_file: &Path, data_file: &Path) {
     let schema_file = schema_file.to_str().unwrap();
     let data_file = data_file.to_str().unwrap();
 
@@ -38,7 +38,7 @@ pub async fn handle_validate(schema_file: &PathBuf, data_file: &PathBuf) {
     }
 }
 
-pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &PathBuf) {
+pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &Path) {
     if screenshot_path.is_none() {
         println!("Screenshot path not provided");
     }
@@ -119,18 +119,16 @@ pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Opt
                 }
                 FileOpsResult::Error(e) => {
                     println!("Failed to write to file: {:?}", e);
-                    return;
                 }
             };
         }
         OpenAiResponse::Error(e) => {
             println!("Failed to send request to OpenAI API: {:?}", e);
-            return;
         }
     }
 }
 
-pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &PathBuf) {
+pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &Path) {
     let data_file = data_file.to_str().unwrap();
     if !file_exists(data_file) {
         println!("Data file is required and does not exist");
@@ -163,6 +161,7 @@ pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &PathBuf)
         question.course_id = *course_id as u32;
         question.chapter_id = *chapter_id as u32;
         question.id_hash = "not-set".to_string();
+        // replace the following with entities call
         match client.post("http://localhost:8080/question").json(&question).send().await {
             Ok(r) => {
                 if r.status().is_success() {

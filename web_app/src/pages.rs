@@ -1,10 +1,11 @@
 use actix_web::{get, web, HttpResponse, Responder};
 use handlebars::Handlebars;
-use models::{ChapterQueryModel, CourseQueryModel};
+use models::{
+    entities::{ChapterEntity, CourseEntity, EntityResult},
+    models::{ChapterQueryModel, CourseQueryModel},
+};
 use serde_json::json;
 use sqlx::MySqlPool;
-
-use crate::entities::{chapters::ChapterEntity, courses::CourseEntity, result_type::EntityResult};
 
 #[get("/")]
 pub async fn home_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder {
@@ -20,7 +21,7 @@ pub async fn home_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder 
 }
 
 #[get("/courses")]
-pub async fn course_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>) -> impl Responder {
+pub async fn courses_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>) -> impl Responder {
     let course = CourseEntity::default();
     match course.read_all(&pool).await {
         EntityResult::Success(entities) => {
@@ -45,10 +46,11 @@ pub async fn course_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<
         EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch courses: [{:?}]", e)),
     }
 }
+
 #[get("/courses/{id_hash}/chapters")]
 /// Get all chapters for a course accept an id_hash parameter
 /// the chapters are in the Chapter entity and its output must be in the ChapterQueryModel
-pub async fn chapter_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, id_hash: web::Path<String>) -> impl Responder {
+pub async fn chapters_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, id_hash: web::Path<String>) -> impl Responder {
     let chapter = ChapterEntity::default();
     let id_hash = id_hash.into_inner();
     match chapter.get_chapters_by_course(&pool, id_hash).await {
@@ -75,6 +77,11 @@ pub async fn chapter_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data
         }
         EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch chapters: [{:?}]", e)),
     }
+}
+
+#[get("/chapter/{id_hash}/tests")]
+pub async fn tests_page() -> impl Responder {
+    HttpResponse::Ok().body("Tests page")
 }
 
 // /**
