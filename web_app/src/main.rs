@@ -6,19 +6,19 @@ use handlebars::Handlebars;
 use sqlx::MySqlPool;
 
 use crate::{
-    routes::index::home,
-    services::{
+    api::{
         courses::get_all_courses,
         questions::{
             delete_question_by_id, get_all_questions, get_question_by_deduplicating_hash, get_questions_by_chapter, get_questions_by_chapter_course, get_questions_by_course, get_questions_by_id_hash,
             question_create, update_question_by_id,
         },
     },
+    pages::index::{chapter_page, course_page, home_page},
 };
 
+pub mod api;
 pub mod entities;
-pub mod routes;
-pub mod services;
+pub mod pages;
 
 fn configure_handlebars() -> Handlebars<'static> {
     let mut handlebars = Handlebars::new();
@@ -73,7 +73,9 @@ async fn main() -> std::io::Result<()> {
             .service(get_question_by_deduplicating_hash)
             .service(update_question_by_id)
             .service(delete_question_by_id)
-            .service(home)
+            .service(home_page)
+            .service(course_page)
+            .service(chapter_page)
     })
     .bind((ip, port))?
     .run()

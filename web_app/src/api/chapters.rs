@@ -13,7 +13,6 @@ pub async fn get_all_courses(pool: web::Data<MySqlPool>, path: web::Path<String>
             let mut result: Vec<ChapterQueryModel> = Vec::new();
             for entity in entities {
                 result.push(ChapterQueryModel {
-                    chapter_id: entity.chapter_id,
                     id_hash: entity.id_hash,
                     name: entity.name,
                     description: entity.description,

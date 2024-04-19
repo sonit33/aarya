@@ -61,7 +61,6 @@ pub struct TestQueryModel {
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
 pub struct ChapterQueryModel {
-    pub chapter_id: u32,
     pub id_hash: String,
     pub name: String,
     pub description: String,

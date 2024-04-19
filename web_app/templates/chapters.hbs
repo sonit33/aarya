@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html lang="en">
+{{> head}}
+<body>
+    {{> header}}
+    <div class="container">
+        <h1>Chapters</h1>
+        <ul>
+            {{#each chapters}}
+                <li>
+                    <a href="/chapters/{{this.id_hash}}/tests">{{this.name}}</a>
+                </li>
+            {{/each}}
+        </ul>
+    </div>
+    {{> footer}}
+</body>
+</html>
