@@ -2,7 +2,6 @@ use aarya_utils::hash_ops;
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::MySqlPool;
-use time::OffsetDateTime;
 use validator::Validate;
 
 #[derive(Debug)]
@@ -99,8 +98,6 @@ pub struct CourseEntity {
     pub course_id: Option<u32>,
     pub name: String,
     pub id_hash: String,
-    pub added_timestamp: Option<OffsetDateTime>,
-    pub updated_timestamp: Option<OffsetDateTime>,
     pub description: String,
 }
 
@@ -117,8 +114,6 @@ impl CourseEntity {
             course_id: Some(0),
             name: "not-set".to_string(),
             id_hash: "not-set".to_string(),
-            added_timestamp: None,
-            updated_timestamp: None,
             description: "not-set".to_string(),
         }
     }
@@ -184,8 +179,6 @@ pub struct QuestionEntity {
     pub ans_hint: String,
     pub difficulty: i8,
     pub diff_reason: String,
-    pub added_timestamp: Option<OffsetDateTime>,
-    pub updated_timestamp: Option<OffsetDateTime>,
     pub que_hash: String,
 }
 
@@ -221,8 +214,6 @@ impl QuestionEntity {
             ans_hint: "not-set".to_string(),
             difficulty: 0,
             diff_reason: "not-set".to_string(),
-            added_timestamp: None,
-            updated_timestamp: None,
             que_hash: String::from("random"),
         }
     }
@@ -237,7 +228,6 @@ impl Default for QuestionEntity {
 impl QuestionEntity {
     pub async fn create(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
         let que_hash = hash_ops::string_hasher(self.que_text.to_lowercase().as_str());
-        let added_timestamp = OffsetDateTime::now_utc();
         let res = sqlx
             ::query(
                 "INSERT INTO questions (course_id, chapter_id, id_hash, que_text, que_description, answers, choices, difficulty, diff_reason, ans_explanation, ans_hint, que_hash, added_timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)"
@@ -254,7 +244,6 @@ impl QuestionEntity {
             .bind(&self.ans_explanation)
             .bind(&self.ans_hint)
             .bind(que_hash)
-            .bind(added_timestamp)
             .execute(pool).await;
         match res {
             Ok(result) => EntityResult::Success(SuccessResultType::Created(result.last_insert_id(), result.rows_affected())),
@@ -338,7 +327,6 @@ impl QuestionEntity {
     }
 
     pub async fn update(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
-        let updated_timestamp = OffsetDateTime::now_utc();
         let res = sqlx
             ::query(
                 "UPDATE questions SET course_id = ?, chapter_id = ?, id_hash = ?, que_text = ?, que_description = ?, answers = ?, choices = ?, difficulty = ?, diff_reason = ?, ans_explanation = ?, ans_hint = ?, updated_timestamp = ? WHERE question_id = ?"
@@ -354,7 +342,6 @@ impl QuestionEntity {
             .bind(&self.diff_reason)
             .bind(&self.ans_explanation)
             .bind(&self.ans_hint)
-            .bind(updated_timestamp)
             .bind(self.question_id)
             .execute(pool).await;
         match res {
@@ -379,7 +366,6 @@ pub struct TestEntity {
     pub name: String,
     pub kind: i8,
     pub course_id: u32,
-    pub added_timestamp: Option<OffsetDateTime>,
     pub description: String,
 }
 
@@ -421,7 +407,6 @@ impl TestEntity {
             name: "not-set".to_string(),
             kind: 0,
             course_id: 0,
-            added_timestamp: None,
             description: "not-set".to_string(),
         }
     }
@@ -432,22 +417,13 @@ impl TestEntity {
         let kind = self.kind;
         let course_id = self.course_id;
         let description = self.description.clone();
-        let added_timestamp = self.added_timestamp;
 
         let query = r#"
             INSERT INTO test (id_hash, name, kind, course_id, description, added_timestamp)
             VALUES (?, ?, ?, ?, ?, ?, ?)
         "#;
 
-        let result = sqlx::query(query)
-            .bind(id_hash)
-            .bind(name)
-            .bind(kind)
-            .bind(course_id)
-            .bind(description)
-            .bind(added_timestamp)
-            .execute(pool)
-            .await;
+        let result = sqlx::query(query).bind(id_hash).bind(name).bind(kind).bind(course_id).bind(description).execute(pool).await;
 
         match result {
             Ok(r) => EntityResult::Success(SuccessResultType::Created(r.last_insert_id(), r.rows_affected())),
