@@ -8,7 +8,7 @@ use aarya_utils::{
         openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse, Payload},
     },
 };
-use models::question_model::QuestionModel;
+use models::QuestionMutationModel;
 
 use std::path::PathBuf;
 
@@ -147,7 +147,7 @@ pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &PathBuf)
         }
     };
 
-    let questions: Vec<QuestionModel> = match serde_json::from_str(file_contents.as_str()) {
+    let questions: Vec<QuestionMutationModel> = match serde_json::from_str(file_contents.as_str()) {
         Ok(m) => m,
         Err(e) => {
             println!("Failed to parse json: {:?}", e);

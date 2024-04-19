@@ -7,7 +7,7 @@ use validator::Validate;
 
 use crate::entities::{questions::QuestionEntity, result_type::EntityResult};
 
-#[post("/question")]
+#[post("/api/question")]
 pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<QuestionMutationModel>) -> impl Responder {
     let model = model.0;
     println!("{:?}", model);
@@ -44,7 +44,7 @@ pub async fn question_create(pool: web::Data<MySqlPool>, model: web::Json<Questi
     }
 }
 
-#[get("/questions")]
+#[get("/api/questions")]
 pub async fn get_all_questions(pool: web::Data<MySqlPool>) -> impl Responder {
     let question = QuestionEntity::new();
     match question.read_all(&pool).await {
@@ -73,7 +73,7 @@ pub async fn get_all_questions(pool: web::Data<MySqlPool>) -> impl Responder {
     }
 }
 
-#[get("/question/id/{id_hash}")]
+#[get("/api/question/id/{id_hash}")]
 pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
     let id_hash = path.into_inner();
     let mut question = QuestionEntity::new();
@@ -104,7 +104,7 @@ pub async fn get_questions_by_id_hash(pool: web::Data<MySqlPool>, path: web::Pat
     }
 }
 
-#[get("/question/chapter/{chapter_id}/course/{course_id}")]
+#[get("/api/question/chapter/{chapter_id}/course/{course_id}")]
 pub async fn get_questions_by_chapter_course(pool: web::Data<MySqlPool>, path: web::Path<(u32, u32)>) -> impl Responder {
     let (chapter_id, course_id) = path.into_inner();
     let mut question = QuestionEntity::new();
@@ -136,7 +136,7 @@ pub async fn get_questions_by_chapter_course(pool: web::Data<MySqlPool>, path: w
     }
 }
 
-#[get("/question/chapter/{chapter_id}")]
+#[get("/api/question/chapter/{chapter_id}")]
 pub async fn get_questions_by_chapter(pool: web::Data<MySqlPool>, path: web::Path<u32>) -> impl Responder {
     let chapter_id = path.into_inner();
     let mut question = QuestionEntity::new();
@@ -167,7 +167,7 @@ pub async fn get_questions_by_chapter(pool: web::Data<MySqlPool>, path: web::Pat
     }
 }
 
-#[get("/question/course/{course_id}")]
+#[get("/api/question/course/{course_id}")]
 pub async fn get_questions_by_course(pool: web::Data<MySqlPool>, path: web::Path<u32>) -> impl Responder {
     let course_id = path.into_inner();
     let mut question = QuestionEntity::new();
@@ -198,7 +198,7 @@ pub async fn get_questions_by_course(pool: web::Data<MySqlPool>, path: web::Path
     }
 }
 
-#[get("/question/dedup/{que_hash}")]
+#[get("/api/question/dedup/{que_hash}")]
 pub async fn get_question_by_deduplicating_hash(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
     let que_hash = path.into_inner();
     let mut question = QuestionEntity::new();
@@ -229,7 +229,7 @@ pub async fn get_question_by_deduplicating_hash(pool: web::Data<MySqlPool>, path
     }
 }
 
-#[put("/question")]
+#[put("/api/question")]
 pub async fn update_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionMutationModel>) -> impl Responder {
     match model.validate() {
         Ok(_) => (),
@@ -260,7 +260,7 @@ pub async fn update_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<
     }
 }
 
-#[delete("/question")]
+#[delete("/api/question")]
 pub async fn delete_question_by_id(pool: web::Data<MySqlPool>, model: web::Json<QuestionQueryModel>) -> impl Responder {
     match model.validate() {
         Ok(_) => (),

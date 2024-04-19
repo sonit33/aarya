@@ -4,7 +4,7 @@ use sqlx::MySqlPool;
 
 use crate::entities::{chapters::ChapterEntity, result_type::EntityResult};
 
-#[get("/chapters/course/{id_hash}")]
+#[get("/api/chapters/course/{id_hash}")]
 pub async fn get_all_courses(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
     let id_hash = path.into_inner();
     let chapter = ChapterEntity::default();

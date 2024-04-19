@@ -4,7 +4,7 @@ use sqlx::MySqlPool;
 
 use crate::entities::{courses::CourseEntity, result_type::EntityResult};
 
-#[get("/courses")]
+#[get("/api/courses")]
 pub async fn get_all_courses(pool: web::Data<MySqlPool>) -> impl Responder {
     let course = CourseEntity::default();
     match course.read_all(&pool).await {
