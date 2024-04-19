@@ -17,8 +17,6 @@ create table courses (
     course_id         int unsigned auto_increment primary key,
     name       varchar(255)                          not null,
     id_hash           varchar(32)                           not null,
-    added_timestamp   timestamp default current_timestamp() null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
     description       varchar(1024) not null
 );
 
@@ -44,8 +42,6 @@ create table questions
     ans_hint            varchar(1024)                         not null,
     difficulty      tinyint                               not null,
     diff_reason       varchar(1024)                         not null,
-    added_timestamp   timestamp default current_timestamp() null,
-    updated_timestamp timestamp default current_timestamp() null on update current_timestamp(),
     que_hash            varchar(2048)                         null,
     constraint questions_q_hash_uindex unique (que_hash) using hash,
     constraint questions_ibfk_1 foreign key (course_id) references courses (course_id)
@@ -61,7 +57,6 @@ create table tests(
     name varchar(128) not null,
     kind tinyint not null, -- exam (1) or practice (0)
     course_id int unsigned not null,
-    added_timestamp timestamp default current_timestamp(),
     description varchar(1024) not null,
     constraint uk_tests_id_hash unique (id_hash) using hash,
     constraint fk_tests_courses foreign key (course_id) references courses (course_id)
@@ -105,7 +100,7 @@ create table students_history (
     history_id int unsigned auto_increment primary key,
     student_id int unsigned,
     action_type enum('update', 'delete'),
-    timestamp timestamp default current_timestamp(),
+    action_timestamp timestamp default current_timestamp(),
     id_hash varchar(255) not null,
     first_name        varchar(255)                          not null,
     email_address     varchar(255)                          not null,
