@@ -23,7 +23,7 @@ pub async fn home_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder 
 #[get("/courses")]
 pub async fn courses_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>) -> impl Responder {
     let course = CourseEntity::default();
-    match course.read_all(&pool).await {
+    match course.find_all(&pool).await {
         EntityResult::Success(entities) => {
             let mut result: Vec<CourseQueryModel> = Vec::new();
             for entity in entities {
@@ -53,7 +53,7 @@ pub async fn courses_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data
 pub async fn chapters_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, id_hash: web::Path<String>) -> impl Responder {
     let chapter = ChapterEntity::default();
     let id_hash = id_hash.into_inner();
-    match chapter.get_chapters_by_course(&pool, id_hash).await {
+    match chapter.find_by_course(&pool, id_hash).await {
         EntityResult::Success(entities) => {
             let mut result: Vec<ChapterQueryModel> = Vec::new();
             for entity in entities {

@@ -3,6 +3,28 @@ use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::MySqlPool;
 use time::OffsetDateTime;
+use validator::Validate;
+
+#[derive(Debug)]
+pub enum DatabaseErrorType {
+    NotFound(String, String),
+    ConnectionError(String, String),
+    QueryError(String, String),
+}
+
+#[derive(Debug)]
+pub enum SuccessResultType {
+    Created(u64, u64),
+    CreatedCollection(Vec<u64>),
+    Updated(u64, u64),
+    Deleted(u64, u64),
+}
+
+#[derive(Debug)]
+pub enum EntityResult<T> {
+    Success(T),
+    Error(DatabaseErrorType),
+}
 
 #[derive(Debug, sqlx::FromRow)]
 pub struct ChapterEntity {
@@ -14,12 +36,10 @@ pub struct ChapterEntity {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct ChapterWithCourse {
-    pub chapter_id: u32,
+pub struct ChapterQueryModel {
     pub id_hash: String,
     pub name: String,
     pub description: String,
-    pub course_id: u32,
     pub course_name: Option<String>,
     pub course_id_hash: Option<String>,
 }
@@ -53,7 +73,7 @@ impl ChapterEntity {
     }
 
     // get all chapters by joining with the course table to get course and chapter details incluidng course name
-    pub async fn get_chapters_by_course(&self, pool: &MySqlPool, id_hash: String) -> EntityResult<Vec<ChapterWithCourse>> {
+    pub async fn find_by_course(&self, pool: &MySqlPool, course_id_hash: String) -> EntityResult<Vec<ChapterQueryModel>> {
         let query = r#"
             SELECT c.chapter_id, c.id_hash, c.course_id, co.name as course_name, co.id_hash as course_id_hash, c.name, c.description
             FROM chapters c
@@ -61,7 +81,7 @@ impl ChapterEntity {
             where co.id_hash = ?
         "#;
 
-        match sqlx::query_as::<_, ChapterWithCourse>(query).bind(&id_hash).fetch_all(pool).await {
+        match sqlx::query_as::<_, ChapterQueryModel>(query).bind(&course_id_hash).fetch_all(pool).await {
             Ok(chapters) => EntityResult::Success(chapters),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
         }
@@ -81,6 +101,13 @@ pub struct CourseEntity {
     pub id_hash: String,
     pub added_timestamp: Option<OffsetDateTime>,
     pub updated_timestamp: Option<OffsetDateTime>,
+    pub description: String,
+}
+
+#[derive(Debug, sqlx::FromRow)]
+pub struct CourseQueryModel {
+    pub name: String,
+    pub id_hash: String,
     pub description: String,
 }
 
@@ -114,12 +141,12 @@ impl CourseEntity {
     }
 
     // get all courses
-    pub async fn read_all(&self, pool: &MySqlPool) -> EntityResult<Vec<CourseEntity>> {
+    pub async fn find_all(&self, pool: &MySqlPool) -> EntityResult<Vec<CourseQueryModel>> {
         let query = r#"
-            SELECT * FROM courses
+            SELECT id_hash, name, description FROM courses
         "#;
 
-        match sqlx::query_as::<_, CourseEntity>(query).fetch_all(pool).await {
+        match sqlx::query_as::<_, CourseQueryModel>(query).fetch_all(pool).await {
             Ok(courses) => EntityResult::Success(courses),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching courses".to_string(), e.to_string())),
         }
@@ -142,7 +169,8 @@ pub struct Choice {
 pub struct Answer {
     id: String,
 }
-#[derive(Debug, sqlx::FromRow)]
+
+#[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct QuestionEntity {
     pub question_id: Option<u32>,
     pub course_id: u32,
@@ -162,7 +190,7 @@ pub struct QuestionEntity {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct QuestionWithCourseChapter {
+pub struct QuestionQueryModel {
     pub question_id: u32,
     pub course_id: u32,
     pub chapter_id: u32,
@@ -170,7 +198,7 @@ pub struct QuestionWithCourseChapter {
     pub que_text: String,
     pub que_description: String,
     pub choices: String,
-    pub difficulty: i8,
+    pub que_difficulty: u8,
     pub diff_reason: String,
     pub ans_explanation: String,
     pub ans_hint: String,
@@ -234,30 +262,19 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn read_all(&self, pool: &MySqlPool) -> EntityResult<Vec<QuestionWithCourseChapter>> {
-        let questions = sqlx::query_as::<_, QuestionWithCourseChapter>(
-            r#"SELECT q.question_id, q.course_id, q.chapter_id, q.id_hash, q.que_text, q.que_description, q.choices, 
-            q.difficulty, q.diff_reason, q.ans_explanation, q.ans_hint 
-            FROM questions q"#,
-        )
-        .fetch_all(pool)
-        .await;
-        match questions {
-            Ok(result) => EntityResult::Success(result),
-            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read questions".to_string(), e.to_string())),
-        }
-    }
-
     // read all questions, join with course table to get course and question details. // Do not use * in query, instead use column names
-    pub async fn read_all_with_course(&self, pool: &MySqlPool) -> EntityResult<Vec<QuestionWithCourseChapter>> {
-        let questions = sqlx::query_as::<_, QuestionWithCourseChapter>(
+    pub async fn find_by_course(&self, pool: &MySqlPool, course_id_hash: String) -> EntityResult<Vec<QuestionQueryModel>> {
+        let questions = sqlx::query_as::<_, QuestionQueryModel>(
             r#"
-        SELECT q.question_id, q.course_id, q.chapter_id, q.id_hash, q.que_text, q.que_description, q.choices, 
-        q.difficulty, q.diff_reason, q.ans_explanation, q.ans_hint, c.name as course_name 
-        FROM questions q 
-        JOIN course c 
-            ON q.course_id = c.course_id"#,
+                SELECT q.question_id, q.course_id, q.chapter_id, q.id_hash, q.que_text, q.que_description, q.choices, 
+                q.difficulty, q.diff_reason, q.ans_explanation, q.ans_hint, c.name as course_name 
+                FROM questions q 
+                JOIN course c 
+                    ON q.course_id = c.course_id
+                where c.id_hash = ?
+            "#,
         )
+        .bind(course_id_hash)
         .fetch_all(pool)
         .await;
         match questions {
@@ -268,18 +285,20 @@ impl QuestionEntity {
 
     // Read all questions, join with course and chapter tables to get course, chapter, and question details
     // Do not use * in query, instead use column names
-    pub async fn read_all_with_course_chapter(&self, pool: &MySqlPool) -> EntityResult<Vec<QuestionWithCourseChapter>> {
-        let questions = sqlx::query_as::<_, QuestionWithCourseChapter>(
+    pub async fn find_by_chapter(&self, pool: &MySqlPool, chapter_id_hash: String) -> EntityResult<Vec<QuestionQueryModel>> {
+        let questions = sqlx::query_as::<_, QuestionQueryModel>(
             r#"
-        SELECT q.question_id, q.course_id, q.chapter_id, q.id_hash, q.que_text, q.que_description, q.choices, q.difficulty, q.diff_reason,
-        q.ans_explanation, q.ans_hint, c.name as course_name, ch.name as chapter_name
-        FROM questions q
-        JOIN courses c
-            ON q.course_id = c.course_id
-        JOIN chapters ch
-            ON q.chapter_id = ch.chapter_id
+                SELECT q.question_id, q.course_id, q.chapter_id, q.id_hash, q.que_text, q.que_description, q.choices, q.difficulty, q.diff_reason,
+                q.ans_explanation, q.ans_hint, c.name as course_name, ch.name as chapter_name
+                FROM questions q
+                JOIN courses c
+                    ON q.course_id = c.course_id
+                JOIN chapters ch
+                    ON q.chapter_id = ch.chapter_id
+                where ch.id_hash = ?
             "#,
         )
+        .bind(chapter_id_hash)
         .fetch_all(pool)
         .await;
         match questions {
@@ -288,8 +307,8 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn read_by_hash(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionWithCourseChapter>> {
-        let question = sqlx::query_as::<_, QuestionWithCourseChapter>(
+    pub async fn find_one(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionQueryModel>> {
+        let question = sqlx::query_as::<_, QuestionQueryModel>(
             r#"SELECT q.question_id, q.course_id, q.chapter_id, q.id_hash, q.que_text, q.que_description, q.choices, q.difficulty, q.diff_reason,
             q.ans_explanation, q.ans_hint, c.name as course_name, ch.name as chapter_name
             FROM questions q WHERE id_hash = ?"#,
@@ -303,8 +322,8 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn read_by_q_hash(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionWithCourseChapter>> {
-        let question = sqlx::query_as::<_, QuestionWithCourseChapter>(
+    pub async fn find_duplicate(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionQueryModel>> {
+        let question = sqlx::query_as::<_, QuestionQueryModel>(
             r#"SELECT q.question_id, q.course_id, q.chapter_id, q.id_hash, q.que_text, q.que_description, q.choices, q.difficulty, q.diff_reason,
             q.ans_explanation, q.ans_hint, c.name as course_name, ch.name as chapter_name
             FROM questions q WHERE que_hash = ?"#,
@@ -353,27 +372,6 @@ impl QuestionEntity {
     }
 }
 
-#[derive(Debug)]
-pub enum DatabaseErrorType {
-    NotFound(String, String),
-    ConnectionError(String, String),
-    QueryError(String, String),
-}
-
-#[derive(Debug)]
-pub enum SuccessResultType {
-    Created(u64, u64),
-    CreatedCollection(Vec<u64>),
-    Updated(u64, u64),
-    Deleted(u64, u64),
-}
-
-#[derive(Debug)]
-pub enum EntityResult<T> {
-    Success(T),
-    Error(DatabaseErrorType),
-}
-
 #[derive(Debug, sqlx::FromRow)]
 pub struct TestEntity {
     pub test_id: Option<u32>,
@@ -386,15 +384,15 @@ pub struct TestEntity {
 }
 
 #[derive(Debug, sqlx::FromRow)]
-pub struct TestWithCourseChapter {
-    pub test_id: u32,
+pub struct TestQueryModel {
+    pub id_hash: String,
     pub test_name: String,
     pub test_kind: i8,
     pub test_description: String,
-    pub course_id: u32,
+    pub course_id_hash: Option<String>,
     pub course_name: Option<String>,
-    pub chapter_id: Option<u32>,
     pub chapter_name: Option<String>,
+    pub chapter_id_hash: Option<String>,
 }
 
 #[derive(Debug, sqlx::FromRow)]
@@ -494,8 +492,8 @@ impl TestEntity {
     }
 
     // get all tests include course and chapter names and ids
-    pub async fn read_all(&self, pool: &MySqlPool) -> EntityResult<Vec<TestWithCourseChapter>> {
-        let tests = sqlx::query_as::<_, TestWithCourseChapter>(
+    pub async fn find_all(&self, pool: &MySqlPool) -> EntityResult<Vec<TestQueryModel>> {
+        let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT t.test_id, t.name as test_name, t.kind as test_kind, t.description as test_description, t.course_id, c.name as course_name, ch.chapter_id, ch.name as chapter_name
             FROM test t
@@ -514,8 +512,11 @@ impl TestEntity {
     }
 
     // get a test by id_hash
-    pub async fn read_by_hash(&self, pool: &MySqlPool) -> EntityResult<Option<TestEntity>> {
-        let test = sqlx::query_as::<_, TestEntity>("SELECT * FROM test WHERE id_hash = ?").bind(&self.id_hash).fetch_optional(pool).await;
+    pub async fn find_one(&self, pool: &MySqlPool) -> EntityResult<Option<TestQueryModel>> {
+        let test = sqlx::query_as::<_, TestQueryModel>("SELECT * FROM test WHERE id_hash = ?")
+            .bind(&self.id_hash)
+            .fetch_optional(pool)
+            .await;
         match test {
             Ok(result) => EntityResult::Success(result),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read test by hash".to_string(), e.to_string())),
@@ -525,8 +526,8 @@ impl TestEntity {
     // get all tests in a course
     // capture test_id, id_hash, name, kind, course_id, course_name, added_timestamp, description in a new struct
     // then return the struct as a vector
-    pub async fn read_by_course(&self, pool: &MySqlPool, course_id_hash: String) -> EntityResult<Vec<TestWithCourseChapter>> {
-        let tests = sqlx::query_as::<_, TestWithCourseChapter>(
+    pub async fn find_by_course(&self, pool: &MySqlPool, course_id_hash: String) -> EntityResult<Vec<TestQueryModel>> {
+        let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT t.test_id, t.id_hash, t.name, t.kind, t.course_id, c.name as course_name, t.added_timestamp, t.description
             FROM test t
@@ -547,8 +548,8 @@ impl TestEntity {
     // get all tests in a chapter in a course by joining test, test_chapters, chapter, and course table to return course and chapter names
     // captures test_id, test_name, test_kind, test_description, course_id, course_name, chapter_id, chapter_name in a new struct
     // then return the struct as a vector
-    pub async fn read_by_chapter(&self, pool: &MySqlPool, chapter_id_hash: String) -> EntityResult<Vec<TestWithCourseChapter>> {
-        let tests = sqlx::query_as::<_, TestWithCourseChapter>(
+    pub async fn find_by_chapter(&self, pool: &MySqlPool, chapter_id_hash: String) -> EntityResult<Vec<TestQueryModel>> {
+        let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT t.test_id, t.name as test_name, t.kind as test_kind, t.description as test_description, t.course_id, c.name as course_name, ch.chapter_id, ch.name as chapter_name
             FROM test t

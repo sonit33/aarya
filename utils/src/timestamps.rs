@@ -1,5 +1,3 @@
-use time::{ self, OffsetDateTime };
-
 pub fn within_days(unix_timestamp: i64, days: i64) -> bool {
     let given_time = time::OffsetDateTime::from_unix_timestamp(unix_timestamp).unwrap();
     let now = time::OffsetDateTime::now_utc();
