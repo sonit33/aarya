@@ -1,5 +1,5 @@
 [package]
-name = "aarya_models"
+name = "aarya_entities"
 version = "0.1.0"
 edition = "2021"
 

@@ -1,9 +1,6 @@
 use actix_web::{get, web, HttpResponse, Responder};
 use handlebars::Handlebars;
-use models::{
-    entities::{ChapterEntity, CourseEntity, EntityResult},
-    models::{ChapterQueryModel, CourseQueryModel},
-};
+use models::{chapters::ChapterEntity, courses::CourseEntity, result_types::EntityResult, tests::TestEntity};
 use serde_json::json;
 use sqlx::MySqlPool;
 
@@ -25,63 +22,36 @@ pub async fn courses_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data
     let course = CourseEntity::default();
     match course.find_all(&pool).await {
         EntityResult::Success(entities) => {
-            let mut result: Vec<CourseQueryModel> = Vec::new();
-            for entity in entities {
-                result.push(CourseQueryModel {
-                    name: entity.name,
-                    id_hash: entity.id_hash,
-                    description: entity.description,
-                });
-            }
-            // Render the courses template using Handlebars
-            match handlebars.render("courses", &json!({"courses": result})) {
-                Ok(body) => HttpResponse::Ok().body(body),
-                Err(e) => {
-                    println!("Error rendering courses template: {:?}", e);
-
-                    HttpResponse::InternalServerError().finish()
-                }
-            }
+            render_template!(handlebars, "courses", json!({"courses": entities}))
         }
         EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch courses: [{:?}]", e)),
     }
 }
 
-#[get("/courses/{id_hash}/chapters")]
+#[get("/chapters/{course_hash}")]
 /// Get all chapters for a course accept an id_hash parameter
 /// the chapters are in the Chapter entity and its output must be in the ChapterQueryModel
-pub async fn chapters_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, id_hash: web::Path<String>) -> impl Responder {
+pub async fn chapters_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, course_hash: web::Path<String>) -> impl Responder {
     let chapter = ChapterEntity::default();
-    let id_hash = id_hash.into_inner();
+    let id_hash = course_hash.into_inner();
     match chapter.find_by_course(&pool, id_hash).await {
         EntityResult::Success(entities) => {
-            let mut result: Vec<ChapterQueryModel> = Vec::new();
-            for entity in entities {
-                result.push(ChapterQueryModel {
-                    name: entity.name,
-                    id_hash: entity.id_hash,
-                    description: entity.description,
-                    course_id_hash: entity.course_id_hash,
-                    course_name: entity.course_name,
-                });
-            }
-            // Render the courses template using Handlebars
-            match handlebars.render("chapters", &json!({"chapters": result})) {
-                Ok(body) => HttpResponse::Ok().body(body),
-                Err(e) => {
-                    println!("Error rendering chapters template: {:?}", e);
-
-                    HttpResponse::InternalServerError().finish()
-                }
-            }
+            render_template!(handlebars, "chapters", json!({"chapters": entities}))
         }
         EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch chapters: [{:?}]", e)),
     }
 }
 
-#[get("/chapter/{id_hash}/tests")]
-pub async fn tests_page() -> impl Responder {
-    HttpResponse::Ok().body("Tests page")
+#[get("/tests/{chapter_hash}")]
+pub async fn tests_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, course_hash: web::Path<String>) -> impl Responder {
+    let test = TestEntity::default();
+    let id_hash = course_hash.into_inner();
+    match test.find_by_chapter(&pool, id_hash).await {
+        EntityResult::Success(entities) => {
+            render_template!(handlebars, "tests", json!({"tests": entities}))
+        }
+        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch chapters: [{:?}]", e)),
+    }
 }
 
 // /**

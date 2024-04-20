@@ -5,8 +5,10 @@ use dotenv::from_filename;
 use handlebars::Handlebars;
 use sqlx::MySqlPool;
 
-use crate::pages::{chapters_page, courses_page, home_page};
+use crate::pages::{chapters_page, courses_page, home_page, tests_page};
 
+#[macro_use]
+pub mod macros;
 pub mod pages;
 
 fn configure_handlebars() -> Handlebars<'static> {
@@ -55,6 +57,7 @@ async fn main() -> std::io::Result<()> {
             .service(home_page)
             .service(courses_page)
             .service(chapters_page)
+            .service(tests_page)
     })
     .bind((ip, port))?
     .run()
