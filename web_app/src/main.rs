@@ -5,7 +5,7 @@ use dotenv::from_filename;
 use handlebars::Handlebars;
 use sqlx::MySqlPool;
 
-use crate::pages::{chapters_page, courses_page, home_page, test_info_page, tests_page};
+use crate::pages::{home_page, start_test_page};
 
 #[macro_use]
 pub mod macros;
@@ -55,10 +55,7 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(handlebars.clone()))
             .app_data(web::Data::new(pool.clone()))
             .service(home_page)
-            .service(courses_page)
-            .service(chapters_page)
-            .service(tests_page)
-            .service(test_info_page)
+            .service(start_test_page)
     })
     .bind((ip, port))?
     .run()

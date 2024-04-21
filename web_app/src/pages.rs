@@ -1,86 +1,52 @@
 use actix_web::{get, web, HttpResponse, Responder};
 use handlebars::Handlebars;
-use models::{chapters::ChapterEntity, courses::CourseEntity, result_types::EntityResult, tests::TestEntity};
 use serde_json::json;
-use sqlx::MySqlPool;
 
 #[get("/")]
 pub async fn home_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder {
-    // Render the index template using Handlebars
-    match handlebars.render("index", &json!({"title": "Aarya welcomes you!"})) {
-        Ok(body) => HttpResponse::Ok().body(body),
-        Err(e) => {
-            println!("Error rendering index template: {:?}", e);
-
-            HttpResponse::InternalServerError().finish()
-        }
-    }
+    render_template!(handlebars, "index", json!({"title": "Aarya welcomes you!"}))
 }
 
-#[get("/courses")]
-pub async fn courses_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>) -> impl Responder {
-    let course = CourseEntity::default();
-    match course.find_all(&pool).await {
-        EntityResult::Success(entities) => {
-            render_template!(handlebars, "courses", json!({"courses": entities}))
-        }
-        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch courses: [{:?}]", e)),
-    }
-}
+///
+// What do you need to start a test?
+// - courses -> GET /courses
+// - chapters -> GET /chapters/{course_id}
+// - topics -> GET /topics/{chapter_id}
 
-#[get("/chapters/{course_hash}")]
-/// Get all chapters for a course accept an id_hash parameter
-/// the chapters are in the Chapter entity and its output must be in the ChapterQueryModel
-pub async fn chapters_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, course_hash: web::Path<String>) -> impl Responder {
-    let chapter = ChapterEntity::default();
-    let id_hash = course_hash.into_inner();
-    match chapter.find_by_course(&pool, id_hash).await {
-        EntityResult::Success(entities) => {
-            render_template!(handlebars, "chapters", json!({"chapters": entities}))
-        }
-        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch chapters: [{:?}]", e)),
-    }
-}
+// What happens when you click on "start test"?
+// - POST /start-test
+//     - depending on the context (course or chapter) questions are loaded dynamically
+//         - test variables are stored in the tests table (student_id, test_id, course_id, chapter_id, topic_id, difficulty, length, state)
+//             - state: incomplete (default, 0), complete (1)
+//         - find matching questions
+//         - save the matching questions in test_questions table (test_id, question_id, state)
+//             - state: unseen (default, 0), seen (1), answered (2)
+// - if OK then enter the test mode
 
-#[get("/tests/{chapter_hash}")]
-pub async fn tests_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, course_hash: web::Path<String>) -> impl Responder {
-    let test = TestEntity::default();
-    let id_hash = course_hash.into_inner();
-    match test.find_by_chapter(&pool, id_hash).await {
-        EntityResult::Success(entities) => {
-            render_template!(handlebars, "tests", json!({"tests": entities}))
-        }
-        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch chapters: [{:?}]", e)),
-    }
-}
+// What is a test mode?
+// You see one question at a time. You see the next question after you submit.
 
-#[get("/test/{test_hash}")]
-pub async fn test_info_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, test_hash: web::Path<String>) -> impl Responder {
-    let mut test = TestEntity::default();
-    let id_hash = test_hash.into_inner();
-    test.id_hash = id_hash;
-    match test.find_one(&pool).await {
-        EntityResult::Success(entities) => {
-            render_template!(handlebars, "test_info", json!({"test": entities}))
-        }
-        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch test: [{:?}]", e)),
-    }
-}
+// How do I see the first question?
+// - GET /test/{test_id}/next
+//     - select top 1 from test_questions where state == `unseen`
 
-// /**
-//  * /auth/signup
-//  * /auth/login
-//  * /auth/logout
-//  * /auth/forgot-password
-//  * /auth/reset-password
-//  * /auth/verify-email
-//  * /home
-//  * /profile
-//  * /courses --> get all courses
-//  * /courses/{id_hash}/chapters --> get all chapters for a course
-//  * /course/{id_hash}/tests --> get all tests for a course
-//  * /chapter/{id_hash}/tests --> get all tests for a chapter
-//  * /question/{id_hash} -->
-//  * /tests --> get all tests
-//  * /questions
-//  */
+// How do I submit my answer?
+// - POST /test/{test_id}/{question_id}
+//     - mark state == 'answered'
+//     - if OK then GET /test/{test_id}/next
+
+// What happends when you submit a test?
+// - POST /test/submit/{test_id}
+
+// Test taking experience (UI):
+// navigation circles (1) (2) (3)              button: exit
+// pills: que_difficulty (Level 1, etc.), course_name, chapter_name
+// subtext: diff_reason
+// p: (1) que_text
+// p: (radio or checkbox) choices
+// button: <- back (left aligned) submit -> (right aligned)
+///
+#[get("/start-test")]
+pub async fn start_test_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder {
+    render_template!(handlebars, "start-test", json!({"title": "Start a new test"}))
+}

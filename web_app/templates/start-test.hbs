@@ -1,0 +1,58 @@
+<html lang="en">
+	<head>
+		{{> head}}
+	</head>
+	<body>
+		{{> header}}
+		<div class="container">
+			<h1>Start building your new test</h1>
+			{{!-- 
+				Form to create a new test
+				create a select input and fill it with available courses using the courses array
+			 --}}
+			<form action="/test" method="post">
+				{{!-- 
+					create a select input and fill it with available courses using the courses array
+				 --}}
+				<div class="form-group">
+					<label for="courses">Courses</label>
+					<select class="form-control" id="courses" name="courses">
+						<option value="not-set" selected>Pick a course</option>
+						{{#each courses}}
+							<option value="{{this.id}}">{{this.name}}</option>
+						{{/each}}
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="chapters">Chapters (optional)</label>
+					<select class="form-control" id="chapters" name="chapters" disabled>
+						<option value="not-set">Select a course first</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="topics">Topics (optional)</label>
+					<select class="form-control" id="topics" name="topics" disabled>
+						<option value="not-set">Select a chapter first</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="difficulty">Difficulty level (optional)</label>
+					<select class="form-control" id="difficulty" name="difficulty" disabled>
+						<option value="1">Easy -- if you are just getting started</option>
+						<option value="2" selected>Intermediate -- if you know the basics and practicing</option>
+						<option value="3">Hard -- you want to simulate an exam</option>
+					</select>
+				</div>
+				<div class="form-group">
+					<label for="length">Length (optional)</label>
+					<select class="form-control" id="length" name="length" disabled>
+						<option value="1">Quiz -- if you are just getting started</option>
+						<option value="2" selected>Practice -- if you know the basics and practicing</option>
+						<option value="3">Exam -- you want to simulate an exam</option>
+					</select>
+				</div>
+				<button type="submit" class="btn btn-primary">Start test</button>
+		</div>
+        {{> footer}}
+	</body>
+</html>

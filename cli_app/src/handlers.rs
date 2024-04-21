@@ -91,12 +91,11 @@ pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Opt
         };
     }
 
-    let payload: Payload;
-    if encoded_image.is_empty() {
-        payload = prep_payload_wo_image(prompt);
+    let payload = if encoded_image.is_empty() {
+        prep_payload_wo_image(prompt)
     } else {
-        payload = prep_payload(encoded_image, prompt);
-    }
+        prep_payload(encoded_image, prompt)
+    };
 
     println!("sending request to OpenAI API");
     match send_request(header_map, payload).await {
@@ -160,7 +159,6 @@ pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &Path) {
         question.question_id = 1;
         question.course_id = *course_id as u32;
         question.chapter_id = *chapter_id as u32;
-        question.id_hash = "not-set".to_string();
         // replace the following with entities call
         match client.post("http://localhost:8080/question").json(&question).send().await {
             Ok(r) => {
