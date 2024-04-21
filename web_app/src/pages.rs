@@ -1,13 +1,14 @@
 use actix_web::{get, web, HttpResponse, Responder};
 use handlebars::Handlebars;
+use models::{courses::CourseEntity, result_types::EntityResult};
 use serde_json::json;
+use sqlx::MySqlPool;
 
 #[get("/")]
 pub async fn home_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder {
     render_template!(handlebars, "index", json!({"title": "Aarya welcomes you!"}))
 }
 
-///
 // What do you need to start a test?
 // - courses -> GET /courses
 // - chapters -> GET /chapters/{course_id}
@@ -47,6 +48,13 @@ pub async fn home_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder 
 // button: <- back (left aligned) submit -> (right aligned)
 ///
 #[get("/start-test")]
-pub async fn start_test_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder {
-    render_template!(handlebars, "start-test", json!({"title": "Start a new test"}))
+pub async fn start_test_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>) -> impl Responder {
+    let course = CourseEntity::new();
+    let courses = match course.find_all(&pool).await {
+        EntityResult::Success(courses) => courses,
+        EntityResult::Error(_) => {
+            return HttpResponse::InternalServerError().body("Error getting courses");
+        }
+    };
+    render_template!(handlebars, "start-test", json!({"title": "Start a new test", "courses": courses}))
 }

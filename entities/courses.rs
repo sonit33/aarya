@@ -13,6 +13,7 @@ pub struct CourseEntity {
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct CourseQueryModel {
+    pub course_id: u32,
     pub name: String,
     pub description: String,
 }
@@ -33,7 +34,7 @@ impl CourseEntity {
 
         let query = r#"
             INSERT INTO courses (name, description)
-            VALUES (?, ?)
+            VALUES (:name, :description)
         "#;
 
         match sqlx::query(query).bind(name).bind(description).execute(pool).await {
@@ -45,7 +46,7 @@ impl CourseEntity {
     // get all courses
     pub async fn find_all(&self, pool: &MySqlPool) -> EntityResult<Vec<CourseQueryModel>> {
         let query = r#"
-            SELECT name, description FROM courses
+            SELECT course_id, name, description FROM courses
         "#;
 
         match sqlx::query_as::<_, CourseQueryModel>(query).fetch_all(pool).await {

@@ -46,7 +46,7 @@ impl ChapterEntity {
     }
 
     // get all chapters by joining with the course table to get course and chapter details incluidng course name
-    pub async fn find_by_course(&self, pool: &MySqlPool, course_id_hash: String) -> EntityResult<Vec<ChapterQueryModel>> {
+    pub async fn find_by_course(&self, pool: &MySqlPool) -> EntityResult<Vec<ChapterQueryModel>> {
         let query = r#"
             SELECT
                 ch.name,
@@ -55,10 +55,10 @@ impl ChapterEntity {
                 co.course_id as course_id
             FROM chapters ch
                 JOIN courses co ON ch.course_id = co.course_id
-            where co.id_hash = ?
+            where ch.course_id = ?
         "#;
 
-        match sqlx::query_as::<_, ChapterQueryModel>(query).bind(&course_id_hash).fetch_all(pool).await {
+        match sqlx::query_as::<_, ChapterQueryModel>(query).bind(self.course_id.unwrap()).fetch_all(pool).await {
             Ok(chapters) => EntityResult::Success(chapters),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
         }
