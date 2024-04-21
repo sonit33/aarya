@@ -4,14 +4,18 @@
 <body>
     {{> header}}
     <div class="container">
-        <h1>Chapters for {{chapters.[0].course_name}}</h1>
-        <ul>
-            {{#each chapters}}
-                <li>
-                    <a href="/tests/{{this.id_hash}}">{{this.name}}</a>
-                </li>
-            {{/each}}
-        </ul>
+        {{#if chapters}}
+            <h1>Chapters from {{chapters.[0].course_name}}</h1>
+            <ul>
+                {{#each chapters}}
+                    <li>
+                        <a href="/tests/{{this.id_hash}}">{{this.name}}</a>
+                    </li>
+                {{/each}}
+            </ul>
+        {{else}}
+            <h1>No chapters found</h1>
+        {{/if}}
     </div>
     {{> footer}}
 </body>

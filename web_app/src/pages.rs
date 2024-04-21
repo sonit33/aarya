@@ -54,6 +54,19 @@ pub async fn tests_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<M
     }
 }
 
+#[get("/test/{test_hash}")]
+pub async fn test_info_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>, test_hash: web::Path<String>) -> impl Responder {
+    let mut test = TestEntity::default();
+    let id_hash = test_hash.into_inner();
+    test.id_hash = id_hash;
+    match test.find_one(&pool).await {
+        EntityResult::Success(entities) => {
+            render_template!(handlebars, "test_info", json!({"test": entities}))
+        }
+        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Failed to fetch test: [{:?}]", e)),
+    }
+}
+
 // /**
 //  * /auth/signup
 //  * /auth/login
