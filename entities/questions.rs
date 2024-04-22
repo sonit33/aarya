@@ -21,7 +21,8 @@ pub struct Answer {
 pub struct QuestionEntity {
     pub question_id: Option<u32>,
     pub course_id: u32,
-    pub chapter_id: u32,
+    pub chapter_id: Option<u32>,
+    pub topic_id: Option<u32>,
     pub que_text: String,
     pub que_description: String,
     pub choices: Value, // Assuming JSON structure is [{ "id": "", "text": "" }]
@@ -37,7 +38,8 @@ pub struct QuestionEntity {
 pub struct QuestionQueryModel {
     pub question_id: u32,
     pub course_id: u32,
-    pub chapter_id: u32,
+    pub chapter_id: Option<u32>,
+    pub topic_id: Option<u32>,
     pub que_text: String,
     pub que_description: String,
     pub choices: String,
@@ -54,7 +56,8 @@ impl QuestionEntity {
         QuestionEntity {
             question_id: Some(0),
             course_id: 0,
-            chapter_id: 0,
+            chapter_id: Some(0),
+            topic_id: Some(0),
             que_text: "not-set".to_string(),
             que_description: "not-set".to_string(),
             choices: json!([{"id":"", "text":"not-set"}]),
@@ -80,7 +83,8 @@ impl QuestionEntity {
         let res = sqlx::query(
             "INSERT INTO questions (
                     course_id, 
-                    chapter_id, 
+                    chapter_id,
+                    topic_id, 
                     que_text, 
                     que_description, 
                     answers, 
@@ -90,10 +94,11 @@ impl QuestionEntity {
                     ans_explanation, 
                     ans_hint, 
                     que_hash) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(self.course_id)
         .bind(self.chapter_id)
+        .bind(self.topic_id)
         .bind(&self.que_text)
         .bind(&self.que_description)
         .bind(&self.answers)
@@ -119,6 +124,7 @@ impl QuestionEntity {
                     q.question_id, 
                     q.course_id, 
                     q.chapter_id, 
+                    q.topic_id,
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
@@ -126,7 +132,7 @@ impl QuestionEntity {
                     q.diff_reason, 
                     q.ans_explanation, 
                     q.ans_hint, 
-                    c.name as course_name 
+                    c.course_name
                 FROM questions q 
                 JOIN course c 
                     ON q.course_id = c.course_id
@@ -150,7 +156,8 @@ impl QuestionEntity {
                 SELECT 
                     q.question_id, 
                     q.course_id, 
-                    q.chapter_id, 
+                    q.chapter_id,
+                    q.topic_id, 
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
@@ -158,8 +165,8 @@ impl QuestionEntity {
                     q.diff_reason,
                     q.ans_explanation, 
                     q.ans_hint, 
-                    c.name as course_name, 
-                    ch.name as chapter_name
+                    c.course_name, 
+                    ch.chapter_name
                 FROM questions q
                 JOIN courses c
                     ON q.course_id = c.course_id
@@ -184,6 +191,7 @@ impl QuestionEntity {
                 q.question_id, 
                 q.course_id, 
                 q.chapter_id, 
+                q.topic_id,
                 q.que_text, 
                 q.que_description, 
                 q.choices, 
@@ -191,12 +199,12 @@ impl QuestionEntity {
                 q.diff_reason,
                 q.ans_explanation, 
                 q.ans_hint, 
-                c.name as course_name, 
-                ch.name as chapter_name
+                c.course_name, 
+                ch.chapter_name
             FROM questions q 
             WHERE question_id = ?"#,
         )
-        .bind(&self.question_id)
+        .bind(self.question_id)
         .fetch_optional(pool)
         .await;
         match question {
@@ -213,6 +221,51 @@ impl QuestionEntity {
         match question {
             Ok(result) => EntityResult::Success(Some(result)),
             Err(_) => EntityResult::Success(None),
+        }
+    }
+
+    pub async fn find_top_n(&self, pool: &MySqlPool, limit: u8) -> EntityResult<Vec<QuestionQueryModel>> {
+        let questions = sqlx::query_as::<_, QuestionQueryModel>(
+            r#"
+                SELECT 
+                    q.question_id, 
+                    q.course_id, 
+                    q.chapter_id,
+                    q.topic_id, 
+                    q.que_text, 
+                    q.que_description, 
+                    q.choices, 
+                    q.difficulty, 
+                    q.diff_reason,
+                    q.ans_explanation, 
+                    q.ans_hint, 
+                    t.topic_name,
+                    c.course_name, 
+                    ch.chapter_name
+                FROM questions q
+                JOIN courses c
+                    ON q.course_id = c.course_id
+                JOIN chapters ch
+                    ON q.chapter_id = ch.chapter_id
+                JOIN topics t
+                    ON t.topic_id = q.topic_id
+                WHERE q.difficulty = ? 
+                    and q.course_id = ? 
+                    and q.chapter_id = ? 
+                    and q.topic_id = ?
+                LIMIT ?
+            "#,
+        )
+        .bind(self.difficulty)
+        .bind(self.course_id)
+        .bind(self.chapter_id)
+        .bind(self.topic_id)
+        .bind(limit)
+        .fetch_all(pool)
+        .await;
+        match questions {
+            Ok(result) => EntityResult::Success(result),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read questions with course and chapter".to_string(), e.to_string())),
         }
     }
 

@@ -6,18 +6,35 @@ use crate::result_types::{DatabaseErrorType, EntityResult, SuccessResultType};
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct TestEntity {
     pub test_id: Option<u32>,
-    pub name: String,
-    pub test_kind: String,
+    pub student_id: u32,
     pub course_id: u32,
     pub chapter_id: Option<u32>,
     pub topic_id: Option<u32>,
-    pub description: String,
+    pub test_difficulty: u8,
+    pub test_length: u8,
+    pub test_state: u8,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
+pub struct TestQuestionsEntity {
+    pub test_id: u32,
+    pub question_id: u32,
+    pub state: u8,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
+pub struct TestMutationModel {
+    pub course_id: u32,
+    pub chapter_id: Option<u32>,
+    pub topic_id: Option<u32>,
+    pub test_difficulty: u8,
+    pub test_length: u8,
+    pub test_state: u8,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct TestQueryModel {
     pub test_name: String,
-    pub test_kind: String,
     pub test_description: String,
     pub course_id: Option<u32>,
     pub course_name: Option<String>,
@@ -25,6 +42,9 @@ pub struct TestQueryModel {
     pub chapter_name: Option<String>,
     pub topic_id: Option<u32>,
     pub topic_name: Option<String>,
+    pub test_difficulty: u8,
+    pub test_length: String,
+    pub test_state: u8,
 }
 
 impl Default for TestEntity {
@@ -37,28 +57,30 @@ impl TestEntity {
     pub fn new() -> Self {
         TestEntity {
             test_id: Some(0),
-            name: "not-set".to_string(),
-            test_kind: String::from("quiz"),
             course_id: 0,
+            student_id: 0,
             chapter_id: Some(0),
             topic_id: Some(0),
-            description: "not-set".to_string(),
+            test_difficulty: 0,
+            test_length: 0,
+            test_state: 0,
         }
     }
 
     pub async fn create_test(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
         let query = r#"
-            INSERT INTO tests (name, test_kind, course_id, chapter_id, topic_id, description)
-            VALUES (?, ?, ?, ?, ?, ?)
+            INSERT INTO tests (course_id, student_id, chapter_id, topic_id, test_difficulty, test_length, test_state)
+            VALUES (?, ?, ?, ?, ?, ?, ?)
         "#;
 
         let result = sqlx::query(query)
-            .bind(&self.name)
-            .bind(&self.test_kind)
             .bind(self.course_id)
+            .bind(self.student_id)
             .bind(self.chapter_id)
             .bind(self.topic_id)
-            .bind(&self.description)
+            .bind(self.test_difficulty)
+            .bind(&self.test_length)
+            .bind(self.test_state)
             .execute(pool)
             .await;
 
@@ -73,7 +95,7 @@ impl TestEntity {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
-                t.test_id, t.name as test_name, t.kind as test_kind, t.description as test_description, t.course_id, c.name as course_name, ch.chapter_id, ch.name as chapter_name, tp.topic_id, tp.name as topic_name
+                test_id, test_name, test_length, test_difficulty, test_state, test_description, c.course_id, c.course_name, ch.chapter_id, ch.chapter_name, tp.topic_id, tp.topic_name
             FROM tests t
             JOIN courses c ON t.course_id = c.course_id
             JOIN chapters ch on t.chapter_id = ch.chapter_id
@@ -94,7 +116,7 @@ impl TestEntity {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
-                t.test_id, t.name as test_name, t.kind as test_kind, t.description as test_description, t.course_id, c.name as course_name, ch.chapter_id, ch.name as chapter_name, tp.topic_id, tp.name as topic_name
+                test_id, test_name, test_length, test_difficulty, test_state, test_description, c.course_id, c.course_name, ch.chapter_id, ch.chapter_name, tp.topic_id, tp.topic_name
             FROM tests t
             JOIN courses c ON t.course_id = c.course_id
             JOIN chapters ch on t.chapter_id = ch.chapter_id
@@ -119,7 +141,7 @@ impl TestEntity {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
-                t.test_id, t.name as test_name, t.kind as test_kind, t.description as test_description, t.course_id, c.name as course_name, ch.chapter_id, ch.name as chapter_name, tp.topic_id, tp.name as topic_name
+                test_id, test_name, test_length, test_difficulty, test_state, test_description, c.course_id, c.course_name, ch.chapter_id, ch.chapter_name, tp.topic_id, tp.topic_name
             FROM tests t
             JOIN courses c ON t.course_id = c.course_id
             JOIN chapters ch on t.chapter_id = ch.chapter_id
@@ -144,7 +166,7 @@ impl TestEntity {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
-                t.test_id, t.name as test_name, t.kind as test_kind, t.description as test_description, t.course_id, c.name as course_name, ch.chapter_id, ch.name as chapter_name, tp.topic_id, tp.name as topic_name
+                test_id, test_name, test_length, test_difficulty, test_state, test_description, c.course_id, c.course_name, ch.chapter_id, ch.chapter_name, tp.topic_id, tp.topic_name
             FROM tests t
             JOIN courses c ON t.course_id = c.course_id
             JOIN chapters ch on t.chapter_id = ch.chapter_id
@@ -160,5 +182,50 @@ impl TestEntity {
             Ok(result) => EntityResult::Success(result),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError(format!("Failed to read tests chapter: {chapter_id}"), e.to_string())),
         }
+    }
+}
+
+impl TestQuestionsEntity {
+    pub fn new() -> Self {
+        TestQuestionsEntity { test_id: 0, question_id: 0, state: 0 }
+    }
+
+    pub async fn create(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
+        let query = r#"
+            INSERT INTO test_questions (test_id, question_id, state)
+            VALUES (?, ?, ?)
+        "#;
+
+        let result = sqlx::query(query).bind(self.test_id).bind(self.question_id).bind(self.state).execute(pool).await;
+
+        match result {
+            Ok(r) => EntityResult::Success(SuccessResultType::Created(r.last_insert_id(), r.rows_affected())),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to create test question".to_string(), e.to_string())),
+        }
+    }
+
+    pub async fn find_top(&self, pool: &MySqlPool) -> EntityResult<Vec<TestQuestionsEntity>> {
+        let questions = sqlx::query_as::<_, TestQuestionsEntity>(
+            r#"
+            SELECT test_id, question_id, state
+            FROM test_questions
+            WHERE test_id = ? and state = 0
+            LIMIT 1
+        "#,
+        )
+        .bind(self.test_id)
+        .fetch_all(pool)
+        .await;
+
+        match questions {
+            Ok(result) => EntityResult::Success(result),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read test questions".to_string(), e.to_string())),
+        }
+    }
+}
+
+impl Default for TestQuestionsEntity {
+    fn default() -> Self {
+        Self::new()
     }
 }

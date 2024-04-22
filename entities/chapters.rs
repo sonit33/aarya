@@ -8,14 +8,15 @@ use crate::result_types::{DatabaseErrorType, EntityResult, SuccessResultType};
 pub struct ChapterEntity {
     pub chapter_id: Option<u32>,
     pub course_id: Option<u32>,
-    pub name: Option<String>,
-    pub description: Option<String>,
+    pub chapter_name: Option<String>,
+    pub chapter_description: Option<String>,
 }
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct ChapterQueryModel {
-    pub name: String,
-    pub description: String,
+    pub chapter_id: u32,
+    pub chapter_name: String,
+    pub chapter_description: String,
     pub course_name: Option<String>,
 }
 
@@ -24,18 +25,18 @@ impl ChapterEntity {
         ChapterEntity {
             chapter_id: Some(0),
             course_id: None,
-            name: None,
-            description: None,
+            chapter_name: None,
+            chapter_description: None,
         }
     }
 
     pub async fn create_chapter(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
         let course_id = self.course_id;
-        let name = self.name.clone();
-        let description = self.description.clone();
+        let name = self.chapter_name.clone();
+        let description = self.chapter_description.clone();
 
         let query = r#"
-            INSERT INTO chapter (course_id, name, description)
+            INSERT INTO chapter (course_id, chapter_name, chapter_description)
             VALUES (?, ?, ?)
         "#;
 
@@ -49,13 +50,14 @@ impl ChapterEntity {
     pub async fn find_by_course(&self, pool: &MySqlPool) -> EntityResult<Vec<ChapterQueryModel>> {
         let query = r#"
             SELECT
-                ch.name,
-                ch.description,
-                co.name as course_name,
-                co.course_id as course_id
+                chapter_id,
+                chapter_name,
+                chapter_description,
+                co.course_name,
+                co.course_id
             FROM chapters ch
                 JOIN courses co ON ch.course_id = co.course_id
-            where ch.course_id = ?
+            WHERE ch.course_id = ?
         "#;
 
         match sqlx::query_as::<_, ChapterQueryModel>(query).bind(self.course_id.unwrap()).fetch_all(pool).await {

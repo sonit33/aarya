@@ -5,7 +5,7 @@ use aarya_utils::{
     json_ops::{self, JsonOpsResult},
     openai::{
         completion_model::CompletionResponse,
-        openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse, Payload},
+        openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse},
     },
 };
 use models::questions::QuestionQueryModel;
