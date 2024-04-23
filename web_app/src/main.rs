@@ -17,7 +17,7 @@ pub mod pages;
 
 fn configure_handlebars() -> Handlebars<'static> {
     let mut handlebars = Handlebars::new();
-    read_files_from_dir("./templates", ".hbs")
+    read_files_from_dir("./pages", ".hbs")
         .iter()
         .for_each(|file| handlebars.register_template_file(&file.name, &file.path).unwrap());
 

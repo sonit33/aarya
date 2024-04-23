@@ -67,8 +67,18 @@ create table tests(
     -- optional
     test_difficulty tinyint not null,
     test_length tinyint not null,
+    test_state tinyint not null,
     constraint fk_tests_courses foreign key (course_id) references courses (course_id),
     constraint fk_tests_students foreign key (student_id) references students (student_id)
+) auto_increment = 1000;
+create table test_questions (
+    id int unsigned auto_increment primary key,
+    test_id int unsigned not null,
+    question_id int unsigned not null,
+    -- 0: not attempted, 1: attempted, 2: correct, 3: incorrect
+    question_state tinyint not null default 0,
+    constraint fk_test_questions_tests foreign key (test_id) references tests (test_id),
+    constraint fk_test_questions_questions foreign key (question_id) references questions (question_id)
 ) auto_increment = 1000;
 create table students_history (
     history_id int unsigned auto_increment primary key,

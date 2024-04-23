@@ -15,6 +15,7 @@ pub struct TestEntity {
     pub test_state: u8,
 }
 
+/// association table for tests and questions
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct TestQuestionsEntity {
     pub test_id: u32,
@@ -79,7 +80,7 @@ impl TestEntity {
             .bind(self.chapter_id)
             .bind(self.topic_id)
             .bind(self.test_difficulty)
-            .bind(&self.test_length)
+            .bind(self.test_length)
             .bind(self.test_state)
             .execute(pool)
             .await;

@@ -46,7 +46,8 @@ pub async fn start_test(pool: web::Data<MySqlPool>, model: web::Json<TestMutatio
     let model = model.into_inner();
     let test = TestEntity {
         test_id: Some(0),
-        student_id: 1,
+        // TODO: hard coded; replace with actual student id
+        student_id: 10000,
         course_id: model.course_id,
         chapter_id: model.chapter_id,
         topic_id: model.topic_id,

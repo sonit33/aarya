@@ -51,8 +51,8 @@
 	<script type="text/javascript">
 		$(function(){
 			$('#courses').change(function(e){
-				var courseId = $(this).val();
-				console.log(courseId);
+                const courseId = $(this).val();
+                console.log(courseId);
 				if(courseId === 'not-set'){
 					$('#chapters').prop('disabled', true);
 					$('#topics').prop('disabled', true);
@@ -103,18 +103,19 @@
 				var difficulty = $('#difficulty').val();
 				var length = $('#length').val();
 				const params = {
-					course_id: courseId,
-					chapter_id: chapterId,
-					topic_id: topicId,
-					test_difficulty: difficulty,
-					test_length: length
+					course_id: parseInt(courseId),
+					chapter_id: parseInt(chapterId),
+					topic_id: parseInt(topicId),
+					test_difficulty: parseInt(difficulty),
+					test_length: parseInt(length),
+					test_state: 0
 				};
 				console.log(params);
 				$.ajax({
 					url: '/api/start-test',
 					method: 'POST',
 					data: params,
-					success: function(data){
+					success: function(data) {
 						console.log(data);
 					},
 					error: function(err){

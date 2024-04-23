@@ -153,24 +153,24 @@ pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &Path) {
     };
 
     // call API to save questions to database
-    let client = reqwest::Client::new();
-    for mut question in questions {
-        //question_id and id_hash required but their values do not matter
-        question.question_id = 1;
-        question.course_id = *course_id as u32;
-        question.chapter_id = *chapter_id as u32;
-        // replace the following with entities call
-        match client.post("http://localhost:8080/question").json(&question).send().await {
-            Ok(r) => {
-                if r.status().is_success() {
-                    println!("Saved question: {:?}", r.status());
-                } else {
-                    println!("Failed to save question: {:?}", r.status());
-                }
-            }
-            Err(e) => {
-                println!("Post request failed: {:?}", e);
-            }
-        }
-    }
+    // let client = reqwest::Client::new();
+    // for mut question in questions {
+    //     //question_id and id_hash required but their values do not matter
+    //     question.question_id = 1;
+    //     question.course_id = Some(course_id).unwrap();
+    //     question.chapter_id = Some(chapter_id);
+    //     // replace the following with entities call
+    //     match client.post("http://localhost:8080/question").json(&question).send().await {
+    //         Ok(r) => {
+    //             if r.status().is_success() {
+    //                 println!("Saved question: {:?}", r.status());
+    //             } else {
+    //                 println!("Failed to save question: {:?}", r.status());
+    //             }
+    //         }
+    //         Err(e) => {
+    //             println!("Post request failed: {:?}", e);
+    //         }
+    //     }
+    // }
 }
