@@ -33,3 +33,6 @@
 --     )
 -- LIMIT 25;
 -- select * from questions;
+use aarya_v1;
+select *
+from courses;

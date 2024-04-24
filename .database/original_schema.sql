@@ -227,32 +227,62 @@ INSERT INTO chapters (
 VALUES (
         1005,
         1001,
-        'Primitive Data Types and Variables',
+        'Primitive Types',
         'Introduction to primitive data types and variables in programming'
     ),
     (
         1006,
         1001,
-        'Operators and Expressions',
-        'Understanding operators and expressions in programming'
+        'Using Objects',
+        'Understanding object-oriented programming concepts and classes'
     ),
     (
         1007,
         1001,
-        'Control Flow',
-        'Introduction to control flow statements such as if, else, and loops'
+        'Boolean Expressions and if Statements',
+        'Introduction to boolean expressions and conditional statements in programming'
     ),
     (
         1008,
         1001,
-        'Arrays',
-        'Understanding arrays and array manipulation in programming'
+        'Iteration',
+        'Exploring loops and iteration in programming'
     ),
     (
         1009,
         1001,
-        'Methods',
-        'Introduction to methods/functions and modular programming concepts'
+        'Writing Classes',
+        'Creating and using classes in object-oriented programming'
+    ),
+    (
+        1010,
+        1001,
+        'Array',
+        'Introduction to arrays and array processing in programming'
+    ),
+    (
+        1011,
+        1001,
+        'ArrayList',
+        'Understanding ArrayLists and their applications in programming'
+    ),
+    (
+        1012,
+        1001,
+        '2D Array',
+        'Exploring two-dimensional arrays and their uses in programming'
+    ),
+    (
+        1012,
+        1001,
+        'Inheritance',
+        'Introduction to inheritance and polymorphism in object-oriented programming'
+    ),
+    (
+        1013,
+        1001,
+        'Recursion',
+        'Understanding recursion and recursive algorithms in programming'
     );
 -- Insert statements for AP Computer Science Principles topics
 INSERT INTO topics (
@@ -395,4 +425,65 @@ VALUES (
         1,
         0,
         0
+    );
+-- Insert topics for course 1001: AP Computer Science A
+insert into topics(
+        course_id,
+        chapter_id,
+        topic_name,
+        topic_description
+    )
+values(
+        1001,
+        1005,
+        'Why Programming ? Why Java ?',
+        'Why learn programming and why Java ?'
+    ),
+    values(
+        1001,
+        1005,
+        'Variables and Data Types',
+        'Introduction to variables and data types in Java'
+    ),
+    values(
+        1001,
+        1005,
+        'Expressions and Assignment Statements',
+        'Understanding expressions and assignment statements in Java'
+    ),
+    values(
+        1001,
+        1005,
+        'Compound Assignment Operators',
+        'Explanation of compound assignment operators in Java'
+    ),
+    values(
+        1001,
+        1005,
+        'Casting and Ranges of Variables',
+        'Understanding casting and ranges of variables in Java'
+    ),
+    values(
+        1001,
+        1006,
+        'Objects – Instances of Classes',
+        'Introduction to objects as instances of classes in Java'
+    ),
+    values(
+        1001,
+        1006,
+        'Creating and Storing Objects (Instantiation)',
+        'Creating and storing objects through instantiation in Java'
+    ),
+    values(
+        1001,
+        1006,
+        'Calling a Void Method',
+        'Explanation of calling a void method in Java'
+    ),
+    values(
+        1001,
+        1006,
+        'Calling a Void Method',
+        'Explanation of calling a void method in Java'
     );
