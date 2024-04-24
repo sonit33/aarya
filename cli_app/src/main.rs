@@ -1,7 +1,10 @@
 mod handlers;
+use aarya_utils::environ::Environ;
+use clap::{Parser, Subcommand};
+use dotenv::from_filename;
+use handlers::{handle_autogen, handle_upload, handle_validate};
+use sqlx::MySqlPool;
 use std::path::PathBuf;
-use clap::{ Parser, Subcommand };
-use handlers::{ handle_autogen, handle_upload, handle_validate };
 
 #[derive(Parser)]
 #[command(version, about, long_about = None)]
@@ -37,15 +40,19 @@ enum Commands {
         prompt_path: PathBuf,
     },
     /// upload questions from json files to database
-    /// aarya_cli upload --data-file --chapter-id --course-id
+    /// aarya_cli upload --data-file --chapter-id --course-id --topic-id
     Upload {
         /// course id
         #[arg(long)]
-        course_id: u8,
+        course_id: u32,
 
         /// chapter id
         #[arg(long)]
-        chapter_id: u8,
+        chapter_id: u32,
+
+        /// topic id
+        #[arg(long)]
+        topic_id: u32,
 
         /// path to the json data
         #[arg(long, value_name = "FILE")]
@@ -55,16 +62,31 @@ enum Commands {
 
 #[tokio::main]
 async fn main() {
+    let env_file = if cfg!(debug_assertions) { ".env.dev" } else { ".env.prod" };
+    from_filename(env_file).ok();
+    let env_default = Environ::default();
+    let database_url = format!("{}/{}", env_default.db_connection_string, env_default.db_name);
+    let pool = MySqlPool::connect(database_url.as_str()).await.expect("Failed to connect to database");
+
     let cli = Cli::parse();
     match &cli.command {
         Some(Commands::Validate { schema_file, data_file }) => {
             handle_validate(schema_file, data_file).await;
         }
-        Some(Commands::Autogen { screenshot_path, output_path, prompt_path }) => {
+        Some(Commands::Autogen {
+            screenshot_path,
+            output_path,
+            prompt_path,
+        }) => {
             handle_autogen(screenshot_path, output_path, prompt_path).await;
         }
-        Some(Commands::Upload { course_id, chapter_id, data_file }) => {
-            handle_upload(course_id, chapter_id, data_file).await;
+        Some(Commands::Upload {
+            course_id,
+            chapter_id,
+            topic_id,
+            data_file,
+        }) => {
+            handle_upload(*course_id, *chapter_id, *topic_id, data_file, &pool).await;
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");

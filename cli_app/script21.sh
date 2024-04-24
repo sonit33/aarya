@@ -20,7 +20,7 @@ if [ $? -eq 0 ]; then
     if [ $? -eq 0 ]; then
         echo "Validation successful"
         # Run Upload command using the same output data file path
-        ./target/debug/aarya_cli upload --course-id 2 --chapter-id 1 --data-file "$output_file"
+        ./target/debug/aarya_cli upload --course-id 1000 --chapter-id 1 --topic-id 1 --data-file "$output_file"
         
         # Check if Upload command succeeded
         if [ $? -eq 0 ]; then

@@ -29,8 +29,8 @@ dependencies = [
  "aarya_utils",
  "clap",
  "dotenv",
- "reqwest 0.12.3",
  "serde_json",
+ "sqlx",
  "tokio",
 ]
 

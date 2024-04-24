@@ -8,7 +8,8 @@ use aarya_utils::{
         openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse},
     },
 };
-use models::questions::QuestionQueryModel;
+use models::{questions::QuestionEntity, result_types::EntityResult};
+use sqlx::MySqlPool;
 
 use std::path::{Path, PathBuf};
 
@@ -127,14 +128,17 @@ pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Opt
     }
 }
 
-pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &Path) {
+pub async fn handle_upload(course_id: u32, chapter_id: u32, topic_id: u32, data_file: &Path, pool: &MySqlPool) {
     let data_file = data_file.to_str().unwrap();
     if !file_exists(data_file) {
         println!("Data file is required and does not exist");
         return;
     }
 
-    println!("Uploading data file: {:?} to course_id: {} and chapter_id: {}", data_file, course_id, chapter_id);
+    println!(
+        "Uploading data file: {:?} to course_id: {}, chapter_id: {}, and topic_id: {}",
+        data_file, course_id, chapter_id, topic_id
+    );
 
     let file_contents = match read_file_contents(data_file) {
         FileOpsResult::Success(c) => c,
@@ -144,7 +148,7 @@ pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &Path) {
         }
     };
 
-    let questions: Vec<QuestionQueryModel> = match serde_json::from_str(file_contents.as_str()) {
+    let questions: Vec<QuestionEntity> = match serde_json::from_str(file_contents.as_str()) {
         Ok(m) => m,
         Err(e) => {
             println!("Failed to parse json: {:?}", e);
@@ -152,25 +156,10 @@ pub async fn handle_upload(course_id: &u8, chapter_id: &u8, data_file: &Path) {
         }
     };
 
-    // call API to save questions to database
-    // let client = reqwest::Client::new();
-    // for mut question in questions {
-    //     //question_id and id_hash required but their values do not matter
-    //     question.question_id = 1;
-    //     question.course_id = Some(course_id).unwrap();
-    //     question.chapter_id = Some(chapter_id);
-    //     // replace the following with entities call
-    //     match client.post("http://localhost:8080/question").json(&question).send().await {
-    //         Ok(r) => {
-    //             if r.status().is_success() {
-    //                 println!("Saved question: {:?}", r.status());
-    //             } else {
-    //                 println!("Failed to save question: {:?}", r.status());
-    //             }
-    //         }
-    //         Err(e) => {
-    //             println!("Post request failed: {:?}", e);
-    //         }
-    //     }
-    // }
+    for question in questions {
+        match question.create(pool).await {
+            EntityResult::Success(_) => println!("Question created successfully"),
+            EntityResult::Error(e) => println!("Failed to create question: {:?}", e),
+        }
+    }
 }
