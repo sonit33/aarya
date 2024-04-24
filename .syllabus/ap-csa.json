@@ -1,0 +1,104 @@
+[
+	{
+		"unit": "Unit 1: Primitive Types",
+		"topics": [
+			"1.1 Why Programming? Why Java?",
+			"1.2 Variables and Data Types",
+			"1.3 Expressions and Assignment Statements",
+			"1.4 Compound Assignment Operators",
+			"1.5 Casting and Ranges of Variables"
+		]
+	},
+	{
+		"unit": "Unit 2: Using Objects",
+		"topics": [
+			"2.1 Objects–Instances of Classes",
+			"2.2 Creating and Storing Objects (Instantiation)",
+			"2.3 Calling a Void Method",
+			"2.4 Calling a Void Method with Parameters",
+			"2.5 Calling a Non-void Method",
+			"2.6 String Objects: Concatenation, Literals, and More",
+			"2.7 String Methods",
+			"2.8 Wrapper Classes: Integer and Double",
+			"2.9 Using the Math Class"
+		]
+	},
+	{
+		"unit": "Unit 3: Boolean Expressions and if Statements",
+		"topics": [
+			"3.1 Boolean Expressions",
+			"3.2 if Statements and Control Flow",
+			"3.3 if-else Statements",
+			"3.4 else if Statements",
+			"3.5 Compound Boolean Expressions",
+			"3.6 Equivalent Boolean Expressions",
+			"3.7 Comparing Objects"
+		]
+	},
+	{
+		"unit": "Unit 4: Iteration",
+		"topics": [
+			"4.1 while Loops",
+			"4.2 for Loops",
+			"4.3 Developing Algorithms Using Strings",
+			"4.4 Nested Iteration",
+			"4.5 Informal Code Analysis"
+		]
+	},
+	{
+		"unit": "Unit 5: Writing Classes",
+		"topics": [
+			"5.1 Anatomy of a Class",
+			"5.2 Constructors",
+			"5.3 Documentation with Comments",
+			"5.4 Accessor Methods",
+			"5.5 Mutator Methods",
+			"5.6 Writing Methods",
+			"5.7 Static Variables and Methods",
+			"5.8 Scope and Access",
+			"5.9 this Keyword",
+			"5.10 Ethical and Social Implications of Computing Systems"
+		]
+	},
+	{
+		"unit": "Unit 6: Array",
+		"topics": [
+			"6.1 Array Creation and Access",
+			"6.2 Traversing Arrays",
+			"6.3 Enhanced for Loop for Arrays",
+			"6.4 Developing Algorithms Using Arrays"
+		]
+	},
+	{
+		"unit": "Unit 7: ArrayList",
+		"topics": [
+			"7.1 Introduction to ArrayList",
+			"7.2 ArrayList Methods",
+			"7.3 Traversing ArrayLists",
+			"7.4 Developing Algorithms Using ArrayLists",
+			"7.5 Searching",
+			"7.6 Sorting",
+			"7.7 Ethical Issues Around Data Collection"
+		]
+	},
+	{
+		"unit": "Unit 8: 2D Array",
+		"topics": ["8.1 2D Arrays", "8.2 Traversing 2D Arrays"]
+	},
+	{
+		"unit": "Unit 9: Inheritance",
+		"topics": [
+			"9.1 Creating Superclasses and Subclasses",
+			"9.2 Writing Constructors for Subclasses",
+			"9.3 Overriding Methods",
+			"9.4 super Keyword",
+			"9.5 Creating References Using Inheritance Hierarchies",
+			"9.6 Polymorphism",
+			"9.7 Object Superclass"
+		]
+	},
+	{
+		"unit": "Unit 10: Recursion",
+		"topics": ["10.1 Recursion", "10.2 Recursive Searching and Sorting"]
+	}
+]

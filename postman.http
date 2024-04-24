@@ -1,0 +1,11 @@
+post http://localhost:9090/api/start-test
+Content-Type: application/json
+
+{
+    "chapter_id": 1000,
+    "course_id": 1000,
+    "test_difficulty": 2,
+    "test_length": 25,
+    "topic_id": 0,
+    "test_state": 0
+}

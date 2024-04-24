@@ -21,17 +21,9 @@ pub fn encode_to_base64(image_path: &str) -> ImageOpsResult {
                     let encoded_image = BASE64_STANDARD.encode(&buffer);
                     ImageOpsResult::Success(encoded_image)
                 }
-                Err(e) => {
-                    return ImageOpsResult::Error(
-                        ImageOpsErrorTypes::FileReadError(format!("{}", e), image_path.to_string())
-                    );
-                }
+                Err(e) => ImageOpsResult::Error(ImageOpsErrorTypes::FileReadError(format!("{}", e), image_path.to_string())),
             }
         }
-        Err(e) => {
-            return ImageOpsResult::Error(
-                ImageOpsErrorTypes::FileOpenError(format!("{}", e), image_path.to_string())
-            );
-        }
+        Err(e) => ImageOpsResult::Error(ImageOpsErrorTypes::FileOpenError(format!("{}", e), image_path.to_string())),
     }
 }
