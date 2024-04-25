@@ -1,8 +1,9 @@
-mod handlers;
+pub mod handlers;
+
 use aarya_utils::environ::Environ;
 use clap::{Parser, Subcommand};
 use dotenv::from_filename;
-use handlers::{handle_autogen, handle_upload, handle_validate};
+use handlers::{autogen::autogen, seeder::seeder, uploader::upload, validate::validate};
 use sqlx::MySqlPool;
 use std::path::PathBuf;
 
@@ -58,6 +59,14 @@ enum Commands {
         #[arg(long, value_name = "FILE")]
         data_file: PathBuf,
     },
+    Seeder {
+        #[arg(long, value_name = "FILE")]
+        courses_file: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        chapters_file: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        topics_file: Option<PathBuf>,
+    },
 }
 
 #[tokio::main]
@@ -71,14 +80,14 @@ async fn main() {
     let cli = Cli::parse();
     match &cli.command {
         Some(Commands::Validate { schema_file, data_file }) => {
-            handle_validate(schema_file, data_file).await;
+            validate(schema_file, data_file).await;
         }
         Some(Commands::Autogen {
             screenshot_path,
             output_path,
             prompt_path,
         }) => {
-            handle_autogen(screenshot_path, output_path, prompt_path).await;
+            autogen(screenshot_path, output_path, prompt_path).await;
         }
         Some(Commands::Upload {
             course_id,
@@ -86,7 +95,14 @@ async fn main() {
             topic_id,
             data_file,
         }) => {
-            handle_upload(*course_id, *chapter_id, *topic_id, data_file, &pool).await;
+            upload(*course_id, *chapter_id, *topic_id, data_file, &pool).await;
+        }
+        Some(Commands::Seeder {
+            courses_file,
+            chapters_file,
+            topics_file,
+        }) => {
+            seeder(courses_file, chapters_file, topics_file, &pool).await;
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");
