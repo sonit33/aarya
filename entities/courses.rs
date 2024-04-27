@@ -1,3 +1,4 @@
+use aarya_utils::hash_ops::string_hasher;
 use serde::{Deserialize, Serialize};
 use sqlx::MySqlPool;
 use validator::Validate;
@@ -31,14 +32,15 @@ impl CourseEntity {
     pub async fn create(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
         let name = self.course_name.clone();
         let description = self.course_description.clone();
+        let course_name_hash = string_hasher(&name);
 
         let query = r#"
-            INSERT INTO courses (course_name, course_description)
-            VALUES (?, ?)
+            INSERT INTO courses (course_name, course_description, course_name_hash)
+            VALUES (?, ?, ?)
         "#;
 
-        match sqlx::query(query).bind(name).bind(description).execute(pool).await {
-            Ok(_) => EntityResult::Success(SuccessResultType::Created(0, 0)),
+        match sqlx::query(query).bind(name).bind(description).bind(course_name_hash).execute(pool).await {
+            Ok(d) => EntityResult::Success(SuccessResultType::Created(d.last_insert_id(), d.rows_affected())),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error creating course".to_string(), e.to_string())),
         }
     }

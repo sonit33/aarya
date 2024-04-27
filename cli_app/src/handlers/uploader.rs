@@ -4,7 +4,7 @@ use aarya_utils::file_ops::{file_exists, read_file_contents, FileOpsResult};
 use models::{questions::QuestionEntity, result_types::EntityResult};
 use sqlx::MySqlPool;
 
-pub async fn upload(course_id: u32, chapter_id: u32, topic_id: u32, data_file: &Path, pool: &MySqlPool) {
+pub async fn run_upload(course_id: u32, chapter_id: u32, topic_id: u32, data_file: &Path, pool: &MySqlPool) {
     let data_file = data_file.to_str().unwrap();
     if !file_exists(data_file) {
         println!("Data file is required and does not exist");

@@ -3,7 +3,7 @@ pub mod handlers;
 use aarya_utils::environ::Environ;
 use clap::{Parser, Subcommand};
 use dotenv::from_filename;
-use handlers::{autogen::autogen, seeder::seeder, uploader::upload, validate::validate};
+use handlers::{autogener::run_autogen, seeder::run_seeder, uploader::run_upload, validator::run_validate};
 use sqlx::MySqlPool;
 use std::path::PathBuf;
 
@@ -17,7 +17,6 @@ struct Cli {
 #[derive(Subcommand)]
 enum Commands {
     /// upload questions from json files to database
-    /// aarya_cli validate --schema-file --data-file
     Validate {
         /// path to the json schema
         #[arg(long, value_name = "FILE")]
@@ -28,7 +27,6 @@ enum Commands {
         data_file: PathBuf,
     },
     /// autogenerate questions using OpenAI API calls using a prompt template and a screenshot
-    /// aarya_cli autogen --screenshot-path --output-path --prompt-path
     Autogen {
         /// path to the screenshot file
         #[arg(long, value_name = "FILE")]
@@ -41,7 +39,6 @@ enum Commands {
         prompt_path: PathBuf,
     },
     /// upload questions from json files to database
-    /// aarya_cli upload --data-file --chapter-id --course-id --topic-id
     Upload {
         /// course id
         #[arg(long)]
@@ -59,6 +56,7 @@ enum Commands {
         #[arg(long, value_name = "FILE")]
         data_file: PathBuf,
     },
+    /// seed the database with courses, chapters, and topics
     Seeder {
         #[arg(long, value_name = "FILE")]
         courses_file: Option<PathBuf>,
@@ -80,14 +78,14 @@ async fn main() {
     let cli = Cli::parse();
     match &cli.command {
         Some(Commands::Validate { schema_file, data_file }) => {
-            validate(schema_file, data_file).await;
+            run_validate(schema_file, data_file).await;
         }
         Some(Commands::Autogen {
             screenshot_path,
             output_path,
             prompt_path,
         }) => {
-            autogen(screenshot_path, output_path, prompt_path).await;
+            run_autogen(screenshot_path, output_path, prompt_path).await;
         }
         Some(Commands::Upload {
             course_id,
@@ -95,14 +93,14 @@ async fn main() {
             topic_id,
             data_file,
         }) => {
-            upload(*course_id, *chapter_id, *topic_id, data_file, &pool).await;
+            run_upload(*course_id, *chapter_id, *topic_id, data_file, &pool).await;
         }
         Some(Commands::Seeder {
             courses_file,
             chapters_file,
             topics_file,
         }) => {
-            seeder(courses_file, chapters_file, topics_file, &pool).await;
+            run_seeder(courses_file, chapters_file, topics_file, &pool).await;
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");

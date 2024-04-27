@@ -10,7 +10,7 @@ use aarya_utils::{
 
 use std::path::{Path, PathBuf};
 
-pub async fn autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &Path) {
+pub async fn run_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &Path) {
     if screenshot_path.is_none() {
         println!("Screenshot path not provided");
     }

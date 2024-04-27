@@ -5,7 +5,7 @@ use aarya_utils::{
     json_ops::{self, JsonOpsResult},
 };
 
-pub async fn validate(schema_file: &Path, data_file: &Path) {
+pub async fn run_validate(schema_file: &Path, data_file: &Path) {
     let schema_file = schema_file.to_str().unwrap();
     let data_file = data_file.to_str().unwrap();
 

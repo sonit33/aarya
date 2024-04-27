@@ -1,4 +1,4 @@
-pub mod autogen;
+pub mod autogener;
 pub mod seeder;
 pub mod uploader;
-pub mod validate;
+pub mod validator;

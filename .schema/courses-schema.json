@@ -1,0 +1,27 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "CourseEntities",
+	"type": "array",
+	"items": {
+		"type": "object",
+		"properties": {
+			"course_id": {
+				"type": "integer",
+				"description": "The ID of the course (optional)"
+			},
+			"course_name": {
+				"type": "string",
+				"minLength": 8,
+				"maxLength": 512,
+				"description": "The name of the course"
+			},
+			"course_description": {
+				"type": "string",
+				"minLength": 32,
+				"maxLength": 512,
+				"description": "The description of the course"
+			}
+		},
+		"required": ["course_name", "course_description"]
+	}
+}
