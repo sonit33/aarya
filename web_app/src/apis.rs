@@ -32,8 +32,8 @@ pub async fn topics_by(
 ) -> impl Responder {
     let (chapter_id, course_id) = path.into_inner();
     let mut topic = TopicEntity::new();
-    topic.chapter_id = Some(chapter_id.parse().unwrap());
-    topic.course_id = Some(course_id.parse().unwrap());
+    topic.chapter_id = chapter_id.parse().unwrap();
+    topic.course_id = course_id.parse().unwrap();
 
     match topic.find(&pool).await {
         EntityResult::Success(topics) => HttpResponse::Ok().json(topics),

@@ -1,7 +1,7 @@
 use std::path::PathBuf;
 
 use aarya_utils::json_ops::{json_to_vec, JsonOpsResult};
-use models::{chapters::ChapterEntity, courses::CourseEntity, result_types::EntityResult};
+use models::{chapters::ChapterEntity, courses::CourseEntity, result_types::EntityResult, topics::TopicEntity};
 use sqlx::MySqlPool;
 
 pub async fn run_seeder(
@@ -44,10 +44,20 @@ pub async fn run_seeder(
         }
     } else if topics_file.is_some() {
         println!("Processing topics file");
-        // verify the file exists
-        // validate the file against the schema
-        // read topics from the file
-        // save topics to the database
+        println!("Ensure validating the file contents. Now processing the topics file: {:?}", topics_file);
+        let topics = match json_to_vec::<TopicEntity>(topics_file.as_ref().unwrap().to_str().unwrap()) {
+            JsonOpsResult::Success(topics) => topics,
+            JsonOpsResult::Error(e) => {
+                println!("Failed to read topics file: {:?}", e);
+                return;
+            }
+        };
+        for topic in topics {
+            match topic.create_topic(pool).await {
+                EntityResult::Success(r) => println!("Topic created successfully: {:?}", r),
+                EntityResult::Error(e) => println!("Failed to create topic: {:?}", e),
+            }
+        }
     } else if questions_file.is_some() {
         println!("Processing questions file");
         // verify the file exists
