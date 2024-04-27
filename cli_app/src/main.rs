@@ -56,7 +56,9 @@ enum Commands {
         #[arg(long, value_name = "FILE")]
         data_file: PathBuf,
     },
-    /// seed the database with courses, chapters, and topics
+    /// seed the database with courses, chapters, topics, and questions
+    /// run `aarya_cli validate --schema-file schema.json --data-file data.json`
+    /// before running this command
     Seeder {
         #[arg(long, value_name = "FILE")]
         courses_file: Option<PathBuf>,
@@ -64,6 +66,8 @@ enum Commands {
         chapters_file: Option<PathBuf>,
         #[arg(long, value_name = "FILE")]
         topics_file: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        questions_file: Option<PathBuf>,
     },
 }
 
@@ -99,8 +103,9 @@ async fn main() {
             courses_file,
             chapters_file,
             topics_file,
+            questions_file,
         }) => {
-            run_seeder(courses_file, chapters_file, topics_file, &pool).await;
+            run_seeder(courses_file, chapters_file, topics_file, questions_file, &pool).await;
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");

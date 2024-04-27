@@ -7,21 +7,20 @@
 		"properties": {
 			"course_id": {
 				"type": "integer",
-				"description": "The ID of the course (optional)"
+				"minimum": 1001,
+				"maximum": 9999
 			},
 			"course_name": {
 				"type": "string",
 				"minLength": 8,
-				"maxLength": 512,
-				"description": "The name of the course"
+				"maxLength": 128
 			},
 			"course_description": {
 				"type": "string",
 				"minLength": 32,
-				"maxLength": 512,
-				"description": "The description of the course"
+				"maxLength": 1024
 			}
 		},
-		"required": ["course_name", "course_description"]
+		"required": ["course_id", "course_name", "course_description"]
 	}
 }

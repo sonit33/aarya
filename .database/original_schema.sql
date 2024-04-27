@@ -2,32 +2,32 @@ drop database if exists aarya_v1;
 create database aarya_v1;
 use aarya_v1;
 create table courses (
-    course_id int unsigned auto_increment primary key,
+    course_id int unsigned primary key,
     course_name varchar(255) not null,
     course_description varchar(1024) not null,
     course_name_hash varchar(2048) null,
     constraint unique_course_name_hash unique (course_name_hash)
-) auto_increment = 1000;
+);
 create table chapters (
-    chapter_id int unsigned primary key,
+    chapter_id int unsigned auto_increment primary key,
     course_id int unsigned,
     chapter_name varchar(128),
     chapter_description varchar(512),
     chapter_name_hash varchar(2048) null,
     constraint unique_chapter_name_hash unique (chapter_name_hash),
     constraint fk_chapters_courses foreign key (course_id) references courses (course_id)
-) auto_increment = 1000;
+);
 create table topics (
-    topic_id int unsigned auto_increment primary key,
+    topic_id int unsigned primary key,
     course_id int unsigned,
     chapter_id int unsigned,
     topic_name varchar(128),
     topic_description varchar(512),
     constraint fk_topics_courses foreign key (course_id) references courses (course_id),
     constraint fk_topics_chapters foreign key (chapter_id) references chapters (chapter_id)
-) auto_increment = 1000;
+);
 create table questions (
-    question_id int unsigned auto_increment primary key,
+    question_id int unsigned primary key,
     course_id int unsigned not null,
     chapter_id int unsigned not null,
     topic_id int unsigned not null,
@@ -46,7 +46,7 @@ create table questions (
     constraint fk_questions_courses foreign key (course_id) references courses (course_id),
     constraint fk_questions_chapters foreign key (chapter_id) references chapters (chapter_id),
     constraint fk_questions_topics foreign key (topic_id) references topics (topic_id)
-) auto_increment = 1000;
+);
 create index idx_question_course on questions (course_id);
 create table students (
     student_id int unsigned auto_increment primary key,

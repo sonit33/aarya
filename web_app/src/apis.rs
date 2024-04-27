@@ -10,10 +10,13 @@ use sqlx::MySqlPool;
 
 // get chapters -> GET /chapters/{course_id}
 #[get("/api/chapters/{course_id}")]
-pub async fn chapters_by_course(pool: web::Data<MySqlPool>, path: web::Path<String>) -> impl Responder {
+pub async fn chapters_by_course(
+    pool: web::Data<MySqlPool>,
+    path: web::Path<String>,
+) -> impl Responder {
     let course_id = path.into_inner();
     let mut chapter = ChapterEntity::new();
-    chapter.course_id = Some(course_id.parse().unwrap());
+    chapter.course_id = course_id.parse().unwrap();
 
     match chapter.find_by_course(&pool).await {
         EntityResult::Success(chapters) => HttpResponse::Ok().json(chapters),
@@ -23,7 +26,10 @@ pub async fn chapters_by_course(pool: web::Data<MySqlPool>, path: web::Path<Stri
 
 // get topics -> GET /topics/{chapter_id}
 #[get("/api/topics/{chapter_id}/{course_id}")]
-pub async fn topics_by(pool: web::Data<MySqlPool>, path: web::Path<(String, String)>) -> impl Responder {
+pub async fn topics_by(
+    pool: web::Data<MySqlPool>,
+    path: web::Path<(String, String)>,
+) -> impl Responder {
     let (chapter_id, course_id) = path.into_inner();
     let mut topic = TopicEntity::new();
     topic.chapter_id = Some(chapter_id.parse().unwrap());
@@ -42,7 +48,10 @@ pub async fn topics_by(pool: web::Data<MySqlPool>, path: web::Path<(String, Stri
 /// save the matching questions in test_questions table (test_id, question_id, state)
 /// state: unseen (default, 0), seen (1), answered (2)
 #[post("/api/start-test")]
-pub async fn start_test(pool: web::Data<MySqlPool>, model: web::Json<TestMutationModel>) -> impl Responder {
+pub async fn start_test(
+    pool: web::Data<MySqlPool>,
+    model: web::Json<TestMutationModel>,
+) -> impl Responder {
     let model = model.into_inner();
     let test = TestEntity {
         test_id: Some(0),
