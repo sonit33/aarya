@@ -2,44 +2,15 @@ use aarya_utils::{
     environ::Environ,
     file_ops::{file_exists, read_file_contents, write_to_file, FileOpsResult},
     image_ops::{encode_to_base64, ImageOpsResult},
-    json_ops::{self, JsonOpsResult},
     openai::{
         completion_model::CompletionResponse,
         openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse},
     },
 };
-use models::{questions::QuestionEntity, result_types::EntityResult};
-use sqlx::MySqlPool;
 
 use std::path::{Path, PathBuf};
 
-pub async fn handle_validate(schema_file: &Path, data_file: &Path) {
-    let schema_file = schema_file.to_str().unwrap();
-    let data_file = data_file.to_str().unwrap();
-
-    if !file_exists(schema_file) {
-        println!("Schema file does not exist");
-        return;
-    }
-
-    if !file_exists(data_file) {
-        println!("Data file does not exist");
-        return;
-    }
-
-    println!("Validating schema file: {:?} and data file: {:?}", schema_file, data_file);
-
-    match json_ops::validate_json_file(schema_file, data_file) {
-        JsonOpsResult::Success(_) => {
-            println!("Validation successful");
-        }
-        JsonOpsResult::Error(e) => {
-            println!("Validation failed: {:?}", e);
-        }
-    }
-}
-
-pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &Path) {
+pub async fn run_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &Path) {
     if screenshot_path.is_none() {
         println!("Screenshot path not provided");
     }
@@ -124,42 +95,6 @@ pub async fn handle_autogen(screenshot_path: &Option<PathBuf>, output_path: &Opt
         }
         OpenAiResponse::Error(e) => {
             println!("Failed to send request to OpenAI API: {:?}", e);
-        }
-    }
-}
-
-pub async fn handle_upload(course_id: u32, chapter_id: u32, topic_id: u32, data_file: &Path, pool: &MySqlPool) {
-    let data_file = data_file.to_str().unwrap();
-    if !file_exists(data_file) {
-        println!("Data file is required and does not exist");
-        return;
-    }
-
-    println!(
-        "Uploading data file: {:?} to course_id: {}, chapter_id: {}, and topic_id: {}",
-        data_file, course_id, chapter_id, topic_id
-    );
-
-    let file_contents = match read_file_contents(data_file) {
-        FileOpsResult::Success(c) => c,
-        FileOpsResult::Error(e) => {
-            println!("Failed to read data file: {:?}", e);
-            return;
-        }
-    };
-
-    let questions: Vec<QuestionEntity> = match serde_json::from_str(file_contents.as_str()) {
-        Ok(m) => m,
-        Err(e) => {
-            println!("Failed to parse json: {:?}", e);
-            return;
-        }
-    };
-
-    for question in questions {
-        match question.create(pool).await {
-            EntityResult::Success(_) => println!("Question created successfully"),
-            EntityResult::Error(e) => println!("Failed to create question: {:?}", e),
         }
     }
 }

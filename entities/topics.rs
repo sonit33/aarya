@@ -6,9 +6,9 @@ use crate::result_types::{DatabaseErrorType, EntityResult, SuccessResultType};
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct TopicEntity {
-    pub topic_id: Option<u32>,
-    pub chapter_id: Option<u32>,
-    pub course_id: Option<u32>,
+    pub topic_id: u32,
+    pub chapter_id: u32,
+    pub course_id: u32,
     pub topic_name: String,
     pub topic_description: String,
 }
@@ -27,28 +27,42 @@ pub struct TopicQueryModel {
 impl TopicEntity {
     pub fn new() -> Self {
         TopicEntity {
-            topic_id: Some(0),
-            chapter_id: Some(0),
-            course_id: Some(0),
+            topic_id: 0,
+            chapter_id: 0,
+            course_id: 0,
             topic_name: "not-set".to_string(),
             topic_description: "not-set".to_string(),
         }
     }
 
-    pub async fn create_topic(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
+    pub async fn create_topic(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<SuccessResultType> {
         let query = r#"
-            INSERT INTO topic (course_id, chapter_id, name, description)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO topics (topic_id, course_id, chapter_id, topic_name, topic_description)
+            VALUES (?, ?, ?, ?, ?)
         "#;
 
-        match sqlx::query(query).bind(self.course_id).bind(&self.topic_name).bind(&self.topic_description).execute(pool).await {
-            Ok(r) => EntityResult::Success(SuccessResultType::Created(r.last_insert_id(), r.rows_affected())),
-            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error creating chapter".to_string(), e.to_string())),
+        match sqlx::query(query)
+            .bind(self.topic_id)
+            .bind(self.course_id)
+            .bind(self.chapter_id)
+            .bind(&self.topic_name)
+            .bind(&self.topic_description)
+            .execute(pool)
+            .await
+        {
+            Ok(r) => EntityResult::Success(SuccessResultType::Created(self.topic_id as u64, r.rows_affected())),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error creating topic".to_string(), e.to_string())),
         }
     }
 
     // get all chapters by joining with the course table to get course and chapter details incluidng course name
-    pub async fn find(&self, pool: &MySqlPool) -> EntityResult<Vec<TopicQueryModel>> {
+    pub async fn find(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Vec<TopicQueryModel>> {
         let query = r#"
             SELECT
                 topic_id,
@@ -66,12 +80,7 @@ impl TopicEntity {
             where t.course_id = ? and t.chapter_id = ?
         "#;
 
-        match sqlx::query_as::<_, TopicQueryModel>(query)
-            .bind(self.course_id.unwrap())
-            .bind(self.chapter_id.unwrap())
-            .fetch_all(pool)
-            .await
-        {
+        match sqlx::query_as::<_, TopicQueryModel>(query).bind(self.course_id).bind(self.chapter_id).fetch_all(pool).await {
             Ok(chapters) => EntityResult::Success(chapters),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
         }
