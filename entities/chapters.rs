@@ -3,7 +3,10 @@ use serde::{Deserialize, Serialize};
 use sqlx::MySqlPool;
 use validator::Validate;
 
-use crate::result_types::{DatabaseErrorType, EntityResult, SuccessResultType};
+use crate::{
+    courses::CourseDetailQueryModel,
+    result_types::{DatabaseErrorType, EntityResult, SuccessResultType},
+};
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
 pub struct ChapterEntity {
@@ -77,6 +80,32 @@ impl ChapterEntity {
         "#;
 
         match sqlx::query_as::<_, ChapterQueryModel>(query).bind(self.course_id).fetch_all(pool).await {
+            Ok(chapters) => EntityResult::Success(chapters),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
+        }
+    }
+
+    pub async fn find_all(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Vec<CourseDetailQueryModel>> {
+        let query = r#"
+            SELECT 
+                c.course_id, 
+                c.course_name, 
+                ch.chapter_id,
+                ch.chapter_name,
+                t.topic_id,
+                t.topic_name
+            FROM courses c
+            inner join chapters ch 
+                on ch.course_id = c.course_id
+            inner join topics t 
+                on t.chapter_id = ch.chapter_id
+            where ch.chapter_id = ? and c.course_id = ?;
+        "#;
+
+        match sqlx::query_as::<_, CourseDetailQueryModel>(query).bind(self.chapter_id).bind(self.course_id).fetch_all(pool).await {
             Ok(chapters) => EntityResult::Success(chapters),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching chapters".to_string(), e.to_string())),
         }
