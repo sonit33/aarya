@@ -117,6 +117,20 @@ enum Commands {
         #[arg(long, value_name = "FILE")]
         prompt_path: PathBuf,
     },
+    // BatchValidate {
+    //     /// path to the json schema
+    //     #[arg(long, value_name = "FILE")]
+    //     schema_file: PathBuf,
+
+    //     /// directory path to the json data
+    //     #[arg(long, value_name = "FILE")]
+    //     directory: PathBuf,
+    // },
+    // BatchUpload {
+    //     /// directory path to the json data
+    //     #[arg(long, value_name = "FILE")]
+    //     directory: PathBuf,
+    // },
 }
 
 #[tokio::main]
@@ -177,6 +191,12 @@ async fn main() {
         }) => {
             run_batch(*course_id, *chapter_id, *count, prompt_path, &pool).await;
         }
+        // Some(Commands::BatchValidate { schema_file, directory }) => {
+        //     // handlers::batchvalidator::run_validate(schema_file, directory).await;
+        // }
+        // Some(Commands::BatchUpload { directory }) => {
+        //     // handlers::batchuploader::run_upload(directory, &pool).await;
+        // }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");
         }

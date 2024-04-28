@@ -33,7 +33,7 @@ pub async fn run_autogen(
     prompt_path: &Path,
     args: &AutogenArgs,
     output_folder: &str,
-) {
+) -> Option<String> {
     let session_id = generate_timestamp().to_string();
     if screenshot_path.is_none() {
         println!("Screenshot path not provided");
@@ -47,7 +47,7 @@ pub async fn run_autogen(
 
     if !file_exists(prompt_path) {
         println!("Prompt file is required and it does not exist");
-        return;
+        return None;
     }
 
     println!("Autogenerating questions using prompt file: {:?}", prompt_path);
@@ -66,7 +66,7 @@ pub async fn run_autogen(
         FileOpsResult::Success(p) => p,
         FileOpsResult::Error(e) => {
             println!("Failed to read prompt file: [{:?}]", e);
-            return;
+            return None;
         }
     };
 
@@ -102,19 +102,18 @@ pub async fn run_autogen(
     };
 
     println!("sending request to OpenAI API");
+    let output_file = format!("{output_folder}/{session_id}.json");
     match send_request(header_map, payload).await {
         OpenAiResponse::Success(r) => {
             let message: CompletionResponse = match serde_json::from_str(&r) {
                 Ok(res) => res,
                 Err(e) => {
                     println!("Error parsing to json: {:?}", e);
-                    return;
+                    return None;
                 }
             };
 
             // println!("recieved response");
-
-            let output_file = format!("{output_folder}/{session_id}.json");
 
             // println!("{:?}", message.choices[0].finish_reason);
 
@@ -133,4 +132,6 @@ pub async fn run_autogen(
             println!("Failed to send request to OpenAI API: {:?}", e);
         }
     }
+
+    Some(output_file)
 }
