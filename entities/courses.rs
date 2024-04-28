@@ -19,6 +19,16 @@ pub struct CourseQueryModel {
     pub description: String,
 }
 
+#[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
+pub struct CourseDetailQueryModel {
+    pub course_id: u32,
+    pub course_name: String,
+    pub chapter_id: u32,
+    pub chapter_name: String,
+    pub topic_id: u32,
+    pub topic_name: String,
+}
+
 impl CourseEntity {
     pub fn new() -> Self {
         CourseEntity {
@@ -49,7 +59,7 @@ impl CourseEntity {
     }
 
     // get all courses
-    pub async fn find_all(
+    pub async fn find_courses(
         &self,
         pool: &MySqlPool,
     ) -> EntityResult<Vec<CourseQueryModel>> {
@@ -58,6 +68,33 @@ impl CourseEntity {
         "#;
 
         match sqlx::query_as::<_, CourseQueryModel>(query).fetch_all(pool).await {
+            Ok(courses) => EntityResult::Success(courses),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching courses".to_string(), e.to_string())),
+        }
+    }
+
+    // get all courses, chapters, and topics
+    pub async fn find_all(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Vec<CourseDetailQueryModel>> {
+        let query = r#"
+            SELECT 
+                c.course_id, 
+                c.course_name, 
+                ch.chapter_id,
+                ch.chapter_name,
+                t.topic_id,
+                t.topic_name
+            FROM courses c
+            inner join chapters ch 
+                on ch.course_id = c.course_id
+            inner join topics t 
+                on t.chapter_id = ch.chapter_id
+            where c.course_id = ?;
+        "#;
+
+        match sqlx::query_as::<_, CourseDetailQueryModel>(query).bind(self.course_id).fetch_all(pool).await {
             Ok(courses) => EntityResult::Success(courses),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching courses".to_string(), e.to_string())),
         }

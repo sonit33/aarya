@@ -48,9 +48,12 @@ pub async fn home_page(handlebars: web::Data<Handlebars<'_>>) -> impl Responder 
 // button: <- back (left aligned) submit -> (right aligned)
 ///
 #[get("/start-test")]
-pub async fn start_test_page(handlebars: web::Data<Handlebars<'_>>, pool: web::Data<MySqlPool>) -> impl Responder {
+pub async fn start_test_page(
+    handlebars: web::Data<Handlebars<'_>>,
+    pool: web::Data<MySqlPool>,
+) -> impl Responder {
     let course = CourseEntity::new();
-    let courses = match course.find_all(&pool).await {
+    let courses = match course.find_courses(&pool).await {
         EntityResult::Success(courses) => courses,
         EntityResult::Error(_) => {
             return HttpResponse::InternalServerError().body("Error getting courses");

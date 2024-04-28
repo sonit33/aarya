@@ -3,7 +3,13 @@ pub mod handlers;
 use aarya_utils::environ::Environ;
 use clap::{Parser, Subcommand};
 use dotenv::from_filename;
-use handlers::{autogener::run_autogen, seeder::run_seeder, uploader::run_upload, validator::run_validate};
+use handlers::{
+    autogener::{run_autogen, AutogenArgs},
+    batchgener::run_batch,
+    seeder::run_seeder,
+    uploader::run_upload,
+    validator::run_validate,
+};
 use sqlx::MySqlPool;
 use std::path::PathBuf;
 
@@ -32,9 +38,35 @@ enum Commands {
         #[arg(long, value_name = "FILE")]
         screenshot_path: Option<PathBuf>,
 
-        #[arg(long, value_name = "FILE")]
-        output_path: Option<PathBuf>,
+        /// number of questions to generate
+        #[arg(long)]
+        count: u32,
 
+        /// full name of a valid course
+        #[arg(long)]
+        course_name: String,
+
+        /// valid course id
+        #[arg(long)]
+        course_id: u32,
+
+        /// full name of a valid chapter
+        #[arg(long)]
+        chapter_name: String,
+
+        /// valid chapter id
+        #[arg(long)]
+        chapter_id: u32,
+
+        /// full name of a valid topic
+        #[arg(long)]
+        topic_name: String,
+
+        /// valid topic id
+        #[arg(long)]
+        topic_id: u32,
+
+        /// path to the prompt file
         #[arg(long, value_name = "FILE")]
         prompt_path: PathBuf,
     },
@@ -66,8 +98,24 @@ enum Commands {
         chapters_file: Option<PathBuf>,
         #[arg(long, value_name = "FILE")]
         topics_file: Option<PathBuf>,
+    },
+    /// calls `autogen` in a loop using courses, chapters, and topics from the database
+    Batchgen {
+        /// call `autogen` for all chapters and topics in a course
+        #[arg(long)]
+        course_id: Option<u32>,
+
+        /// call `autogen` for all topics in a chapter
+        #[arg(long)]
+        chapter_id: Option<u32>,
+
+        /// number of questions to generate for each topic
+        #[arg(long)]
+        count: u32,
+
+        /// path to the prompt file
         #[arg(long, value_name = "FILE")]
-        questions_file: Option<PathBuf>,
+        prompt_path: PathBuf,
     },
 }
 
@@ -86,10 +134,25 @@ async fn main() {
         }
         Some(Commands::Autogen {
             screenshot_path,
-            output_path,
+            course_name,
+            chapter_name,
+            topic_name,
+            count,
             prompt_path,
+            course_id,
+            chapter_id,
+            topic_id,
         }) => {
-            run_autogen(screenshot_path, output_path, prompt_path).await;
+            let args = AutogenArgs {
+                course_name: course_name.to_string(),
+                chapter_name: chapter_name.to_string(),
+                topic_name: topic_name.to_string(),
+                course_id: *course_id,
+                chapter_id: *chapter_id,
+                topic_id: *topic_id,
+                count: *count,
+            };
+            run_autogen(screenshot_path, prompt_path, &args, "./temp-data").await;
         }
         Some(Commands::Upload {
             course_id,
@@ -103,9 +166,16 @@ async fn main() {
             courses_file,
             chapters_file,
             topics_file,
-            questions_file,
         }) => {
-            run_seeder(courses_file, chapters_file, topics_file, questions_file, &pool).await;
+            run_seeder(courses_file, chapters_file, topics_file, &pool).await;
+        }
+        Some(Commands::Batchgen {
+            course_id,
+            chapter_id,
+            count,
+            prompt_path,
+        }) => {
+            run_batch(*course_id, *chapter_id, *count, prompt_path, &pool).await;
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");

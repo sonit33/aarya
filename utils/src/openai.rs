@@ -1,5 +1,5 @@
 pub mod completion_model {
-    use serde::{ Deserialize, Serialize };
+    use serde::{Deserialize, Serialize};
 
     #[derive(Serialize, Deserialize, Debug)]
     pub struct CompletionResponse {
@@ -34,8 +34,8 @@ pub mod completion_model {
 }
 
 pub mod openai_ops {
-    use reqwest::header::{ HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE };
-    use serde::{ Deserialize, Serialize };
+    use reqwest::header::{HeaderMap, HeaderValue, AUTHORIZATION, CONTENT_TYPE};
+    use serde::{Deserialize, Serialize};
 
     pub enum OpenAiResponse<T> {
         Success(T),
@@ -58,12 +58,8 @@ pub mod openai_ops {
     #[serde(tag = "type")]
     #[allow(non_camel_case_types)]
     pub enum Content {
-        text {
-            text: String,
-        },
-        image_url {
-            image_url: ImageUrl,
-        },
+        text { text: String },
+        image_url { image_url: ImageUrl },
     }
 
     #[derive(Serialize, Deserialize, Debug)]
@@ -71,9 +67,12 @@ pub mod openai_ops {
         pub url: String,
     }
 
-    pub fn prep_payload(base64_image: String, prompt: String) -> Payload {
+    pub fn prep_payload(
+        base64_image: String,
+        prompt: String,
+    ) -> Payload {
         Payload {
-            model: "gpt-4-turbo".to_string(),
+            model: "gpt-4-turbo-preview".to_string(),
             messages: vec![Message {
                 role: "user".to_string(),
                 content: vec![
@@ -82,7 +81,7 @@ pub mod openai_ops {
                         image_url: ImageUrl {
                             url: format!("data:image/jpeg;base64,{}", base64_image),
                         },
-                    }
+                    },
                 ],
             }],
         }
@@ -112,21 +111,14 @@ pub mod openai_ops {
 
     pub async fn send_request(
         headers: HeaderMap<HeaderValue>,
-        payload: Payload
+        payload: Payload,
     ) -> OpenAiResponse<String> {
         let client = reqwest::Client::new();
-        match
-            client
-                .post("https://api.openai.com/v1/chat/completions")
-                .json(&payload)
-                .headers(headers)
-                .send().await
-        {
-            Ok(req) =>
-                match req.text().await {
-                    Ok(res) => OpenAiResponse::Success(res),
-                    Err(e) => OpenAiResponse::Error(format!("Failed to get response: [{}]", e)),
-                }
+        match client.post("https://api.openai.com/v1/chat/completions").json(&payload).headers(headers).send().await {
+            Ok(req) => match req.text().await {
+                Ok(res) => OpenAiResponse::Success(res),
+                Err(e) => OpenAiResponse::Error(format!("Failed to get response: [{}]", e)),
+            },
             Err(e) => OpenAiResponse::Error(format!("Failed to send request: [{}]", e)),
         }
     }

@@ -78,7 +78,10 @@ impl Default for QuestionEntity {
 }
 
 impl QuestionEntity {
-    pub async fn create(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
+    pub async fn create(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<SuccessResultType> {
         let que_hash = hash_ops::string_hasher(self.que_text.to_lowercase().as_str());
         let res = sqlx::query(
             "INSERT INTO questions (
@@ -117,7 +120,11 @@ impl QuestionEntity {
     }
 
     // read all questions, join with course table to get course and question details. // Do not use * in query, instead use column names
-    pub async fn find_by_course(&self, pool: &MySqlPool, course_id: u32) -> EntityResult<Vec<QuestionQueryModel>> {
+    pub async fn find_by_course(
+        &self,
+        pool: &MySqlPool,
+        course_id: u32,
+    ) -> EntityResult<Vec<QuestionQueryModel>> {
         let questions = sqlx::query_as::<_, QuestionQueryModel>(
             r#"
                 SELECT 
@@ -150,7 +157,11 @@ impl QuestionEntity {
 
     // Read all questions, join with course and chapter tables to get course, chapter, and question details
     // Do not use * in query, instead use column names
-    pub async fn find_by_chapter(&self, pool: &MySqlPool, chapter_id: u32) -> EntityResult<Vec<QuestionQueryModel>> {
+    pub async fn find_by_chapter(
+        &self,
+        pool: &MySqlPool,
+        chapter_id: u32,
+    ) -> EntityResult<Vec<QuestionQueryModel>> {
         let questions = sqlx::query_as::<_, QuestionQueryModel>(
             r#"
                 SELECT 
@@ -184,7 +195,10 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn find_one(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionQueryModel>> {
+    pub async fn find_one(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Option<QuestionQueryModel>> {
         let question = sqlx::query_as::<_, QuestionQueryModel>(
             r#"
             SELECT 
@@ -213,7 +227,10 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn find_duplicate(&self, pool: &MySqlPool) -> EntityResult<Option<QuestionQueryModel>> {
+    pub async fn find_duplicate(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Option<QuestionQueryModel>> {
         let question = sqlx::query_as::<_, QuestionQueryModel>(r#"SELECT q.question_id FROM questions q WHERE que_hash = ?"#)
             .bind(&self.que_hash)
             .fetch_one(pool)
@@ -224,7 +241,11 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn find_top_n(&self, pool: &MySqlPool, limit: u8) -> EntityResult<Vec<QuestionQueryModel>> {
+    pub async fn find_top_n(
+        &self,
+        pool: &MySqlPool,
+        limit: u8,
+    ) -> EntityResult<Vec<QuestionQueryModel>> {
         let questions = sqlx::query_as::<_, QuestionQueryModel>(
             r#"
                 SELECT 
@@ -269,7 +290,10 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn update(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
+    pub async fn update(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<SuccessResultType> {
         let res = sqlx::query(
             r#"
                 UPDATE questions SET 
@@ -304,7 +328,10 @@ impl QuestionEntity {
         }
     }
 
-    pub async fn delete(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
+    pub async fn delete(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<SuccessResultType> {
         let res = sqlx::query("DELETE FROM questions WHERE question_id = ?").bind(self.question_id).execute(pool).await;
         match res {
             Ok(result) => EntityResult::Success(SuccessResultType::Deleted(result.last_insert_id(), result.rows_affected())),

@@ -1,3 +1,5 @@
+use std::path::{Path, PathBuf};
+
 use aarya_utils::{
     environ::Environ,
     file_ops::{file_exists, read_file_contents, write_to_file, FileOpsResult},
@@ -6,22 +8,40 @@ use aarya_utils::{
         completion_model::CompletionResponse,
         openai_ops::{prep_header, prep_payload, prep_payload_wo_image, send_request, OpenAiResponse},
     },
+    random::generate_timestamp,
 };
+use serde::{Deserialize, Serialize};
 
-use std::path::{Path, PathBuf};
+#[derive(Debug, Serialize, Deserialize, PartialEq)]
+pub struct AutogenArgs {
+    pub course_name: String,
+    pub chapter_name: String,
+    pub topic_name: String,
+    pub course_id: u32,
+    pub chapter_id: u32,
+    pub topic_id: u32,
+    pub count: u32,
+}
 
-pub async fn run_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option<PathBuf>, prompt_path: &Path) {
+/// this function uses courses, chapters, and topics from the database
+/// to create copies of the prompt template
+/// that is used to generate questions using the OpenAI API
+/// the generated questions are saved in separate files
+/// that can be used to upload to the database
+pub async fn run_autogen(
+    screenshot_path: &Option<PathBuf>,
+    prompt_path: &Path,
+    args: &AutogenArgs,
+    output_folder: &str,
+) {
+    let session_id = generate_timestamp().to_string();
     if screenshot_path.is_none() {
         println!("Screenshot path not provided");
     }
 
-    let mut output_folder = "./.temp-data";
+    // let output_folder = "./.temp-data";
 
-    if output_path.is_none() {
-        println!("Output path not provided. Using the ./.temp-data directory");
-    } else {
-        output_folder = output_path.as_ref().unwrap().to_str().unwrap();
-    }
+    println!("Using {output_folder} to save the generated questions");
 
     let prompt_path = prompt_path.to_str().unwrap();
 
@@ -42,13 +62,25 @@ pub async fn run_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option
     };
 
     println!("reading {prompt_path}");
-    let prompt = match read_file_contents(&prompt_path) {
+    let mut prompt = match read_file_contents(prompt_path) {
         FileOpsResult::Success(p) => p,
         FileOpsResult::Error(e) => {
             println!("Failed to read prompt file: [{:?}]", e);
             return;
         }
     };
+
+    // replace the placeholders in the prompt with the actual values
+    prompt = prompt
+        .replace("{{num_questions}}", &args.count.to_string())
+        .replace("{{course_name}}", &args.course_name)
+        .replace("{{chapter_name}}", &args.chapter_name)
+        .replace("{{topic_name}}", &args.topic_name)
+        .replace("{{course_id}}", &args.course_id.to_string())
+        .replace("{{chapter_id}}", &args.chapter_id.to_string())
+        .replace("{{topic_id}}", &args.topic_id.to_string());
+
+    // print!("{prompt}");
 
     // encode the image to base64 if path is provided
     let mut encoded_image = String::new();
@@ -80,11 +112,15 @@ pub async fn run_autogen(screenshot_path: &Option<PathBuf>, output_path: &Option
                 }
             };
 
-            println!("recieved response");
+            // println!("recieved response");
 
-            let output_file = format!("{output_folder}/{}.json", &message.id);
+            let output_file = format!("{output_folder}/{session_id}.json");
 
-            match write_to_file(output_file.as_str(), &message.choices[0].message.content) {
+            // println!("{:?}", message.choices[0].finish_reason);
+
+            let contents = &message.choices[0].message.content;
+
+            match write_to_file(output_file.as_str(), contents) {
                 FileOpsResult::Success(_) => {
                     println!("{output_file}");
                 }

@@ -8,7 +8,6 @@ pub async fn run_seeder(
     courses_file: &Option<PathBuf>,
     chapters_file: &Option<PathBuf>,
     topics_file: &Option<PathBuf>,
-    questions_file: &Option<PathBuf>,
     pool: &MySqlPool,
 ) {
     if courses_file.is_some() {
@@ -58,12 +57,6 @@ pub async fn run_seeder(
                 EntityResult::Error(e) => println!("Failed to create topic: {:?}", e),
             }
         }
-    } else if questions_file.is_some() {
-        println!("Processing questions file");
-        // verify the file exists
-        // validate the file against the schema
-        // read questions from the file
-        // save questions to the database
     } else {
         println!("No file provided to seed the database");
     }
