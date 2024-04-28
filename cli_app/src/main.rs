@@ -6,6 +6,7 @@ use dotenv::from_filename;
 use handlers::{
     autogener::{run_autogen, AutogenArgs},
     batchgener::run_batch,
+    batchuploader::run_batch_uploads,
     seeder::run_seeder,
     uploader::run_upload,
     validator::run_validate,
@@ -117,20 +118,16 @@ enum Commands {
         #[arg(long, value_name = "FILE")]
         prompt_path: PathBuf,
     },
-    // BatchValidate {
-    //     /// path to the json schema
-    //     #[arg(long, value_name = "FILE")]
-    //     schema_file: PathBuf,
+    /// processes and loads all json files in a directory to database
+    BatchUpload {
+        /// question json schema file path
+        #[arg(long, value_name = "FILE")]
+        schema_file: PathBuf,
 
-    //     /// directory path to the json data
-    //     #[arg(long, value_name = "FILE")]
-    //     directory: PathBuf,
-    // },
-    // BatchUpload {
-    //     /// directory path to the json data
-    //     #[arg(long, value_name = "FILE")]
-    //     directory: PathBuf,
-    // },
+        /// directory path to the json data
+        #[arg(long, value_name = "FILE")]
+        directory: PathBuf,
+    },
 }
 
 #[tokio::main]
@@ -191,12 +188,9 @@ async fn main() {
         }) => {
             run_batch(*course_id, *chapter_id, *count, prompt_path, &pool).await;
         }
-        // Some(Commands::BatchValidate { schema_file, directory }) => {
-        //     // handlers::batchvalidator::run_validate(schema_file, directory).await;
-        // }
-        // Some(Commands::BatchUpload { directory }) => {
-        //     // handlers::batchuploader::run_upload(directory, &pool).await;
-        // }
+        Some(Commands::BatchUpload { schema_file, directory }) => {
+            run_batch_uploads(schema_file, directory, &pool).await;
+        }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");
         }
