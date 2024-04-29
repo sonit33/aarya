@@ -31,7 +31,7 @@ pub struct QuestionEntity {
     pub ans_hint: String,
     pub difficulty: i8,
     pub diff_reason: String,
-    pub que_hash: String,
+    pub que_hash: Option<String>,
 }
 
 #[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
@@ -66,7 +66,7 @@ impl QuestionEntity {
             ans_hint: "not-set".to_string(),
             difficulty: 0,
             diff_reason: "not-set".to_string(),
-            que_hash: String::from("random"),
+            que_hash: Some(String::from("random")),
         }
     }
 }
@@ -85,6 +85,7 @@ impl QuestionEntity {
         let que_hash = hash_ops::string_hasher(self.que_text.to_lowercase().as_str());
         let res = sqlx::query(
             "INSERT INTO questions (
+                    question_id,
                     course_id, 
                     chapter_id,
                     topic_id, 
@@ -97,8 +98,9 @@ impl QuestionEntity {
                     ans_explanation, 
                     ans_hint, 
                     que_hash) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
+        .bind(self.question_id)
         .bind(self.course_id)
         .bind(self.chapter_id)
         .bind(self.topic_id)

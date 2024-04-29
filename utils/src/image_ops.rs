@@ -2,10 +2,12 @@ use base64::prelude::*;
 use std::fs::File;
 use std::io::Read;
 
+#[derive(Debug)]
 pub enum ImageOpsErrorTypes {
     FileOpenError(String, String),
     FileReadError(String, String),
 }
+#[derive(Debug)]
 pub enum ImageOpsResult {
     Success(String),
     Error(ImageOpsErrorTypes),

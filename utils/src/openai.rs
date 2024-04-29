@@ -72,7 +72,7 @@ pub mod openai_ops {
         prompt: String,
     ) -> Payload {
         Payload {
-            model: "gpt-4-turbo-preview".to_string(),
+            model: "gpt-4-turbo".to_string(),
             messages: vec![Message {
                 role: "user".to_string(),
                 content: vec![
@@ -89,7 +89,7 @@ pub mod openai_ops {
 
     pub fn prep_payload_wo_image(prompt: String) -> Payload {
         Payload {
-            model: "gpt-4-1106-vision-preview".to_string(),
+            model: "gpt-4-turbo-preview".to_string(),
             messages: vec![Message {
                 role: "user".to_string(),
                 content: vec![Content::text { text: prompt }],
