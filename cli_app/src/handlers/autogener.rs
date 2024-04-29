@@ -39,8 +39,6 @@ pub async fn run_autogen(
         println!("Screenshot path not provided");
     }
 
-    // let output_folder = "./.temp-data";
-
     println!("Using {output_folder} to save the generated questions");
 
     let prompt_path = prompt_path.to_str().unwrap();
@@ -80,24 +78,27 @@ pub async fn run_autogen(
         .replace("{{chapter_id}}", &args.chapter_id.to_string())
         .replace("{{topic_id}}", &args.topic_id.to_string());
 
-    // print!("{prompt}");
-
     // encode the image to base64 if path is provided
     let mut encoded_image = String::new();
-    if screenshot_path.is_some() {
-        let screenshot_path = screenshot_path.as_ref().unwrap().to_str().unwrap();
-        println!("reading {}", screenshot_path);
+    let screenshot_path = screenshot_path.as_ref().unwrap();
+    println!("Screenshot path: {:?}", screenshot_path);
+    if screenshot_path.is_file() {
+        let screenshot_path = screenshot_path.to_str().unwrap();
+        println!("Encoding image {}", screenshot_path);
         encoded_image = match encode_to_base64(screenshot_path) {
             ImageOpsResult::Success(img) => img,
-            ImageOpsResult::Error(_) => {
-                panic!("Failed to encode image to base64");
+            ImageOpsResult::Error(e) => {
+                println!("Failed to encode image to base64: {:?}", e);
+                return None;
             }
         };
     }
 
     let payload = if encoded_image.is_empty() {
+        prompt = prompt.replace("{{screenshot}}", "");
         prep_payload_wo_image(prompt)
     } else {
+        prompt = prompt.replace("{{screenshot}}", "Use the attached screenshot as an example to generate variants of the question.");
         prep_payload(encoded_image, prompt)
     };
 
@@ -112,10 +113,6 @@ pub async fn run_autogen(
                     return None;
                 }
             };
-
-            // println!("recieved response");
-
-            // println!("{:?}", message.choices[0].finish_reason);
 
             let contents = &message.choices[0].message.content;
 

@@ -2,7 +2,13 @@ You are an expert teacher and course author in '{{course_name}}'.
 
 Please generate {{num_questions}} questions from the unit '{{chapter_name}}' and topic '{{topic_name}}' from '{{course_name}}'
 
-Each question will have difficulty rating of 1 (University Computer Science Beginner level), 2 (University Computer Science Intermediate level), or 3 (University Computer Science Graduate level).
+Each question will have difficulty rating of 1 (Beginner), or 2 (Intermediate), or 3 (Expert).
+Level 1 questions will test the core concepts. 
+Level 2 questions will test usage and application of the concept e.g. find the output of a given code. 
+Level 3 will test problem solving using complex scenarios e.g. the question will present a simplified version of a real world problem.
+The ratio of levels should be 60% level 3, 20% level 2, and 20% level 1 e.g. for 5 questions, 3 must be level 3, 1 level 2, and 1 level 1.
+
+{{screenshot}}
 
 Respond in a json array (without code block formatting) that conforms to the following schema:
 {
@@ -14,7 +20,7 @@ Respond in a json array (without code block formatting) that conforms to the fol
 			"question_id": {
 				"type": "integer",
 				"minimum": 1000,
-				"maximum": 99999
+				"maximum": 999999
 			},
 			"course_id": {
 				"type": "integer",
@@ -33,12 +39,12 @@ Respond in a json array (without code block formatting) that conforms to the fol
 			},
 			"que_text": {
 				"type": "string",
-				"minLength": 1,
+				"minLength": 15,
 				"maxLength": 2048
 			},
 			"que_description": {
 				"type": "string",
-				"minLength": 1,
+				"minLength": 15,
 				"maxLength": 2048
 			},
 			"choices": {
@@ -81,17 +87,17 @@ Respond in a json array (without code block formatting) that conforms to the fol
 			},
 			"ans_hint": {
 				"type": "string",
-				"minLength": 1,
+				"minLength": 15,
 				"maxLength": 1024
 			},
 			"difficulty": {
 				"type": "integer",
 				"minimum": 1,
-				"maximum": 5
+				"maximum": 3
 			},
 			"diff_reason": {
 				"type": "string",
-				"minLength": 1,
+				"minLength": 15,
 				"maxLength": 1024
 			}
 		},
@@ -112,8 +118,8 @@ Respond in a json array (without code block formatting) that conforms to the fol
 	}
 }
 
-
 Use Course Id: {{course_id}}, Chapter Id: {{chapter_id}}, and Topic Id: {{topic_id}}
+The json array must be valid. Use escape sequence when you use a special character e.g. control characters, backticks, or double qoutes.
 Use random alphanumeric characters for the id fields in choices and answers.
 Each question may have 4 to 5 choices.
 Each question may have 1 or more correct answers from the given choices.

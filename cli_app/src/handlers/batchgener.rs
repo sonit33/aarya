@@ -1,4 +1,4 @@
-use std::path::Path;
+use std::path::{Path, PathBuf};
 
 use aarya_utils::{
     file_ops::{make_dir, FileOpsResult},
@@ -25,6 +25,7 @@ pub async fn run_batch(
     chapter_id: Option<u32>,
     count: u32,
     prompt_path: &Path,
+    screenshot_path: &Option<PathBuf>,
     pool: &MySqlPool,
 ) {
     let session_id = generate_timestamp();
@@ -41,7 +42,7 @@ pub async fn run_batch(
             }
         };
         let data_folder = format!("./.temp-data/course-{}-{:?}", course.course_id, session_id);
-        save_to_file(courses, count, prompt_path, data_folder).await;
+        save_to_file(courses, count, prompt_path, data_folder, screenshot_path).await;
     }
 
     if chapter_id.is_some() && course_id.is_some() {
@@ -57,7 +58,7 @@ pub async fn run_batch(
             }
         };
         let data_folder = format!("./.temp-data/course-{}-chapter-{}-{:?}", chapter.course_id, chapter.chapter_id, session_id);
-        save_to_file(chapters, count, prompt_path, data_folder).await;
+        save_to_file(chapters, count, prompt_path, data_folder, screenshot_path).await;
     }
 
     if chapter_id.is_none() && course_id.is_none() {
@@ -70,10 +71,11 @@ async fn save_to_file(
     count: u32,
     prompt_path: &Path,
     data_folder: String,
+    screenshot_folder: &Option<PathBuf>,
 ) {
     match make_dir(data_folder.as_str()) {
         FileOpsResult::Success(_) => {
-            println!("Using {} to save the generated questions", data_folder);
+            println!("Created folder {} to save the generated questions", data_folder);
         }
         FileOpsResult::Error(_) => {
             eprintln!("Failed to create data folder");
@@ -94,11 +96,17 @@ async fn save_to_file(
             topic_name: c.topic_name.clone(),
             count,
         };
-        let output_file = run_autogen(&None, prompt_path, &args, data_folder.as_str()).await;
-        manifest.push(ManifestModel {
-            file_path: output_file.unwrap(),
-            model: c,
-        });
+        let screenshot_file = format!("{0}/{1}-{2}-{3}.png", screenshot_folder.as_ref().unwrap().to_str().unwrap(), c.course_id, c.chapter_id, c.topic_id);
+        let screenshot_path = Some(PathBuf::from(screenshot_file));
+        match run_autogen(&screenshot_path, prompt_path, &args, data_folder.as_str()).await {
+            Some(output_file) => {
+                manifest.push(ManifestModel { file_path: output_file, model: c });
+            }
+            None => {
+                println!("Autogen failed for {0}-{1}-{2}", c.course_id, c.chapter_id, c.topic_id);
+            }
+        }
+
         counter += 1;
         println!("Finished {} of {}", counter, len);
         println!("----------------------------------");
@@ -112,15 +120,3 @@ async fn save_to_file(
         FileOpsResult::Error(_) => eprintln!("Failed to create manifest file"),
     }
 }
-
-/*
-./aarya_cli autogen \
---course-id 1002 \
---course-name "AP Computer Science A" \
---chapter-name "Primitive Types" \
---chapter-id 1010 \
---topic-name "Mathematical Operations" \
---topic-id 1004 \
---count 10 \
---prompt-path ../.prompts/prompt.txt
-*/

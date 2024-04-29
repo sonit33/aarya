@@ -117,6 +117,10 @@ enum Commands {
         /// path to the prompt file
         #[arg(long, value_name = "FILE")]
         prompt_path: PathBuf,
+
+        /// path to the screenshot folder
+        #[arg(long, value_name = "FILE")]
+        screenshot_path: Option<PathBuf>,
     },
     /// processes and loads all json files in a directory to database
     BatchUpload {
@@ -185,8 +189,9 @@ async fn main() {
             chapter_id,
             count,
             prompt_path,
+            screenshot_path,
         }) => {
-            run_batch(*course_id, *chapter_id, *count, prompt_path, &pool).await;
+            run_batch(*course_id, *chapter_id, *count, prompt_path, screenshot_path, &pool).await;
         }
         Some(Commands::BatchUpload { schema_file, directory }) => {
             run_batch_uploads(schema_file, directory, &pool).await;

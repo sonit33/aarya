@@ -40,7 +40,7 @@ pub async fn run_batch_uploads(
     };
 
     // iterate the parsed manifest models
-    println!("Iterating manifest models");
+    println!("----Iterating manifest models----");
     for model in models {
         // validate
         println!("Validating file: {}", &model.file_path.as_str());
@@ -63,16 +63,14 @@ pub async fn run_batch_uploads(
         };
 
         // save the questions
-        println!("Saving {} question(s)", questions.len());
+        println!("----Saving {} question(s)----", questions.len());
         for question in questions {
             println!("Saving question Id: {:?}", question.question_id.unwrap());
             match question.create(pool).await {
                 EntityResult::Success(_) => println!("Question: {:?} saved successfully", question.question_id),
-                EntityResult::Error(e) => {
-                    println!("Failed to save question: {:?}", e);
-                    return;
-                }
+                EntityResult::Error(e) => println!("Failed to save question: {:?}", e),
             }
         }
+        println!("---------------------------------");
     }
 }
