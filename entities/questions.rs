@@ -246,7 +246,7 @@ impl QuestionEntity {
     pub async fn find_top_n(
         &self,
         pool: &MySqlPool,
-        limit: u8,
+        limit: u32,
     ) -> EntityResult<Vec<QuestionQueryModel>> {
         let questions = sqlx::query_as::<_, QuestionQueryModel>(
             r#"

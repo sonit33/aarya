@@ -24,13 +24,13 @@ pub async fn chapters_by_course(
     }
 }
 
-// get topics -> GET /topics/{chapter_id}
-#[get("/api/topics/{chapter_id}/{course_id}")]
+#[get("/api/topics/{course_id}/{chapter_id}")]
 pub async fn topics_by(
     pool: web::Data<MySqlPool>,
     path: web::Path<(String, String)>,
 ) -> impl Responder {
-    let (chapter_id, course_id) = path.into_inner();
+    let (course_id, chapter_id) = path.into_inner();
+    log::debug!("chapter_id: {} course_id: {}", chapter_id, course_id);
     let mut topic = TopicEntity::new();
     topic.chapter_id = chapter_id.parse().unwrap();
     topic.course_id = course_id.parse().unwrap();
@@ -56,7 +56,7 @@ pub async fn start_test(
     let test = TestEntity {
         test_id: Some(0),
         // TODO: hard coded; replace with actual student id
-        student_id: 10000,
+        student_id: 10001,
         course_id: model.course_id,
         chapter_id: model.chapter_id,
         topic_id: model.topic_id,

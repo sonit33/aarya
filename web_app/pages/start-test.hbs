@@ -114,7 +114,8 @@
 				$.ajax({
 					url: '/api/start-test',
 					method: 'POST',
-					data: params,
+					data: JSON.stringify(params),
+					contentType: 'application/json',
 					success: function(data) {
 						console.log(data);
 					},
@@ -122,6 +123,7 @@
 						console.log(err);
 					}
 				});
+				
 			});
 		});
 	</script>

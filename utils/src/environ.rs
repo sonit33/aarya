@@ -13,6 +13,8 @@ pub struct Environ {
     pub email_password: String,
     pub openai_key: String,
     pub allowed_origin: String,
+    pub web_app_port: u16,
+    pub blog_app_port: u16,
 }
 
 impl Environ {
@@ -34,6 +36,8 @@ impl Default for Environ {
         let email_password = env::var("EMAIL_PASSWORD").expect("Missing Email server name");
         let openai_key = env::var("OPENAI_KEY").expect("Missing OpenAI key");
         let allowed_origin = env::var("ALLOWED_ORIGIN").expect("Missing ALLOWED_ORIGIN");
+        let web_app_port = env::var("WEB_APP_PORT").expect("Missing WEB_APP_PORT").parse::<u16>().expect("WEB_APP_PORT must be a number");
+        let blog_app_port = env::var("BLOG_APP_PORT").expect("Missing BLOG_APP_PORT").parse::<u16>().expect("BLOG_APP_PORT must be a number");
         Environ {
             db_connection_string: db_cs,
             db_name,
@@ -43,6 +47,8 @@ impl Default for Environ {
             email_password,
             openai_key,
             allowed_origin,
+            web_app_port,
+            blog_app_port,
         }
     }
 }

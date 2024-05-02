@@ -30,9 +30,6 @@ async fn main() -> std::io::Result<()> {
 
     from_filename(env_file).ok();
 
-    let ip = "localhost";
-    let port = 9090;
-
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
 
     let env_default = Environ::default();
@@ -41,6 +38,9 @@ async fn main() -> std::io::Result<()> {
 
     let database_url = format!("{}/{}", env_default.db_connection_string, env_default.db_name);
     let pool = MySqlPool::connect(database_url.as_str()).await.expect("Failed to connect to database");
+
+    let ip = "localhost";
+    let port = Environ::default().web_app_port;
 
     println!("Actix running at http://{ip}:{port}");
 

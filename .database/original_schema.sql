@@ -174,3 +174,5 @@ VALUES (
         old.account_active
     );
 END;
+
+insert into students(first_name, email_address, email_hash, pass_hash, over_13, email_verified, account_active) values("Jon", "jon@abc.com","not-set","not-set",1,1,1);
