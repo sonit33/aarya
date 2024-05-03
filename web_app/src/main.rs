@@ -6,7 +6,7 @@ use handlebars::Handlebars;
 use sqlx::MySqlPool;
 
 use crate::{
-    apis::{chapters_by_course, config_test, load_question_by_index, topics_by},
+    apis::{chapters_by_course, configure_test, load_question_by_index, topics_by},
     pages::{home_page, test_config_page, test_start_page},
 };
 
@@ -63,7 +63,7 @@ async fn main() -> std::io::Result<()> {
             .service(test_start_page)
             .service(chapters_by_course)
             .service(topics_by)
-            .service(config_test)
+            .service(configure_test)
             .service(load_question_by_index)
     })
     .bind((ip, port))?

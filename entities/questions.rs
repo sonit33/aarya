@@ -2,7 +2,7 @@ use aarya_utils::{hash_ops, random::randomize_u32s};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::MySqlPool;
-use validator::Validate;
+use validator::{Validate, ValidateLength};
 
 use crate::result_types::{DatabaseErrorType, EntityResult, SuccessResultType};
 
@@ -43,6 +43,7 @@ pub struct QuestionQueryModel {
     pub que_text: String,
     pub que_description: String,
     pub choices: String,
+    pub radio: bool,
     pub que_difficulty: u8,
     pub diff_reason: String,
     pub ans_explanation: String,
@@ -88,6 +89,7 @@ impl QuestionEntity {
         pool: &MySqlPool,
     ) -> EntityResult<SuccessResultType> {
         let que_hash = hash_ops::string_hasher(self.que_text.to_lowercase().as_str());
+        let radio = self.answers.as_array().length().unwrap() == 1; // determines showing radio buttons or checkboxes
         let res = sqlx::query(
             "INSERT INTO questions (
                     question_id,
@@ -97,13 +99,14 @@ impl QuestionEntity {
                     que_text, 
                     que_description, 
                     answers, 
+                    radio,
                     choices, 
                     difficulty, 
                     diff_reason, 
                     ans_explanation, 
                     ans_hint, 
                     que_hash) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(self.question_id)
         .bind(self.course_id)
@@ -112,6 +115,7 @@ impl QuestionEntity {
         .bind(&self.que_text)
         .bind(&self.que_description)
         .bind(&self.answers)
+        .bind(radio)
         .bind(&self.choices)
         .bind(self.difficulty)
         .bind(&self.diff_reason)
@@ -142,6 +146,7 @@ impl QuestionEntity {
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
+                    q.radio,
                     q.difficulty, 
                     q.diff_reason, 
                     q.ans_explanation, 
@@ -179,6 +184,7 @@ impl QuestionEntity {
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
+                    q.radio,
                     q.difficulty, 
                     q.diff_reason,
                     q.ans_explanation, 
@@ -216,6 +222,7 @@ impl QuestionEntity {
                 q.que_text, 
                 q.que_description, 
                 q.choices, 
+                q.radio,
                 q.difficulty, 
                 q.diff_reason,
                 q.ans_explanation, 
@@ -263,6 +270,7 @@ impl QuestionEntity {
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
+                    q.radio,
                     q.difficulty, 
                     q.diff_reason,
                     q.ans_explanation, 

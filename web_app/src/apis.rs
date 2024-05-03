@@ -3,10 +3,19 @@ use models::{
     chapters::ChapterEntity,
     questions::QuestionEntity,
     result_types::{EntityResult, SuccessResultType},
-    tests::{TestEntity, TestMutationModel, TestQuestionsEntity},
+    tests::{TestEntity, TestMutationModel, TestQuestionModel, TestQuestionsEntity},
     topics::TopicEntity,
 };
+use serde::Serialize;
 use sqlx::MySqlPool;
+
+#[derive(Debug, Serialize)]
+pub struct QuestionLoadModel {
+    total: usize,
+    current: TestQuestionModel,
+    index: usize,
+    eof: bool,
+}
 
 // get chapters -> GET /chapters/{course_id}
 #[get("/api/chapters/{course_id}")]
@@ -48,7 +57,7 @@ pub async fn topics_by(
 /// save the matching questions in test_questions table (test_id, question_id, state)
 /// state: unseen (default, 0), seen (1), answered (2)
 #[post("/api/config-test")]
-pub async fn config_test(
+pub async fn configure_test(
     pool: web::Data<MySqlPool>,
     model: web::Json<TestMutationModel>,
 ) -> impl Responder {
@@ -121,7 +130,12 @@ pub async fn load_question_by_index(
     let mut test_questions = TestQuestionsEntity::new();
     test_questions.test_id = test_id;
     match test_questions.find_all(&pool).await {
-        EntityResult::Success(result) => HttpResponse::Ok().json(result.get(index)),
+        EntityResult::Success(result) => HttpResponse::Ok().json(QuestionLoadModel {
+            total: result.len(),
+            current: result[index].clone(),
+            index: index + 1,
+            eof: index == result.len() - 1,
+        }),
         EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Error getting test questions: {:?}", e)),
     }
 }
