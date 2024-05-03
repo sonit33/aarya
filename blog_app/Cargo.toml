@@ -6,3 +6,19 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
+aarya_utils = { path = "../utils", version = "*" }
+actix-web = { version = "4.5.1", features = ["macros"] }
+sqlx = { version = "0.7.4", features = [
+    "mysql",
+    "runtime-tokio", 
+    "tls-rustls",
+    "json",
+    "macros",
+] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0.115"
+tokio = { version = "1.36.0", features = ["full"] }
+env_logger = "0.11.3"
+log = "0.4.21"
+actix-cors = "0.7.0"
+handlebars = {version="5.1.2"}

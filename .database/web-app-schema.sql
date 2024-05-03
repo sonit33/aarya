@@ -9,7 +9,7 @@ create table courses (
     constraint unique_course_name_hash unique (course_name_hash)
 );
 create table chapters (
-    chapter_id int unsigned auto_increment primary key,
+    chapter_id int unsigned primary key,
     course_id int unsigned,
     chapter_name varchar(128),
     chapter_description varchar(512),
