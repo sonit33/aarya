@@ -6,8 +6,8 @@ use handlebars::Handlebars;
 use sqlx::MySqlPool;
 
 use crate::{
-    apis::{chapters_by_course, start_test, topics_by},
-    pages::{home_page, start_test_page},
+    apis::{chapters_by_course, configure_test, load_question_by_index, topics_by},
+    pages::{home_page, test_config_page, test_start_page},
 };
 
 #[macro_use]
@@ -30,9 +30,6 @@ async fn main() -> std::io::Result<()> {
 
     from_filename(env_file).ok();
 
-    let ip = "localhost";
-    let port = 9090;
-
     env_logger::init_from_env(env_logger::Env::new().default_filter_or("debug"));
 
     let env_default = Environ::default();
@@ -41,6 +38,9 @@ async fn main() -> std::io::Result<()> {
 
     let database_url = format!("{}/{}", env_default.db_connection_string, env_default.db_name);
     let pool = MySqlPool::connect(database_url.as_str()).await.expect("Failed to connect to database");
+
+    let ip = "localhost";
+    let port = Environ::default().web_app_port;
 
     println!("Actix running at http://{ip}:{port}");
 
@@ -59,10 +59,12 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(handlebars.clone()))
             .app_data(web::Data::new(pool.clone()))
             .service(home_page)
-            .service(start_test_page)
+            .service(test_config_page)
+            .service(test_start_page)
             .service(chapters_by_course)
             .service(topics_by)
-            .service(start_test)
+            .service(configure_test)
+            .service(load_question_by_index)
     })
     .bind((ip, port))?
     .run()

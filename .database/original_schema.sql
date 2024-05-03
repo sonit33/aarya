@@ -37,6 +37,7 @@ create table questions (
     -- [{"id":"abc", "text":"abc"}, {"id":"def", "text":"def"}]
     answers varchar(2048) collate utf8mb4_bin not null check (json_valid(`answers`)),
     -- [{"id":"abc"}]
+    radio bit null default 0,
     ans_explanation varchar(2048) not null,
     ans_hint varchar(1024) not null,
     difficulty tinyint not null,
@@ -174,3 +175,5 @@ VALUES (
         old.account_active
     );
 END;
+
+insert into students(first_name, email_address, email_hash, pass_hash, over_13, email_verified, account_active) values("Jon", "jon@abc.com","not-set","not-set",1,1,1);

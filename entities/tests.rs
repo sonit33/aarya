@@ -10,9 +10,9 @@ pub struct TestEntity {
     pub course_id: u32,
     pub chapter_id: Option<u32>,
     pub topic_id: Option<u32>,
-    pub test_difficulty: u8,
-    pub test_length: u8,
-    pub test_state: u8,
+    pub test_difficulty: u32,
+    pub test_length: u32,
+    pub test_state: u32,
 }
 
 /// association table for tests and questions
@@ -20,7 +20,21 @@ pub struct TestEntity {
 pub struct TestQuestionsEntity {
     pub test_id: u32,
     pub question_id: u32,
-    pub state: u8,
+    pub question_state: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
+pub struct TestQuestionModel {
+    pub test_id: u32,
+    pub question_id: u32,
+    pub que_text: String,
+    pub difficulty: i8,
+    pub choices: String,
+    pub radio: bool,
+    pub diff_reason: String,
+    pub course_name: String,
+    pub chapter_name: String,
+    pub topic_name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -28,9 +42,9 @@ pub struct TestMutationModel {
     pub course_id: u32,
     pub chapter_id: Option<u32>,
     pub topic_id: Option<u32>,
-    pub test_difficulty: u8,
-    pub test_length: u8,
-    pub test_state: u8,
+    pub test_difficulty: u32,
+    pub test_length: u32,
+    pub test_state: u32,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
@@ -43,9 +57,9 @@ pub struct TestQueryModel {
     pub chapter_name: Option<String>,
     pub topic_id: Option<u32>,
     pub topic_name: Option<String>,
-    pub test_difficulty: u8,
+    pub test_difficulty: u32,
     pub test_length: String,
-    pub test_state: u8,
+    pub test_state: u32,
 }
 
 impl Default for TestEntity {
@@ -68,7 +82,10 @@ impl TestEntity {
         }
     }
 
-    pub async fn create_test(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
+    pub async fn create_test(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<SuccessResultType> {
         let query = r#"
             INSERT INTO tests (course_id, student_id, chapter_id, topic_id, test_difficulty, test_length, test_state)
             VALUES (?, ?, ?, ?, ?, ?, ?)
@@ -92,7 +109,10 @@ impl TestEntity {
     }
 
     // get all tests include course and chapter names and ids
-    pub async fn find_all(&self, pool: &MySqlPool) -> EntityResult<Vec<TestQueryModel>> {
+    pub async fn find_all(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Vec<TestQueryModel>> {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
@@ -113,7 +133,10 @@ impl TestEntity {
     }
 
     // get a test by id_hash
-    pub async fn find_one(&self, pool: &MySqlPool) -> EntityResult<Option<TestQueryModel>> {
+    pub async fn find_one(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Option<TestQueryModel>> {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
@@ -138,7 +161,10 @@ impl TestEntity {
     // get all tests in a course
     // capture test_id, id_hash, name, kind, course_id, course_name, added_timestamp, description in a new struct
     // then return the struct as a vector
-    pub async fn find_by_course(&self, pool: &MySqlPool) -> EntityResult<Vec<TestQueryModel>> {
+    pub async fn find_by_course(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Vec<TestQueryModel>> {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
@@ -163,7 +189,11 @@ impl TestEntity {
     // get all tests in a chapter in a course by joining test, test_chapters, chapter, and course table to return course and chapter names
     // captures test_id, test_name, test_kind, test_description, course_id, course_name, chapter_id, chapter_name in a new struct
     // then return the struct as a vector
-    pub async fn find_by_chapter(&self, pool: &MySqlPool, chapter_id: u32) -> EntityResult<Vec<TestQueryModel>> {
+    pub async fn find_by_chapter(
+        &self,
+        pool: &MySqlPool,
+        chapter_id: u32,
+    ) -> EntityResult<Vec<TestQueryModel>> {
         let tests = sqlx::query_as::<_, TestQueryModel>(
             r#"
             SELECT 
@@ -188,16 +218,23 @@ impl TestEntity {
 
 impl TestQuestionsEntity {
     pub fn new() -> Self {
-        TestQuestionsEntity { test_id: 0, question_id: 0, state: 0 }
+        TestQuestionsEntity {
+            test_id: 0,
+            question_id: 0,
+            question_state: 0,
+        }
     }
 
-    pub async fn create(&self, pool: &MySqlPool) -> EntityResult<SuccessResultType> {
+    pub async fn create(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<SuccessResultType> {
         let query = r#"
-            INSERT INTO test_questions (test_id, question_id, state)
+            INSERT INTO test_questions (test_id, question_id, question_state)
             VALUES (?, ?, ?)
         "#;
 
-        let result = sqlx::query(query).bind(self.test_id).bind(self.question_id).bind(self.state).execute(pool).await;
+        let result = sqlx::query(query).bind(self.test_id).bind(self.question_id).bind(self.question_state).execute(pool).await;
 
         match result {
             Ok(r) => EntityResult::Success(SuccessResultType::Created(r.last_insert_id(), r.rows_affected())),
@@ -205,20 +242,39 @@ impl TestQuestionsEntity {
         }
     }
 
-    pub async fn find_top(&self, pool: &MySqlPool) -> EntityResult<Vec<TestQuestionsEntity>> {
-        let questions = sqlx::query_as::<_, TestQuestionsEntity>(
+    pub async fn find_all(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<Vec<TestQuestionModel>> {
+        let query = sqlx::query_as::<_, TestQuestionModel>(
             r#"
-            SELECT test_id, question_id, state
-            FROM test_questions
-            WHERE test_id = ? and state = 0
-            LIMIT 1
+            SELECT tq.test_id, 
+                q.question_id, 
+                q.que_text, 
+                q.difficulty,
+                q.choices,
+                q.radio,
+                q.diff_reason,
+                c.course_name,
+                ch.chapter_name,
+                t.topic_name
+            FROM test_questions tq
+                inner join questions q
+                    on tq.question_id = q.question_id
+                inner join courses c
+                    on q.course_id = c.course_id
+                inner join chapters ch
+                    on q.course_id = ch.chapter_id
+                inner join topics t
+                    on q.topic_id = t.topic_id
+            WHERE test_id = ?;
         "#,
         )
         .bind(self.test_id)
         .fetch_all(pool)
         .await;
 
-        match questions {
+        match query {
             Ok(result) => EntityResult::Success(result),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read test questions".to_string(), e.to_string())),
         }

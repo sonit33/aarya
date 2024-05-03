@@ -1,8 +1,8 @@
-use aarya_utils::hash_ops;
+use aarya_utils::{hash_ops, random::randomize_u32s};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::MySqlPool;
-use validator::Validate;
+use validator::{Validate, ValidateLength};
 
 use crate::result_types::{DatabaseErrorType, EntityResult, SuccessResultType};
 
@@ -43,12 +43,18 @@ pub struct QuestionQueryModel {
     pub que_text: String,
     pub que_description: String,
     pub choices: String,
+    pub radio: bool,
     pub que_difficulty: u8,
     pub diff_reason: String,
     pub ans_explanation: String,
     pub ans_hint: String,
     pub course_name: Option<String>,
     pub chapter_name: Option<String>,
+}
+
+#[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
+pub struct QuestionIdQueryModel {
+    pub question_id: u32,
 }
 
 impl QuestionEntity {
@@ -83,6 +89,7 @@ impl QuestionEntity {
         pool: &MySqlPool,
     ) -> EntityResult<SuccessResultType> {
         let que_hash = hash_ops::string_hasher(self.que_text.to_lowercase().as_str());
+        let radio = self.answers.as_array().length().unwrap() == 1; // determines showing radio buttons or checkboxes
         let res = sqlx::query(
             "INSERT INTO questions (
                     question_id,
@@ -92,13 +99,14 @@ impl QuestionEntity {
                     que_text, 
                     que_description, 
                     answers, 
+                    radio,
                     choices, 
                     difficulty, 
                     diff_reason, 
                     ans_explanation, 
                     ans_hint, 
                     que_hash) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)",
         )
         .bind(self.question_id)
         .bind(self.course_id)
@@ -107,6 +115,7 @@ impl QuestionEntity {
         .bind(&self.que_text)
         .bind(&self.que_description)
         .bind(&self.answers)
+        .bind(radio)
         .bind(&self.choices)
         .bind(self.difficulty)
         .bind(&self.diff_reason)
@@ -137,6 +146,7 @@ impl QuestionEntity {
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
+                    q.radio,
                     q.difficulty, 
                     q.diff_reason, 
                     q.ans_explanation, 
@@ -174,6 +184,7 @@ impl QuestionEntity {
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
+                    q.radio,
                     q.difficulty, 
                     q.diff_reason,
                     q.ans_explanation, 
@@ -211,6 +222,7 @@ impl QuestionEntity {
                 q.que_text, 
                 q.que_description, 
                 q.choices, 
+                q.radio,
                 q.difficulty, 
                 q.diff_reason,
                 q.ans_explanation, 
@@ -246,7 +258,7 @@ impl QuestionEntity {
     pub async fn find_top_n(
         &self,
         pool: &MySqlPool,
-        limit: u8,
+        limit: u32,
     ) -> EntityResult<Vec<QuestionQueryModel>> {
         let questions = sqlx::query_as::<_, QuestionQueryModel>(
             r#"
@@ -258,6 +270,7 @@ impl QuestionEntity {
                     q.que_text, 
                     q.que_description, 
                     q.choices, 
+                    q.radio,
                     q.difficulty, 
                     q.diff_reason,
                     q.ans_explanation, 
@@ -288,6 +301,48 @@ impl QuestionEntity {
         .await;
         match questions {
             Ok(result) => EntityResult::Success(result),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read questions with course and chapter".to_string(), e.to_string())),
+        }
+    }
+
+    pub async fn find_random_questions(
+        &self,
+        pool: &MySqlPool,
+        limit: u32,
+    ) -> EntityResult<Vec<u32>> {
+        let questions = sqlx::query_as::<_, QuestionIdQueryModel>(
+            r#"
+                SELECT 
+                    q.question_id 
+                FROM questions q
+                JOIN courses c
+                    ON q.course_id = c.course_id
+                JOIN chapters ch
+                    ON q.chapter_id = ch.chapter_id
+                JOIN topics t
+                    ON t.topic_id = q.topic_id
+                WHERE q.difficulty = ? 
+                    and q.course_id = ? 
+                    and q.chapter_id = ? 
+                    and q.topic_id = ?
+            "#,
+        )
+        .bind(self.difficulty)
+        .bind(self.course_id)
+        .bind(self.chapter_id)
+        .bind(self.topic_id)
+        .fetch_all(pool)
+        .await;
+
+        match questions {
+            Ok(result) => {
+                // EntityResult::Success(result)
+                let mut question_ids: Vec<u32> = Vec::new();
+                result.clone().into_iter().for_each(|question| {
+                    question_ids.push(question.question_id);
+                });
+                EntityResult::Success(randomize_u32s(question_ids, limit))
+            }
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read questions with course and chapter".to_string(), e.to_string())),
         }
     }

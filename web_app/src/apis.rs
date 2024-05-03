@@ -3,10 +3,19 @@ use models::{
     chapters::ChapterEntity,
     questions::QuestionEntity,
     result_types::{EntityResult, SuccessResultType},
-    tests::{TestEntity, TestMutationModel, TestQuestionsEntity},
+    tests::{TestEntity, TestMutationModel, TestQuestionModel, TestQuestionsEntity},
     topics::TopicEntity,
 };
+use serde::Serialize;
 use sqlx::MySqlPool;
+
+#[derive(Debug, Serialize)]
+pub struct QuestionLoadModel {
+    total: usize,
+    current: TestQuestionModel,
+    index: usize,
+    eof: bool,
+}
 
 // get chapters -> GET /chapters/{course_id}
 #[get("/api/chapters/{course_id}")]
@@ -24,13 +33,13 @@ pub async fn chapters_by_course(
     }
 }
 
-// get topics -> GET /topics/{chapter_id}
-#[get("/api/topics/{chapter_id}/{course_id}")]
+#[get("/api/topics/{course_id}/{chapter_id}")]
 pub async fn topics_by(
     pool: web::Data<MySqlPool>,
     path: web::Path<(String, String)>,
 ) -> impl Responder {
-    let (chapter_id, course_id) = path.into_inner();
+    let (course_id, chapter_id) = path.into_inner();
+    log::debug!("chapter_id: {} course_id: {}", chapter_id, course_id);
     let mut topic = TopicEntity::new();
     topic.chapter_id = chapter_id.parse().unwrap();
     topic.course_id = course_id.parse().unwrap();
@@ -47,8 +56,8 @@ pub async fn topics_by(
 /// find matching questions
 /// save the matching questions in test_questions table (test_id, question_id, state)
 /// state: unseen (default, 0), seen (1), answered (2)
-#[post("/api/start-test")]
-pub async fn start_test(
+#[post("/api/config-test")]
+pub async fn configure_test(
     pool: web::Data<MySqlPool>,
     model: web::Json<TestMutationModel>,
 ) -> impl Responder {
@@ -56,7 +65,7 @@ pub async fn start_test(
     let test = TestEntity {
         test_id: Some(0),
         // TODO: hard coded; replace with actual student id
-        student_id: 10000,
+        student_id: 10001,
         course_id: model.course_id,
         chapter_id: model.chapter_id,
         topic_id: model.topic_id,
@@ -79,6 +88,7 @@ pub async fn start_test(
 
     let model = model.clone();
 
+    // populate test_questions table that the test will navigate through
     // find questions based on the test parameters
     let mut question = QuestionEntity::new();
     question.difficulty = model.test_difficulty as i8;
@@ -86,13 +96,13 @@ pub async fn start_test(
     question.topic_id = model.topic_id;
     question.course_id = model.course_id;
 
-    match question.find_top_n(&pool, model.test_length).await {
+    match question.find_random_questions(&pool, model.test_length).await {
         EntityResult::Success(questions) => {
             for question in questions {
                 let test_question = TestQuestionsEntity {
                     test_id: test_id as u32,
-                    question_id: question.question_id,
-                    state: 0,
+                    question_id: question,
+                    question_state: 0,
                 };
                 match test_question.create(&pool).await {
                     EntityResult::Success(_) => {}
@@ -108,6 +118,26 @@ pub async fn start_test(
     }
 
     HttpResponse::Ok().json(test_id)
+}
+
+#[get("/api/test/{test_id}/{index}")]
+pub async fn load_question_by_index(
+    pool: web::Data<MySqlPool>,
+    path: web::Path<(u32, usize)>,
+) -> impl Responder {
+    let (test_id, index) = path.into_inner();
+
+    let mut test_questions = TestQuestionsEntity::new();
+    test_questions.test_id = test_id;
+    match test_questions.find_all(&pool).await {
+        EntityResult::Success(result) => HttpResponse::Ok().json(QuestionLoadModel {
+            total: result.len(),
+            current: result[index].clone(),
+            index: index + 1,
+            eof: index == result.len() - 1,
+        }),
+        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Error getting test questions: {:?}", e)),
+    }
 }
 
 // post start-test -> POST /start-test

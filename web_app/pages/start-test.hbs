@@ -5,124 +5,103 @@
 	<body>
 		{{> header}}
 		<div class="container">
-			<h1>Start building your new test</h1>
-			<form action="/api/start-test" method="post" id="test-form" name="test-form">
-				<div class="form-group">
-					<label for="courses">Courses</label>
-					<select class="form-control" id="courses" name="courses">
-						<option value="not-set" selected>Pick a course</option>
-						{{#each courses}}
-							<option value="{{this.id}}">{{this.name}}</option>
-						{{/each}}
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="chapters">Chapters (optional)</label>
-					<select class="form-control" id="chapters" name="chapters" disabled>
-						<option value="0">Select a course first</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="topics">Topics (optional)</label>
-					<select class="form-control" id="topics" name="topics" disabled>
-						<option value="0">Select a chapter first</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="difficulty">Difficulty level (optional)</label>
-					<select class="form-control" id="difficulty" name="difficulty" disabled>
-						<option value="1">Easy -- if you are just getting started</option>
-						<option value="2" selected>Intermediate -- if you know the basics and practicing</option>
-						<option value="3">Hard -- you want to simulate an exam</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="length">Length (optional)</label>
-					<select class="form-control" id="length" name="length" disabled>
-						<option value="5">Quiz -- if you are just getting started</option>
-						<option value="25" selected>Practice -- if you know the basics and practicing</option>
-						<option value="50">Exam -- you want to simulate an exam</option>
-					</select>
-				</div>
-				<button type="submit" class="btn btn-primary">Start test</button>
+            <div id="nav-bar">
+                <input type="hidden" id="index_field" value="0"/>
+                <input type="hidden" id="test_id_field" value="{{test_id}}"/>
+                <div id="navButtons_container"></div>
+                <div>right: exit button</div>
+            </div>
+            <div id="info-bar">
+                <p id="difficulty_field">Difficulty (with reason in subtext)</p>
+                <p id="courseName_field">Course name</p>
+                <p id="chapterName_field">Chapter name</p>
+                <p id="topicName_field">Topic name</p>
+            </div>
+            <div>
+                <p id="question_field"></p>
+                <div id="choices_container">choices</div>
+            </div>
+
+            <div id="button-bar">
+                <button id="left_button" type="button">left: Previous</button>
+                <button id="submit_button" type="button">right: Submit</button>
+            </div>
 		</div>
         {{> footer}}
 	</body>
 	<script type="text/javascript">
+        const $leftButton = $('#left_button');
+        const $submitButton = $('#submit_button');
+        const $index = $('#index_field');
+        const $question = $('#question_field');
+        const $course = $('#courseName_field');
+        const $chapter = $('#chapterName_field');
+        const $topic = $('#topicName_field');
+        const $difficulty = $('#difficulty_field');
+        const $navButtons = $('#navButtons_container');
+        const $choices = $('#choices_container');
+        $(document).on('click', 'button.nav_button',  (e) => {
+            let index = parseInt(e.target.getAttribute('data-index'));
+            $.get(`/api/test/{{test_id}}/${index-1}`, (data)=>{
+                $index.val(data.index);
+                afterGet(data);
+            });
+        });
+        $leftButton.on('click', () => {
+            let index = parseInt($index.val()) - 1;
+            $.get(`/api/test/{{test_id}}/${index-1}`, (data)=>{
+                $index.val(data.index);
+                afterGet(data);
+            });
+        });
+        $submitButton.on('click', () => {
+            // post to /api/test/{{test_id}}/{{index}} with answer
+            let index = parseInt($index.val());
+            $.get(`/api/test/{{test_id}}/${index}`, (data)=>{
+                $index.val(data.index);
+                afterGet(data);
+            });
+        });
+        function afterGet(data) {
+            $index.val(data.index);
+            data.index==1? $leftButton.prop('disabled', true): $leftButton.prop('disabled', false);
+            data.index==data.total? $submitButton.prop('disabled', true): $submitButton.prop('disabled', false);
+            $question.text(data.current.que_text);
+            $course.text(data.current.course_name);
+            $chapter.text(data.current.chapter_name);
+            $topic.text(data.current.topic_name);
+            switch(data.current.difficulty){
+                case 1:
+                    $difficulty.text('Easy');
+                    break;
+                case 2:
+                    $difficulty.text('Medium');
+                    break;
+                case 3:
+                    $difficulty.text('Hard');
+                    break;
+                default:
+                    $difficulty.text('Unknown');
+                    break;
+            }
+            $choices.empty();
+            const choices = JSON.parse(data.current.choices);
+            for (let i=0; i<choices.length; i++){
+                if(data.current.radio){
+                    $choices.append(`<p><input type="radio" name="choice" value="${choices[i].id}">${choices[i].text}</input></p>`);
+                } else {
+                    $choices.append(`<p><input type="checkbox" name="choice" value="${choices[i].id}">${choices[i].text}</input></p>`);
+                }
+            }
+        }
 		$(function(){
-			$('#courses').change(function(e){
-                const courseId = $(this).val();
-                console.log(courseId);
-				if(courseId === 'not-set'){
-					$('#chapters').prop('disabled', true);
-					$('#topics').prop('disabled', true);
-					$('#difficulty').prop('disabled', true);
-					$('#length').prop('disabled', true);
-				}else{
-					$('#chapters').prop('disabled', false);
-					$('#topics').prop('disabled', true);
-					$('#difficulty').prop('disabled', false);
-					$('#length').prop('disabled', false);
-					$.ajax({
-						url: `/api/chapters/${courseId}`,
-						method: 'GET',
-						success: function(data){
-							$('#chapters').html('<option value="0">Select a chapter</option>');
-							data.forEach(function(chapter){
-								$('#chapters').append('<option value="' + chapter.chapter_id + '">' + chapter.chapter_name + '</option>');
-							});
-						}
-					});
-				}
-			});
-			$('#chapters').change(function(){
-				var chapterId = $(this).val();
-				var courseId = $('#courses').val();
-				if(chapterId === '0'){
-					$('#topics').prop('disabled', true);
-				}else{
-					$('#topics').prop('disabled', false);
-					$.ajax({
-						url: `/api/topics/${courseId}/${chapterId}`,
-						method: 'GET',
-						success: function(data){
-							$('#topics').html('<option value="0">Select a topic</option>');
-							data.forEach(function(topic){
-								$('#topics').append('<option value="' + topic.topic_id + '">' + topic.topic_name + '</option>');
-							});
-						}
-					});
-				}
-			});
-
-			$('#test-form').submit(function(e){
-				e.preventDefault();
-				var courseId = $('#courses').val();
-				var chapterId = $('#chapters').val();
-				var topicId = $('#topics').val();
-				var difficulty = $('#difficulty').val();
-				var length = $('#length').val();
-				const params = {
-					course_id: parseInt(courseId),
-					chapter_id: parseInt(chapterId),
-					topic_id: parseInt(topicId),
-					test_difficulty: parseInt(difficulty),
-					test_length: parseInt(length),
-					test_state: 0
-				};
-				console.log(params);
-				$.ajax({
-					url: '/api/start-test',
-					method: 'POST',
-					data: params,
-					success: function(data) {
-						console.log(data);
-					},
-					error: function(err){
-						console.log(err);
-					}
-				});
-			});
+            let index = parseInt($index.val());
+			$.get(`/api/test/{{test_id}}/${index}`, (data)=>{
+                afterGet(data);
+                for(let i=0; i<data.total; i++){
+                    $navButtons.append(`<button type="button" class="nav_button" id="navButton_${i}" data-index="${i+1}">${i+1}</button>`);
+                }
+            });
 		});
 	</script>
 </html>

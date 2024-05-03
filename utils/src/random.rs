@@ -1,4 +1,5 @@
 use chrono::Local;
+use rand::seq::SliceRandom;
 use rand::{distributions::Alphanumeric, thread_rng, Rng};
 
 pub fn generate_guid(chars: usize) -> String {
@@ -16,4 +17,11 @@ pub fn generate_numbers(
 
 pub fn generate_timestamp() -> u32 {
     Local::now().timestamp_subsec_nanos()
+}
+
+pub fn randomize_u32s(
+    items: Vec<u32>,
+    limit: u32,
+) -> Vec<u32> {
+    items.choose_multiple(&mut rand::thread_rng(), limit as usize).cloned().collect()
 }
