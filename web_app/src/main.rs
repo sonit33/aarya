@@ -6,8 +6,8 @@ use handlebars::Handlebars;
 use sqlx::MySqlPool;
 
 use crate::{
-    apis::{chapters_by_course, start_test, topics_by},
-    pages::{home_page, start_test_page},
+    apis::{chapters_by_course, config_test, load_question_by_index, topics_by},
+    pages::{home_page, test_config_page, test_start_page},
 };
 
 #[macro_use]
@@ -59,10 +59,12 @@ async fn main() -> std::io::Result<()> {
             .app_data(web::Data::new(handlebars.clone()))
             .app_data(web::Data::new(pool.clone()))
             .service(home_page)
-            .service(start_test_page)
+            .service(test_config_page)
+            .service(test_start_page)
             .service(chapters_by_course)
             .service(topics_by)
-            .service(start_test)
+            .service(config_test)
+            .service(load_question_by_index)
     })
     .bind((ip, port))?
     .run()

@@ -47,8 +47,8 @@ pub async fn topics_by(
 /// find matching questions
 /// save the matching questions in test_questions table (test_id, question_id, state)
 /// state: unseen (default, 0), seen (1), answered (2)
-#[post("/api/start-test")]
-pub async fn start_test(
+#[post("/api/config-test")]
+pub async fn config_test(
     pool: web::Data<MySqlPool>,
     model: web::Json<TestMutationModel>,
 ) -> impl Responder {
@@ -79,6 +79,7 @@ pub async fn start_test(
 
     let model = model.clone();
 
+    // populate test_questions table that the test will navigate through
     // find questions based on the test parameters
     let mut question = QuestionEntity::new();
     question.difficulty = model.test_difficulty as i8;
@@ -86,13 +87,13 @@ pub async fn start_test(
     question.topic_id = model.topic_id;
     question.course_id = model.course_id;
 
-    match question.find_top_n(&pool, model.test_length).await {
+    match question.find_random_questions(&pool, model.test_length).await {
         EntityResult::Success(questions) => {
             for question in questions {
                 let test_question = TestQuestionsEntity {
                     test_id: test_id as u32,
-                    question_id: question.question_id,
-                    state: 0,
+                    question_id: question,
+                    question_state: 0,
                 };
                 match test_question.create(&pool).await {
                     EntityResult::Success(_) => {}
@@ -108,6 +109,21 @@ pub async fn start_test(
     }
 
     HttpResponse::Ok().json(test_id)
+}
+
+#[get("/api/test/{test_id}/{index}")]
+pub async fn load_question_by_index(
+    pool: web::Data<MySqlPool>,
+    path: web::Path<(u32, usize)>,
+) -> impl Responder {
+    let (test_id, index) = path.into_inner();
+
+    let mut test_questions = TestQuestionsEntity::new();
+    test_questions.test_id = test_id;
+    match test_questions.find_all(&pool).await {
+        EntityResult::Success(result) => HttpResponse::Ok().json(result.get(index)),
+        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Error getting test questions: {:?}", e)),
+    }
 }
 
 // post start-test -> POST /start-test

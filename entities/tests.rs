@@ -20,7 +20,20 @@ pub struct TestEntity {
 pub struct TestQuestionsEntity {
     pub test_id: u32,
     pub question_id: u32,
-    pub state: u32,
+    pub question_state: u32,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
+pub struct TestQuestionModel {
+    pub test_id: u32,
+    pub question_id: u32,
+    pub que_text: String,
+    pub difficulty: i8,
+    pub choices: String,
+    pub diff_reason: String,
+    pub course_name: String,
+    pub chapter_name: String,
+    pub topic_name: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Clone)]
@@ -204,7 +217,11 @@ impl TestEntity {
 
 impl TestQuestionsEntity {
     pub fn new() -> Self {
-        TestQuestionsEntity { test_id: 0, question_id: 0, state: 0 }
+        TestQuestionsEntity {
+            test_id: 0,
+            question_id: 0,
+            question_state: 0,
+        }
     }
 
     pub async fn create(
@@ -212,11 +229,11 @@ impl TestQuestionsEntity {
         pool: &MySqlPool,
     ) -> EntityResult<SuccessResultType> {
         let query = r#"
-            INSERT INTO test_questions (test_id, question_id, state)
+            INSERT INTO test_questions (test_id, question_id, question_state)
             VALUES (?, ?, ?)
         "#;
 
-        let result = sqlx::query(query).bind(self.test_id).bind(self.question_id).bind(self.state).execute(pool).await;
+        let result = sqlx::query(query).bind(self.test_id).bind(self.question_id).bind(self.question_state).execute(pool).await;
 
         match result {
             Ok(r) => EntityResult::Success(SuccessResultType::Created(r.last_insert_id(), r.rows_affected())),
@@ -224,23 +241,38 @@ impl TestQuestionsEntity {
         }
     }
 
-    pub async fn find_top(
+    pub async fn find_all(
         &self,
         pool: &MySqlPool,
-    ) -> EntityResult<Vec<TestQuestionsEntity>> {
-        let questions = sqlx::query_as::<_, TestQuestionsEntity>(
+    ) -> EntityResult<Vec<TestQuestionModel>> {
+        let query = sqlx::query_as::<_, TestQuestionModel>(
             r#"
-            SELECT test_id, question_id, state
-            FROM test_questions
-            WHERE test_id = ? and state = 0
-            LIMIT 1
+            SELECT tq.test_id, 
+                q.question_id, 
+                q.que_text, 
+                q.difficulty,
+                q.choices,
+                q.diff_reason,
+                c.course_name,
+                ch.chapter_name,
+                t.topic_name
+            FROM test_questions tq
+                inner join questions q
+                    on tq.question_id = q.question_id
+                inner join courses c
+                    on q.course_id = c.course_id
+                inner join chapters ch
+                    on q.course_id = ch.chapter_id
+                inner join topics t
+                    on q.topic_id = t.topic_id
+            WHERE test_id = ?;
         "#,
         )
         .bind(self.test_id)
         .fetch_all(pool)
         .await;
 
-        match questions {
+        match query {
             Ok(result) => EntityResult::Success(result),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read test questions".to_string(), e.to_string())),
         }

@@ -5,126 +5,36 @@
 	<body>
 		{{> header}}
 		<div class="container">
-			<h1>Start building your new test</h1>
-			<form action="/api/start-test" method="post" id="test-form" name="test-form">
-				<div class="form-group">
-					<label for="courses">Courses</label>
-					<select class="form-control" id="courses" name="courses">
-						<option value="not-set" selected>Pick a course</option>
-						{{#each courses}}
-							<option value="{{this.id}}">{{this.name}}</option>
-						{{/each}}
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="chapters">Chapters (optional)</label>
-					<select class="form-control" id="chapters" name="chapters" disabled>
-						<option value="0">Select a course first</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="topics">Topics (optional)</label>
-					<select class="form-control" id="topics" name="topics" disabled>
-						<option value="0">Select a chapter first</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="difficulty">Difficulty level (optional)</label>
-					<select class="form-control" id="difficulty" name="difficulty" disabled>
-						<option value="1">Easy -- if you are just getting started</option>
-						<option value="2" selected>Intermediate -- if you know the basics and practicing</option>
-						<option value="3">Hard -- you want to simulate an exam</option>
-					</select>
-				</div>
-				<div class="form-group">
-					<label for="length">Length (optional)</label>
-					<select class="form-control" id="length" name="length" disabled>
-						<option value="5">Quiz -- if you are just getting started</option>
-						<option value="25" selected>Practice -- if you know the basics and practicing</option>
-						<option value="50">Exam -- you want to simulate an exam</option>
-					</select>
-				</div>
-				<button type="submit" class="btn btn-primary">Start test</button>
+            <div id="nav-bar">
+                <div>left: nav circles (question x of y)</div>
+                <div>right: exit button</div>
+            </div>
+            <div id="info-bar">
+                <p>Difficulty (with reason in subtext)</p>
+                <p>Course name</p>
+                <p>Chapter name</p>
+                <p>Topic name</p>
+            </div>
+            <div>
+                <div>question text</div>
+                <div>choices</div>
+            </div>
+
+            <div id="button-bar">
+                <button>left: Previous</button>
+                <button>right: Submit</button>
+            </div>
+
+			{{test_id}}
 		</div>
         {{> footer}}
 	</body>
 	<script type="text/javascript">
 		$(function(){
-			$('#courses').change(function(e){
-                const courseId = $(this).val();
-                console.log(courseId);
-				if(courseId === 'not-set'){
-					$('#chapters').prop('disabled', true);
-					$('#topics').prop('disabled', true);
-					$('#difficulty').prop('disabled', true);
-					$('#length').prop('disabled', true);
-				}else{
-					$('#chapters').prop('disabled', false);
-					$('#topics').prop('disabled', true);
-					$('#difficulty').prop('disabled', false);
-					$('#length').prop('disabled', false);
-					$.ajax({
-						url: `/api/chapters/${courseId}`,
-						method: 'GET',
-						success: function(data){
-							$('#chapters').html('<option value="0">Select a chapter</option>');
-							data.forEach(function(chapter){
-								$('#chapters').append('<option value="' + chapter.chapter_id + '">' + chapter.chapter_name + '</option>');
-							});
-						}
-					});
-				}
-			});
-			$('#chapters').change(function(){
-				var chapterId = $(this).val();
-				var courseId = $('#courses').val();
-				if(chapterId === '0'){
-					$('#topics').prop('disabled', true);
-				}else{
-					$('#topics').prop('disabled', false);
-					$.ajax({
-						url: `/api/topics/${courseId}/${chapterId}`,
-						method: 'GET',
-						success: function(data){
-							$('#topics').html('<option value="0">Select a topic</option>');
-							data.forEach(function(topic){
-								$('#topics').append('<option value="' + topic.topic_id + '">' + topic.topic_name + '</option>');
-							});
-						}
-					});
-				}
-			});
-
-			$('#test-form').submit(function(e){
-				e.preventDefault();
-				var courseId = $('#courses').val();
-				var chapterId = $('#chapters').val();
-				var topicId = $('#topics').val();
-				var difficulty = $('#difficulty').val();
-				var length = $('#length').val();
-				const params = {
-					course_id: parseInt(courseId),
-					chapter_id: parseInt(chapterId),
-					topic_id: parseInt(topicId),
-					test_difficulty: parseInt(difficulty),
-					test_length: parseInt(length),
-					test_state: 0
-				};
-				console.log(params);
-				$.ajax({
-					url: '/api/start-test',
-					method: 'POST',
-					data: JSON.stringify(params),
-					contentType: 'application/json',
-					success: function(data) {
-						console.log(data);
-					},
-					error: function(err){
-						console.log(err);
-					}
-				});
-				
-			});
+            let index = 1;
+			$.get(`/api/test/{{test_id}}/${index}`, (data)=>{
+                console.log(data);
+            });
 		});
 	</script>
 </html>

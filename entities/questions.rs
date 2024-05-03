@@ -1,4 +1,4 @@
-use aarya_utils::hash_ops;
+use aarya_utils::{hash_ops, random::randomize_u32s};
 use serde::{Deserialize, Serialize};
 use serde_json::{json, Value};
 use sqlx::MySqlPool;
@@ -49,6 +49,11 @@ pub struct QuestionQueryModel {
     pub ans_hint: String,
     pub course_name: Option<String>,
     pub chapter_name: Option<String>,
+}
+
+#[derive(Validate, Debug, Serialize, Deserialize, PartialEq, Clone, sqlx::FromRow)]
+pub struct QuestionIdQueryModel {
+    pub question_id: u32,
 }
 
 impl QuestionEntity {
@@ -288,6 +293,48 @@ impl QuestionEntity {
         .await;
         match questions {
             Ok(result) => EntityResult::Success(result),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read questions with course and chapter".to_string(), e.to_string())),
+        }
+    }
+
+    pub async fn find_random_questions(
+        &self,
+        pool: &MySqlPool,
+        limit: u32,
+    ) -> EntityResult<Vec<u32>> {
+        let questions = sqlx::query_as::<_, QuestionIdQueryModel>(
+            r#"
+                SELECT 
+                    q.question_id 
+                FROM questions q
+                JOIN courses c
+                    ON q.course_id = c.course_id
+                JOIN chapters ch
+                    ON q.chapter_id = ch.chapter_id
+                JOIN topics t
+                    ON t.topic_id = q.topic_id
+                WHERE q.difficulty = ? 
+                    and q.course_id = ? 
+                    and q.chapter_id = ? 
+                    and q.topic_id = ?
+            "#,
+        )
+        .bind(self.difficulty)
+        .bind(self.course_id)
+        .bind(self.chapter_id)
+        .bind(self.topic_id)
+        .fetch_all(pool)
+        .await;
+
+        match questions {
+            Ok(result) => {
+                // EntityResult::Success(result)
+                let mut question_ids: Vec<u32> = Vec::new();
+                result.clone().into_iter().for_each(|question| {
+                    question_ids.push(question.question_id);
+                });
+                EntityResult::Success(randomize_u32s(question_ids, limit))
+            }
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Failed to read questions with course and chapter".to_string(), e.to_string())),
         }
     }
