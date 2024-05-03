@@ -66,7 +66,7 @@
             $index.val(data.index);
             data.index==1? $leftButton.prop('disabled', true): $leftButton.prop('disabled', false);
             data.index==data.total? $submitButton.prop('disabled', true): $submitButton.prop('disabled', false);
-            $question.text(data.current.que_text);
+            $question.html(marked.parseInline(data.current.que_text));
             $course.text(data.current.course_name);
             $chapter.text(data.current.chapter_name);
             $topic.text(data.current.topic_name);
@@ -88,9 +88,9 @@
             const choices = JSON.parse(data.current.choices);
             for (let i=0; i<choices.length; i++){
                 if(data.current.radio){
-                    $choices.append(`<p><input type="radio" name="choice" value="${choices[i].id}">${choices[i].text}</input></p>`);
+                    $choices.append(`<p><input type="radio" name="choice" value="${choices[i].id}">`+ marked.parseInline(choices[i].text) +`</input></p>`);
                 } else {
-                    $choices.append(`<p><input type="checkbox" name="choice" value="${choices[i].id}">${choices[i].text}</input></p>`);
+                    $choices.append(`<p><input type="checkbox" name="choice" value="${choices[i].id}">`+ marked.parseInline(choices[i].text) +`</input></p>`);
                 }
             }
         }
