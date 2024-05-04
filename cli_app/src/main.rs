@@ -99,6 +99,10 @@ enum Commands {
         chapters_file: Option<PathBuf>,
         #[arg(long, value_name = "FILE")]
         topics_file: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        authors_file: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        tags_file: Option<PathBuf>,
     },
     /// calls `autogen` in a loop using courses, chapters, and topics from the database
     Batchgen {
@@ -131,6 +135,11 @@ enum Commands {
         /// directory path to the json data
         #[arg(long, value_name = "FILE")]
         directory: PathBuf,
+    },
+    /// process and save a blog post file
+    Blog {
+        #[arg(long, value_name = "FILE")]
+        post_file: PathBuf,
     },
 }
 
@@ -181,8 +190,10 @@ async fn main() {
             courses_file,
             chapters_file,
             topics_file,
+            authors_file,
+            tags_file,
         }) => {
-            run_seeder(courses_file, chapters_file, topics_file, &pool).await;
+            run_seeder(courses_file, chapters_file, topics_file, authors_file, tags_file, &pool).await;
         }
         Some(Commands::Batchgen {
             course_id,
@@ -195,6 +206,9 @@ async fn main() {
         }
         Some(Commands::BatchUpload { schema_file, directory }) => {
             run_batch_uploads(schema_file, directory, &pool).await;
+        }
+        Some(Commands::Blog { post_file }) => {
+            println!("Processing blog post file: {:?}", post_file);
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");

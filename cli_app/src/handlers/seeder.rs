@@ -8,6 +8,8 @@ pub async fn run_seeder(
     courses_file: &Option<PathBuf>,
     chapters_file: &Option<PathBuf>,
     topics_file: &Option<PathBuf>,
+    authors_file: &Option<PathBuf>,
+    tags_file: &Option<PathBuf>,
     pool: &MySqlPool,
 ) {
     if courses_file.is_some() {
@@ -57,6 +59,12 @@ pub async fn run_seeder(
                 EntityResult::Error(e) => println!("Failed to create topic: {:?}", e),
             }
         }
+    } else if authors_file.is_some() {
+        println!("Processing authors file");
+        println!("Ensure validating the file contents. Now processing the authors file: {:?}", authors_file);
+    } else if tags_file.is_some() {
+        println!("Processing tags file");
+        println!("Ensure validating the file contents. Now processing the tags file: {:?}", tags_file);
     } else {
         println!("No file provided to seed the database");
     }
