@@ -69,3 +69,43 @@ Batchupload example:
 --schema-file ../.schema/question-schema.json \
 --directory ./.temp-data/course-1002-chapter-1018-42697000
 ```
+
+Seed authors:
+
+```shell
+# validate
+../target/debug/aarya_cli validate \
+--schema-file ../.schema/authors-schema.json \
+--data-file ../.temp-seed-data/authors-seed.json
+
+# seed
+../target/debug/aarya_cli seeder \
+--authors-file ../.temp-seed-data/authors-seed.json
+```
+
+Seed tags:
+
+```shell
+#validate
+../target/debug/aarya_cli validate \
+--schema-file ../.schema/tags-schema.json \
+--data-file ../.temp-seed-data/tags-seed.json
+
+#seed
+../target/debug/aarya_cli seeder \
+--tags-file ../.temp-seed-data/tags-seed.json
+```
+
+Blog post
+
+```shell
+# copy the executable to blog_app root
+# validate
+./aarya_cli validate \
+--schema-file ../.schema/post-manifest-schema.json \
+--data-file manifests/2024-01-15-some-random-post.json
+
+# upload
+./aarya_cli blog-post \
+--manifest-file manifests/2024-01-15-some-random-post.json
+```

@@ -7,6 +7,7 @@ use handlers::{
     autogener::{run_autogen, AutogenArgs},
     batchgener::run_batch,
     batchuploader::run_batch_uploads,
+    blogposter::run_blog_poster,
     seeder::run_seeder,
     uploader::run_upload,
     validator::run_validate,
@@ -137,9 +138,9 @@ enum Commands {
         directory: PathBuf,
     },
     /// process and save a blog post file
-    Blog {
+    BlogPost {
         #[arg(long, value_name = "FILE")]
-        post_file: PathBuf,
+        manifest_file: PathBuf,
     },
 }
 
@@ -207,8 +208,8 @@ async fn main() {
         Some(Commands::BatchUpload { schema_file, directory }) => {
             run_batch_uploads(schema_file, directory, &pool).await;
         }
-        Some(Commands::Blog { post_file }) => {
-            println!("Processing blog post file: {:?}", post_file);
+        Some(Commands::BlogPost { manifest_file }) => {
+            run_blog_poster(manifest_file, &pool).await;
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");
