@@ -13,11 +13,12 @@ pub struct TagEntity {
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
 pub struct AuthorEntity {
-    author_id: u32,
+    author_id: Option<u32>,
     author_name: String,
     author_email: String,
     author_bio: String,
     author_photo_url: String,
+    author_intro: String,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -89,11 +90,12 @@ impl Default for TagEntity {
 impl AuthorEntity {
     fn new() -> Self {
         AuthorEntity {
-            author_id: 0,
+            author_id: Some(0),
             author_name: "not-set".to_string(),
             author_email: "not-set".to_string(),
             author_bio: "not-set".to_string(),
             author_photo_url: "not-set".to_string(),
+            author_intro: "not-set".to_string(),
         }
     }
 
@@ -102,8 +104,8 @@ impl AuthorEntity {
         pool: &MySqlPool,
     ) -> EntityResult<SuccessResultType> {
         let query = r#"
-            INSERT INTO authors (author_name, author_email, author_bio, author_photo_url)
-            VALUES (?, ?, ?, ?)
+            INSERT INTO authors (author_name, author_email, author_bio, author_photo_url, author_intro)
+            VALUES (?, ?, ?, ?, ?)
         "#;
 
         match sqlx::query(query)
@@ -111,10 +113,11 @@ impl AuthorEntity {
             .bind(&self.author_email)
             .bind(&self.author_bio)
             .bind(&self.author_photo_url)
+            .bind(&self.author_intro)
             .execute(pool)
             .await
         {
-            Ok(d) => EntityResult::Success(SuccessResultType::Created(self.author_id as u64, d.rows_affected())),
+            Ok(d) => EntityResult::Success(SuccessResultType::Created(0, d.rows_affected())),
             Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error creating author".to_string(), e.to_string())),
         }
     }
@@ -124,7 +127,7 @@ impl AuthorEntity {
         pool: &MySqlPool,
     ) -> EntityResult<Vec<AuthorEntity>> {
         let query = r#"
-            SELECT author_id, author_name, author_email, author_bio, author_photo_url
+            SELECT author_id, author_name, author_email, author_bio, author_photo_url, author_intro
             FROM authors 
             WHERE author_id = ?
         "#;

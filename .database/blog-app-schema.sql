@@ -6,8 +6,9 @@ CREATE TABLE tags(
 CREATE TABLE authors(
 	author_id int unsigned auto_increment primary key,
 	author_name varchar(128) not null,
-	author_email varchar(255) not null,
+	author_email varchar(256) not null,
 	author_bio varchar(1024) not null,
+	author_intro varchar(256) not null,
 	author_photo_url varchar(128) not null
 ) auto_increment = 34556;
 CREATE TABLE posts(
