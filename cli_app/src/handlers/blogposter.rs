@@ -51,13 +51,8 @@ pub async fn run_blog_poster(
         }
     }
 
-    // form the partial url path of the post from tags and title
-    let mut post_url: Vec<String> = Vec::new();
-    tags.clone().into_iter().for_each(|(_id, name)| {
-        // lowercase name and spaces replaced with hyphens
-        post_url.push(name.to_lowercase().replace(' ', "-"));
-    });
-    post_url.push(manifest.post_title.to_lowercase().replace(' ', "-"));
+    // form the partial url path of the post from display_date and title
+    let post_url: Vec<String> = vec![manifest.display_date.format("%Y-%m-%d").to_string(), manifest.post_title.to_lowercase().replace(' ', "-")];
     let post_url = post_url.join("/");
 
     println!("Post URL: {}", post_url);

@@ -1,5 +1,5 @@
 use aarya_utils::hash_ops;
-use chrono::NaiveDate;
+use chrono::{DateTime, Local, NaiveDate};
 use serde::{Deserialize, Serialize};
 use sqlx::MySqlPool;
 
@@ -63,7 +63,7 @@ pub struct PostQueryModel {
     pub post_description: String,
     pub post_keywords: String,
     pub post_summary: String,
-    pub post_timestamp: NaiveDate,
+    pub post_timestamp: DateTime<Local>,
 }
 
 #[derive(Debug, Serialize, Deserialize, sqlx::FromRow)]
@@ -246,14 +246,45 @@ impl PostEntity {
         }
     }
 
-    pub async fn find_posts(
+    pub async fn find_post(
+        &self,
+        pool: &MySqlPool,
+    ) -> EntityResult<PostQueryModel> {
+        let query = r#"
+            SELECT 
+                post_id, 
+                post_url, 
+                post_title, 
+                post_body, 
+                post_description, 
+                post_keywords, 
+                post_summary, 
+                post_timestamp
+            FROM posts
+            WHERE post_hash = ?
+        "#;
+
+        match sqlx::query_as::<_, PostQueryModel>(query).bind(self.post_hash.clone().unwrap()).fetch_one(pool).await {
+            Ok(posts) => EntityResult::Success(posts),
+            Err(e) => EntityResult::Error(DatabaseErrorType::QueryError("Error fetching posts".to_string(), e.to_string())),
+        }
+    }
+
+    pub async fn find(
         &self,
         pool: &MySqlPool,
     ) -> EntityResult<Vec<PostQueryModel>> {
         let query = r#"
-            SELECT post_id, post_url, post_title, post_body, post_description, post_keywords, post_summary, post_timestamp, author_id
-            FROM posts 
-            WHERE post_id = ?
+            SELECT 
+                post_id, 
+                post_url, 
+                post_title, 
+                post_body, 
+                post_description, 
+                post_keywords, 
+                post_summary, 
+                post_timestamp
+            FROM posts
         "#;
 
         match sqlx::query_as::<_, PostQueryModel>(query).fetch_all(pool).await {

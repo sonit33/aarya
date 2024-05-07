@@ -1,0 +1,16 @@
+<html lang="en">
+	<head>
+		{{> head}}
+	</head>
+	<body>
+		{{> header}}
+		<div class="container">
+			{{#each posts as |post|}}
+				<h2>
+					<a href="{{post.post_url}}">{{post.post_title}}</a>
+				</h2>
+			{{/each}}
+		</div>
+        {{> footer}}
+	</body>
+</html>
