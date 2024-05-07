@@ -7,6 +7,7 @@ use handlers::{
     autogener::{run_autogen, AutogenArgs},
     batchgener::run_batch,
     batchuploader::run_batch_uploads,
+    blogposter::run_blog_poster,
     seeder::run_seeder,
     uploader::run_upload,
     validator::run_validate,
@@ -99,6 +100,10 @@ enum Commands {
         chapters_file: Option<PathBuf>,
         #[arg(long, value_name = "FILE")]
         topics_file: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        authors_file: Option<PathBuf>,
+        #[arg(long, value_name = "FILE")]
+        tags_file: Option<PathBuf>,
     },
     /// calls `autogen` in a loop using courses, chapters, and topics from the database
     Batchgen {
@@ -131,6 +136,11 @@ enum Commands {
         /// directory path to the json data
         #[arg(long, value_name = "FILE")]
         directory: PathBuf,
+    },
+    /// process and save a blog post file
+    BlogPost {
+        #[arg(long, value_name = "FILE")]
+        manifest_file: PathBuf,
     },
 }
 
@@ -181,8 +191,10 @@ async fn main() {
             courses_file,
             chapters_file,
             topics_file,
+            authors_file,
+            tags_file,
         }) => {
-            run_seeder(courses_file, chapters_file, topics_file, &pool).await;
+            run_seeder(courses_file, chapters_file, topics_file, authors_file, tags_file, &pool).await;
         }
         Some(Commands::Batchgen {
             course_id,
@@ -195,6 +207,9 @@ async fn main() {
         }
         Some(Commands::BatchUpload { schema_file, directory }) => {
             run_batch_uploads(schema_file, directory, &pool).await;
+        }
+        Some(Commands::BlogPost { manifest_file }) => {
+            run_blog_poster(manifest_file, &pool).await;
         }
         None => {
             println!("No command provided. Use aarya_cli --help to see available commands.");

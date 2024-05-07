@@ -16,7 +16,9 @@ sqlx = { version = "0.7.4", features = [
     "tls-rustls",
     "json",
     "macros",
+    "chrono"
 ] }
+chrono = { version = "0.4", features = ["serde"] }
 
 [lib]
 name = "models"

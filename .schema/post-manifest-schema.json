@@ -1,0 +1,54 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"properties": {
+		"post_file": {
+			"type": "string"
+		},
+		"post_title": {
+			"type": "string"
+		},
+		"tags": {
+			"type": "array",
+			"items": {
+				"type": "integer"
+			}
+		},
+		"authors": {
+			"type": "array",
+			"items": {
+				"type": "integer"
+			}
+		},
+		"display_date": {
+			"type": "string",
+			"format": "date"
+		},
+		"description": {
+			"type": "string"
+		},
+		"tldr": {
+			"type": "string"
+		},
+		"keywords": {
+			"type": "array",
+			"items": {
+				"type": "string"
+			}
+		},
+		"subtitle": {
+			"type": "string"
+		}
+	},
+	"required": [
+		"post_file",
+		"post_title",
+		"tags",
+		"authors",
+		"display_date",
+		"description",
+		"tldr",
+		"keywords",
+		"subtitle"
+	]
+}
