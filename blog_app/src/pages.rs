@@ -10,10 +10,7 @@ use models::{
 use pulldown_cmark::{html, Parser};
 use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::{
-    types::chrono::{DateTime, Local},
-    MySqlPool,
-};
+use sqlx::MySqlPool;
 
 #[get("/")]
 pub async fn home_page(
@@ -47,7 +44,7 @@ pub struct AuthorThumbnailModel {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct TagThumbnailModel {
-    pub tag: String,
+    pub name: String,
     pub posts: Vec<PostThumbnailModel>,
 }
 
@@ -106,8 +103,55 @@ pub async fn post_page(
                 keywords: post.post_keywords.split(',').map(|x| (x.to_string(), x.to_string())).collect(),
                 tldr: post.post_tldr,
                 hero_image: post.post_hero_image_url,
-                published: post.post_timestamp.format("%F").to_string(),
-                tag_thumbnails: vec![],
+                published: post.post_timestamp.format("%B %e, %Y").to_string(),
+                tag_thumbnails: vec![
+                    TagThumbnailModel {
+                        name: "Engineering".to_string(),
+                        posts: vec![
+                            PostThumbnailModel {
+                                title: "How to build a bridge".to_string(),
+                                subtitle: "A guide to building bridges".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Gregory Valentine".to_string(),
+                            },
+                            PostThumbnailModel {
+                                title: "How to build a bridge".to_string(),
+                                subtitle: "A guide to building bridges".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Gregory Valentine".to_string(),
+                            },
+                            PostThumbnailModel {
+                                title: "How to build a bridge".to_string(),
+                                subtitle: "A guide to building bridges".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Gregory Valentine".to_string(),
+                            },
+                        ],
+                    },
+                    TagThumbnailModel {
+                        name: "Java".to_string(),
+                        posts: vec![
+                            PostThumbnailModel {
+                                title: "How to brew coffee?".to_string(),
+                                subtitle: "A step-by-step guide to brewing coffee".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Gregory Valentine".to_string(),
+                            },
+                            PostThumbnailModel {
+                                title: "How to brew coffee?".to_string(),
+                                subtitle: "A step-by-step guide to brewing coffee".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Gregory Valentine".to_string(),
+                            },
+                            PostThumbnailModel {
+                                title: "How to brew coffee?".to_string(),
+                                subtitle: "A step-by-step guide to brewing coffee".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Gregory Valentine".to_string(),
+                            },
+                        ],
+                    },
+                ],
                 keyword_thumbnails: vec![],
                 tags: vec![
                     TagModel {
