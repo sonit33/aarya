@@ -1,15 +1,62 @@
+<!DOCTYPE html>
 <html lang="en">
+
 	<head>
 		{{> head}}
 	</head>
-	<body>
-		{{> header}}
-		<div class="container">
-            <h1>{{post.post_title}}</h1>
-			<p>
-                {{{post.post_body}}}
-            </p>
-		</div>
-        {{> footer}}
+
+	<body class="dark:bg-slate-800 dark:text-white">
+		<nav></nav>
+		<header class="container mx-auto flex flex-col gap-16 pt-4 px-2 max-w-[960px] xl:max-w-[1024px]">
+			<div class="flex flex-col gap-4 max-w-[600px] xl:max-w-[720px]">
+				<ul class="list-none gap-4 align-middle inline-flex font-bold">
+					{{#each model.tags as |tag|}}
+						<li
+							class="bg-gradient-to-r dark:from-green-400 dark:to-blue-500 from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text">
+							<a href="{{tag.url}}">{{tag.name}}</a>
+						</li>
+					{{/each}}
+				</ul>
+				<h1 class="text-3xl md:text-4xl lg:text-5xl">{{model.title}}</h1>
+				<sub class="text-sm">{{model.subtitle}}</sub>
+			</div>
+			<div class="hero-image">
+				<img src="/{{model.hero_image}}" alt="{{model.title}}" class="xl:min-w-[1024px] rounded-md shadow">
+			</div>
+		</header>
+		<main class="container mx-auto flex flex-col gap-16 pt-4 px-2 max-w-[960px] xl:max-w-[1024px]">
+			<figure class="flex flex-row gap-2">
+				<div class="w-16 h-16 rounded-full border-gray-400 bg-gray-200">
+					<img src="{{model.author.image_url}}" alt="{{model.author.name}}"
+						class="rounded-full shadow max-w-16" />
+				</div>
+				<figcaption class="font-medium pt-2">
+					<div class="text-sky-500 dark:text-sky-400 m-0 p-0">
+						<a href="{{model.author.profile_url}}">{{model.author.name}}</a>
+					</div>
+					<div class="text-slate-700 dark:text-slate-500 m-0 p-0">
+						{{model.published}}
+					</div>
+				</figcaption>
+			</figure>
+			<section class="three-panel-body">
+				<aside class="left-panel"></aside>
+				<section class="content-panel">
+					<article class="prose md:prose-lg xl:prose-xl dark:prose-invert">
+						{{{model.body}}}
+					</article>
+					<div class="keywords-links"></div>
+				</section>
+				<aside class="right-panel">
+					<div class="newsletter"></div>
+					<div class="keyword-related-posts"></div>
+				</aside>
+			</section>
+			<section class="tag-related-posts">
+			</section>
+			<section class="more-tags"></section>
+		</main>
+		<footer></footer>
 	</body>
+
 </html>

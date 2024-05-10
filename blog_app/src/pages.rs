@@ -1,3 +1,5 @@
+use std::collections::HashMap;
+
 use aarya_utils::hash_ops::string_hasher;
 use actix_web::{get, web, HttpResponse, Responder};
 use handlebars::Handlebars;
@@ -6,8 +8,12 @@ use models::{
     result_types::EntityResult,
 };
 use pulldown_cmark::{html, Parser};
+use serde::{Deserialize, Serialize};
 use serde_json::json;
-use sqlx::MySqlPool;
+use sqlx::{
+    types::chrono::{DateTime, Local},
+    MySqlPool,
+};
 
 #[get("/")]
 pub async fn home_page(
@@ -22,6 +28,55 @@ pub async fn home_page(
         }
         EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Error retrieving posts: [{:?}]", e)),
     }
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PostThumbnailModel {
+    pub title: String,
+    pub subtitle: String,
+    pub image_url: String,
+    pub author: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct AuthorThumbnailModel {
+    pub name: String,
+    pub image_url: String,
+    pub profile_url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TagThumbnailModel {
+    pub tag: String,
+    pub posts: Vec<PostThumbnailModel>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct KeywordThumbnailModel {
+    pub keyword: String,
+    pub posts: Vec<PostThumbnailModel>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TagModel {
+    pub name: String,
+    pub url: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct PostResponseModel {
+    pub title: String,
+    pub subtitle: String,
+    pub body: String,
+    pub description: String,
+    pub keywords: HashMap<String, String>,
+    pub tldr: String,
+    pub hero_image: String,
+    pub published: String,
+    pub author: AuthorThumbnailModel,
+    pub tags: Vec<TagModel>,
+    pub tag_thumbnails: Vec<TagThumbnailModel>,
+    pub keyword_thumbnails: Vec<KeywordThumbnailModel>,
 }
 
 #[get("/{date_published}/{title}")]
@@ -42,7 +97,35 @@ pub async fn post_page(
             let mut html = String::new();
             html::push_html(&mut html, Parser::new(&p.post_body));
             let post = PostQueryModel { post_body: html, ..p };
-            render_template!(handlebars, "post", json!({"title": "Aarya blog", "post": post}))
+
+            let response_model = PostResponseModel {
+                title: post.post_title,
+                subtitle: post.post_subtitle,
+                body: post.post_body,
+                description: post.post_description,
+                keywords: post.post_keywords.split(',').map(|x| (x.to_string(), x.to_string())).collect(),
+                tldr: post.post_tldr,
+                hero_image: post.post_hero_image_url,
+                published: post.post_timestamp.format("%F").to_string(),
+                tag_thumbnails: vec![],
+                keyword_thumbnails: vec![],
+                tags: vec![
+                    TagModel {
+                        name: "Engineering".to_string(),
+                        url: "/tag/engineering".to_string(),
+                    },
+                    TagModel {
+                        name: "Java".to_string(),
+                        url: "/tag/java".to_string(),
+                    },
+                ],
+                author: AuthorThumbnailModel {
+                    name: "Gregory Valentine".to_string(),
+                    image_url: "https://picsum.photos/128".to_string(),
+                    profile_url: "/author/gregory-valentine".to_string(),
+                },
+            };
+            render_template!(handlebars, "post", json!({"title": response_model.title, "model": response_model}))
         }
         EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Error retrieving posts: [{:?}]", e)),
     }

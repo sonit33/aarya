@@ -64,10 +64,12 @@ pub async fn run_blog_poster(
         post_body,
         post_description: manifest.description,
         post_keywords: manifest.keywords.join(", "),
-        post_summary: manifest.tldr,
+        post_tldr: manifest.tldr,
         post_timestamp: manifest.display_date,
         post_id: None,
         post_hash: None,
+        post_subtitle: manifest.subtitle,
+        post_hero_image_url: manifest.image_url,
     };
 
     let post_id = match post.create(pool).await {

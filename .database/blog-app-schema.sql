@@ -15,15 +15,22 @@ CREATE TABLE authors(
 ) auto_increment = 34556;
 CREATE TABLE posts(
 	post_id int unsigned auto_increment primary key,
-	post_url varchar(512) not null,
-	post_title varchar(255) not null,
-	post_body text not null,
+	post_url varchar(256) not null,
+	title varchar(256) not null,
+	body text not null,
 	post_description varchar(512) not null,
-	post_keywords varchar(255) not null,
-	post_summary varchar(1024) not null,
-	post_timestamp timestamp not null,
+	tldr varchar(1024) not null,
+	subtitle varchar(256) not null,
+	published timestamp not null,
+	hero_image varchar(256) not null,
 	post_hash varchar(256) not null unique
 ) auto_increment = 12340;
+CREATE TABLE post_keywords(
+	keyword_id int unsigned auto_increment primary key,
+	post_id int unsigned,
+	keyword varchar(64) not null,
+	keyword_hash varchar(256) not null unique
+) auto_increment = 66789;
 CREATE TABLE posts_tags (
     tag_id INT UNSIGNED,
     post_id INT UNSIGNED,

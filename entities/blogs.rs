@@ -49,8 +49,10 @@ pub struct PostEntity {
     pub post_body: String,
     pub post_description: String,
     pub post_keywords: String,
-    pub post_summary: String,
+    pub post_tldr: String,
+    pub post_subtitle: String,
     pub post_timestamp: NaiveDate,
+    pub post_hero_image_url: String,
     pub post_hash: Option<String>,
 }
 
@@ -62,7 +64,9 @@ pub struct PostQueryModel {
     pub post_body: String,
     pub post_description: String,
     pub post_keywords: String,
-    pub post_summary: String,
+    pub post_tldr: String,
+    pub post_subtitle: String,
+    pub post_hero_image_url: String,
     pub post_timestamp: DateTime<Local>,
 }
 
@@ -91,6 +95,7 @@ pub struct PostManifestModel {
     pub tldr: String,
     pub keywords: Vec<String>,
     pub subtitle: String,
+    pub image_url: String,
 }
 
 impl TagEntity {
@@ -212,8 +217,10 @@ impl PostEntity {
             post_body: "not-set".to_string(),
             post_description: "not-set".to_string(),
             post_keywords: "not-set".to_string(),
-            post_summary: "not-set".to_string(),
+            post_tldr: "not-set".to_string(),
             post_timestamp: NaiveDate::from_ymd_opt(1970, 1, 1).unwrap(),
+            post_hero_image_url: "not-set".to_string(),
+            post_subtitle: "not-set".to_string(),
             post_hash: None,
         }
     }
@@ -225,8 +232,8 @@ impl PostEntity {
         let post_hash = hash_ops::string_hasher(&self.post_url);
 
         let query = r#"
-            INSERT INTO posts (post_url, post_title, post_body, post_description, post_keywords, post_summary, post_timestamp, post_hash)
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+            INSERT INTO posts (post_url, post_title, post_body, post_description, post_keywords, post_tldr, post_subtitle, post_timestamp, post_hash, post_hero_image_url)
+            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
         "#;
 
         match sqlx::query(query)
@@ -235,9 +242,11 @@ impl PostEntity {
             .bind(&self.post_body)
             .bind(&self.post_description)
             .bind(&self.post_keywords)
-            .bind(&self.post_summary)
+            .bind(&self.post_tldr)
+            .bind(&self.post_subtitle)
             .bind(self.post_timestamp)
             .bind(post_hash)
+            .bind(&self.post_hero_image_url)
             .execute(pool)
             .await
         {
@@ -258,7 +267,9 @@ impl PostEntity {
                 post_body, 
                 post_description, 
                 post_keywords, 
-                post_summary, 
+                post_tldr,
+                post_subtitle,
+                post_hero_image_url,
                 post_timestamp
             FROM posts
             WHERE post_hash = ?
@@ -282,8 +293,10 @@ impl PostEntity {
                 post_body, 
                 post_description, 
                 post_keywords, 
-                post_summary, 
-                post_timestamp
+                post_tldr, 
+                post_subtitle,
+                post_timestamp,
+                post_hero_image_url
             FROM posts
         "#;
 
