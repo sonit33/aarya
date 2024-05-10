@@ -47,14 +47,38 @@
 						</article>
 						<div class="keywords-links"></div>
 					</section>
-					<aside class="right-panel min-w-64 px-2">
-						<div class="newsletter"></div>
-						<div class="keyword-related-posts">
-							AAA
+					<aside class="right-panel min-w-64 px-2 hidden xl:flex xl:flex-col">
+						<div class="newsletter">
+							<h2 class="text-lg">Subscribe to our newsletter</h2>
+							<form action="https://example.com/newsletter" method="POST">
+								<input type="email" name="email" placeholder="Your email address" required>
+								<button type="submit">Subscribe</button>
+							</form>
+						</div>
+						<div class="keyword-related-posts flex flex-col gap-4">
+							{{#each model.keyword_thumbnails as |keyword|}}
+								<div class="flex flex-col gap-4">
+									{{#each keyword.posts as |post|}}
+										<div class="flex flex-col">
+											<p
+												class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold">
+												{{keyword.name}}
+											</p>
+											<figure class="min-w-full hover:cursor-pointer">
+												<img src="{{post.image_url}}"
+													class="object-cover h-full w-full rounded shadow" />
+											</figure>
+											<h3 class="text-lg">{{post.title}}</h3>
+											<sub class="text-sm">{{post.subtitle}}</sub>
+											<p class="text-sm mt-2 font-semibold">{{post.author}}</p>
+										</div>
+									{{/each}}
+								</div>
+							{{/each}}
 						</div>
 					</aside>
 				</section>
-				<section class="tag-related-posts flex flex-col gap-4">
+				<section class="tag-related-posts flex flex-col gap-4 p-2">
 					{{#each model.tag_thumbnails as |tag|}}
 						<div class="flex flex-col sm:flex-row gap-4">
 							{{#each tag.posts as |post|}}
@@ -69,7 +93,7 @@
 									</p>
 									<h3 class="text-lg">{{post.title}}</h3>
 									<sub class="text-sm">{{post.subtitle}}</sub>
-									<p class="mt-4 font-semibold">{{post.author}}</p>
+									<p class="text-sm mt-2 font-semibold">{{post.author}}</p>
 								</div>
 							{{/each}}
 						</div>

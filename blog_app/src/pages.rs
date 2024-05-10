@@ -50,7 +50,7 @@ pub struct TagThumbnailModel {
 
 #[derive(Debug, Serialize, Deserialize)]
 pub struct KeywordThumbnailModel {
-    pub keyword: String,
+    pub name: String,
     pub posts: Vec<PostThumbnailModel>,
 }
 
@@ -152,7 +152,42 @@ pub async fn post_page(
                         ],
                     },
                 ],
-                keyword_thumbnails: vec![],
+                keyword_thumbnails: vec![
+                    KeywordThumbnailModel {
+                        name: "data structures".to_string(),
+                        posts: vec![
+                            PostThumbnailModel {
+                                title: "Linked Lists".to_string(),
+                                subtitle: "Linking lsists are fun".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Augustus Albequerque".to_string(),
+                            },
+                            PostThumbnailModel {
+                                title: "Binary Search Trees".to_string(),
+                                subtitle: "Let's shake a few trees".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Augustus Albequerque".to_string(),
+                            },
+                        ],
+                    },
+                    KeywordThumbnailModel {
+                        name: "algorithms".to_string(),
+                        posts: vec![
+                            PostThumbnailModel {
+                                title: "Merge Sort, the simple way".to_string(),
+                                subtitle: "There is no way Merge sorts are simple".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Augustus Albequerque".to_string(),
+                            },
+                            PostThumbnailModel {
+                                title: "Binary Search".to_string(),
+                                subtitle: "This one is simple, indeed".to_string(),
+                                image_url: "https://picsum.photos/200/128".to_string(),
+                                author: "Augustus Albequerque".to_string(),
+                            },
+                        ],
+                    },
+                ],
                 tags: vec![
                     TagModel {
                         name: "Engineering".to_string(),
