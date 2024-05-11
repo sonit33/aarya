@@ -47,30 +47,30 @@
 						</article>
 						<div class="keywords-links"></div>
 					</section>
-					<aside class="right-panel min-w-64 px-2 hidden xl:flex xl:flex-col">
-						<div class="newsletter">
-							<h2 class="text-lg">Subscribe to our newsletter</h2>
-							<form action="https://example.com/newsletter" method="POST">
-								<input type="email" name="email" placeholder="Your email address" required>
-								<button type="submit">Subscribe</button>
-							</form>
+					<aside class="right-panel px-2 hidden xl:flex xl:flex-col w-64 flex-none">
+						<div class="mb-12 flex flex-col gap-4">
+							<h3 class="text-base capitalize leading-4">We do newsletters, too</h3>
+							<hr />
+							<p>Get tips, technical guides, and best practices right in your inbox.</p>
+							<button type="button">Subscribe</button>
 						</div>
 						<div class="keyword-related-posts flex flex-col gap-4">
+							<h3 class="uppercase">Related posts</h3>
 							{{#each model.keyword_thumbnails as |keyword|}}
 								<div class="flex flex-col gap-4">
 									{{#each keyword.posts as |post|}}
 										<div class="flex flex-col">
-											<p
-												class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold">
-												{{keyword.name}}
-											</p>
 											<figure class="min-w-full hover:cursor-pointer">
 												<img src="{{post.image_url}}"
 													class="object-cover h-full w-full rounded shadow" />
 											</figure>
-											<h3 class="text-lg">{{post.title}}</h3>
-											<sub class="text-sm">{{post.subtitle}}</sub>
-											<p class="text-sm mt-2 font-semibold">{{post.author}}</p>
+											<p
+												class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold capitalize">
+												{{keyword.name}}
+											</p>
+											<h3 class="capitalize leading-4">{{post.title}}</h3>
+											<sub class="text-sm capitalize">{{post.subtitle}}</sub>
+											<p class="text-sm mt-2 font-semibold capitalize">{{post.author}}</p>
 										</div>
 									{{/each}}
 								</div>
@@ -79,6 +79,9 @@
 					</aside>
 				</section>
 				<section class="tag-related-posts flex flex-col gap-4 p-2">
+					<h1 class="uppercase text-2xl xl:text-4xl">
+						Read more about
+					</h1>
 					{{#each model.tag_thumbnails as |tag|}}
 						<div class="flex flex-col sm:flex-row gap-4">
 							{{#each tag.posts as |post|}}
@@ -88,20 +91,40 @@
 											class="object-cover h-full w-full rounded shadow" />
 									</figure>
 									<p
-										class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold">
+										class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold uppercase">
 										{{tag.name}}
 									</p>
-									<h3 class="text-lg">{{post.title}}</h3>
-									<sub class="text-sm">{{post.subtitle}}</sub>
-									<p class="text-sm mt-2 font-semibold">{{post.author}}</p>
+									<h3 class="text-lg capitalize">{{post.title}}</h3>
+									<sub class="text-sm capitalize">{{post.subtitle}}</sub>
+									<p class="text-sm mt-2 font-semibold capitalize">{{post.author}}</p>
 								</div>
 							{{/each}}
 						</div>
 					{{/each}}
 				</section>
 			</main>
-			<footer></footer>
 		</div>
+		<section class="bg-gray-700 mt-16 p-16">
+			<div class="container max-w-4xl xl:max-w-6xl mx-auto">
+				<div class="flex flex-row">
+					<div class="flex-1 p-8">
+						<h1 class="text-white text-3xl xl:text-4xl">Subscribe to our newsletter</h2>
+							<sub class="text-gray-200 leading-3 text-base xl:text-xl">Code with confidence. Discover
+								tips, technical guides,
+								and best practices in our
+								biweekly
+								newsletter just for devs.</sub>
+					</div>
+					<div class="flex-1 p-8">
+						<form action="" class="flex flex-col gap-4">
+							<input type="email" placeholder="Enter your email address" class="flex-auto" />
+							<button type="submit" class="flex-auto button-flashy">Subscribe</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</section>
+		{{> footer}}
 	</body>
 
 </html>

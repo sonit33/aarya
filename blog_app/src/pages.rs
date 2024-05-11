@@ -66,7 +66,7 @@ pub struct PostResponseModel {
     pub subtitle: String,
     pub body: String,
     pub description: String,
-    pub keywords: HashMap<String, String>,
+    pub keywords: String,
     pub tldr: String,
     pub hero_image: String,
     pub published: String,
@@ -100,7 +100,7 @@ pub async fn post_page(
                 subtitle: post.post_subtitle,
                 body: post.post_body,
                 description: post.post_description,
-                keywords: post.post_keywords.split(',').map(|x| (x.to_string(), x.to_string())).collect(),
+                keywords: post.post_keywords,
                 tldr: post.post_tldr,
                 hero_image: post.post_hero_image_url,
                 published: post.post_timestamp.format("%B %e, %Y").to_string(),
@@ -157,7 +157,7 @@ pub async fn post_page(
                         name: "data structures".to_string(),
                         posts: vec![
                             PostThumbnailModel {
-                                title: "Linked Lists".to_string(),
+                                title: "Making sense of the AP Computer Science Principles exam format".to_string(),
                                 subtitle: "Linking lsists are fun".to_string(),
                                 image_url: "https://picsum.photos/200/128".to_string(),
                                 author: "Augustus Albequerque".to_string(),

@@ -46,6 +46,10 @@
 		"image_url": {
 			"type": "string",
 			"maxLength": 256
+		},
+		"thumbnail_url": {
+			"type": "string",
+			"maxLength": 256
 		}
 	},
 	"required": [

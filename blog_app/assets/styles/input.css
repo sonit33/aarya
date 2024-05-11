@@ -40,7 +40,6 @@
 		font-feature-settings: "ss02", "ss01";
 	}
 	h1 {
-		font-family: "Alliance", system-ui, sans-serif;
 		font-weight: 800;
 		letter-spacing: -0.03em;
 		-webkit-font-smoothing: antialiased;
@@ -51,7 +50,19 @@
 	h4,
 	h5,
 	h6 {
-		font-family: "Alliance", system-ui, sans-serif;
 		font-weight: 600;
+		-webkit-font-smoothing: antialiased;
+	}
+}
+
+@layer components {
+	input[type="email"] {
+		@apply text-base border-2 border-slate-300 rounded p-2;
+	}
+	button[type="button"] {
+		@apply bg-cyan-800 text-white rounded p-2 w-full cursor-pointer;
+	}
+	.button-flashy {
+		@apply bg-gradient-to-r from-pink-400 to-purple-500 inline-block font-bold text-white rounded shadow p-2 w-full cursor-pointer;
 	}
 }
