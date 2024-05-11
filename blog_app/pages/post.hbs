@@ -1,15 +1,130 @@
+<!DOCTYPE html>
 <html lang="en">
+
 	<head>
 		{{> head}}
 	</head>
-	<body>
-		{{> header}}
-		<div class="container">
-            <h1>{{post.post_title}}</h1>
-			<p>
-                {{{post.post_body}}}
-            </p>
+
+	<body class="dark:bg-gray-800 dark:text-white">
+		<div class="container max-w-4xl xl:max-w-6xl mx-auto px-2 pt-2">
+			<nav></nav>
+			<header class="flex flex-col gap-8 lg:gap-12">
+				<div class="flex flex-col gap-4 max-w-[720px] xl:max-w-[860px]">
+					<ul class="list-none gap-4 align-middle inline-flex font-bold">
+						{{#each model.tags as |tag|}}
+							<li
+								class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text">
+								<a href="{{tag.url}}">{{tag.name}}</a>
+							</li>
+						{{/each}}
+					</ul>
+					<h1 class="text-3xl md:text-4xl lg:text-5xl">{{model.title}}</h1>
+					<sub class="text-sm">{{model.subtitle}}</sub>
+				</div>
+				<div class="hero-image">
+					<img src="/{{model.hero_image}}" alt="{{model.title}}" class="rounded-md shadow">
+				</div>
+				<figure class="flex flex-row gap-2">
+					<div class="w-16 h-16 rounded-full border-gray-400 bg-gray-200">
+						<img src="{{model.author.image_url}}" alt="{{model.author.name}}"
+							class="rounded-full shadow max-w-16" />
+					</div>
+					<figcaption class="font-medium pt-2">
+						<div class="text-sky-500 dark:text-sky-400 m-0 p-0">
+							<a href="{{model.author.profile_url}}">{{model.author.name}}</a>
+						</div>
+						<div class="text-slate-700 dark:text-slate-500 m-0 p-0">
+							{{model.published}}
+						</div>
+					</figcaption>
+				</figure>
+			</header>
+			<main class="flex flex-col mt-16 gap-16">
+				<section class="three-panel-body flex flex-col lg:flex-row gap-1">
+					<section class="content-panel flex-auto">
+						<article class="prose md:prose xl:prose-lg dark:prose-invert min-w-full px-2">
+							{{{model.body}}}
+						</article>
+						<div class="keywords-links"></div>
+					</section>
+					<aside class="right-panel px-2 hidden xl:flex xl:flex-col w-64 flex-none">
+						<div class="mb-12 flex flex-col gap-4">
+							<h3 class="text-base capitalize leading-4">We do newsletters, too</h3>
+							<hr />
+							<p>Get tips, technical guides, and best practices right in your inbox.</p>
+							<button type="button">Subscribe</button>
+						</div>
+						<div class="keyword-related-posts flex flex-col gap-4">
+							<h3 class="uppercase">Related posts</h3>
+							{{#each model.keyword_thumbnails as |keyword|}}
+								<div class="flex flex-col gap-4">
+									{{#each keyword.posts as |post|}}
+										<div class="flex flex-col">
+											<figure class="min-w-full hover:cursor-pointer">
+												<img src="{{post.image_url}}"
+													class="object-cover h-full w-full rounded shadow" />
+											</figure>
+											<p
+												class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold capitalize">
+												{{keyword.name}}
+											</p>
+											<h3 class="capitalize leading-4">{{post.title}}</h3>
+											<sub class="text-sm capitalize">{{post.subtitle}}</sub>
+											<p class="text-sm mt-2 font-semibold capitalize">{{post.author}}</p>
+										</div>
+									{{/each}}
+								</div>
+							{{/each}}
+						</div>
+					</aside>
+				</section>
+				<section class="tag-related-posts flex flex-col gap-4 p-2">
+					<h1 class="uppercase text-2xl xl:text-4xl">
+						Read more about
+					</h1>
+					{{#each model.tag_thumbnails as |tag|}}
+						<div class="flex flex-col sm:flex-row gap-4">
+							{{#each tag.posts as |post|}}
+								<div class="flex-1 flex flex-col">
+									<figure class="min-w-full hover:cursor-pointer">
+										<img src="{{post.image_url}}"
+											class="object-cover h-full w-full rounded shadow" />
+									</figure>
+									<p
+										class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold uppercase">
+										{{tag.name}}
+									</p>
+									<h3 class="text-lg capitalize">{{post.title}}</h3>
+									<sub class="text-sm capitalize">{{post.subtitle}}</sub>
+									<p class="text-sm mt-2 font-semibold capitalize">{{post.author}}</p>
+								</div>
+							{{/each}}
+						</div>
+					{{/each}}
+				</section>
+			</main>
 		</div>
-        {{> footer}}
+		<section class="bg-gray-700 mt-16 p-16">
+			<div class="container max-w-4xl xl:max-w-6xl mx-auto">
+				<div class="flex flex-row">
+					<div class="flex-1 p-8">
+						<h1 class="text-white text-3xl xl:text-4xl">Subscribe to our newsletter</h2>
+							<sub class="text-gray-200 leading-3 text-base xl:text-xl">Code with confidence. Discover
+								tips, technical guides,
+								and best practices in our
+								biweekly
+								newsletter just for devs.</sub>
+					</div>
+					<div class="flex-1 p-8">
+						<form action="" class="flex flex-col gap-4">
+							<input type="email" placeholder="Enter your email address" class="flex-auto" />
+							<button type="submit" class="flex-auto button-flashy">Subscribe</button>
+						</form>
+					</div>
+				</div>
+			</div>
+		</section>
+		{{> footer}}
 	</body>
+
 </html>

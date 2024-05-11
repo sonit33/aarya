@@ -1,5 +1,6 @@
 use aarya_utils::{environ::Environ, file_ops::read_files_from_dir};
 use actix_cors::Cors;
+use actix_files as fs;
 use actix_web::{http, middleware, web, App, HttpServer};
 use dotenv::from_filename;
 use handlebars::Handlebars;
@@ -55,6 +56,7 @@ async fn main() -> std::io::Result<()> {
             .wrap(cors)
             .app_data(web::Data::new(handlebars.clone()))
             .app_data(web::Data::new(pool.clone()))
+            .service(fs::Files::new("/assets", "./assets").show_files_listing())
             .service(home_page)
             .service(post_page)
     })

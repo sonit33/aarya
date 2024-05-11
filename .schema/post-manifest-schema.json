@@ -6,7 +6,8 @@
 			"type": "string"
 		},
 		"post_title": {
-			"type": "string"
+			"type": "string",
+			"maxLength": 256
 		},
 		"tags": {
 			"type": "array",
@@ -22,13 +23,15 @@
 		},
 		"display_date": {
 			"type": "string",
-			"format": "date"
+			"pattern": "^[0-9]{4}-[0-9]{2}-[0-9]{2}$"
 		},
 		"description": {
-			"type": "string"
+			"type": "string",
+			"maxLength": 512
 		},
 		"tldr": {
-			"type": "string"
+			"type": "string",
+			"maxLength": 1024
 		},
 		"keywords": {
 			"type": "array",
@@ -37,7 +40,16 @@
 			}
 		},
 		"subtitle": {
-			"type": "string"
+			"type": "string",
+			"maxLength": 256
+		},
+		"image_url": {
+			"type": "string",
+			"maxLength": 256
+		},
+		"thumbnail_url": {
+			"type": "string",
+			"maxLength": 256
 		}
 	},
 	"required": [
@@ -49,6 +61,7 @@
 		"description",
 		"tldr",
 		"keywords",
-		"subtitle"
+		"subtitle",
+		"image_url"
 	]
 }
