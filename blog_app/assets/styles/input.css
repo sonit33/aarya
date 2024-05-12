@@ -43,7 +43,7 @@
 		font-weight: 800;
 		letter-spacing: -0.03em;
 		-webkit-font-smoothing: antialiased;
-		line-height: 90% !important;
+		line-height: 95% !important;
 	}
 	h2,
 	h3,
@@ -63,7 +63,7 @@
 		@apply bg-cyan-800 text-white rounded p-2 w-full cursor-pointer;
 	}
 	.button-flashy {
-		@apply bg-gradient-to-r from-pink-400 to-purple-500 inline-block font-bold text-white rounded shadow p-2 w-full cursor-pointer;
+		@apply bg-gradient-to-r from-pink-400 to-purple-500 inline-block font-bold text-white rounded shadow p-3 w-full cursor-pointer hover:from-pink-500 hover:to-purple-600;
 	}
 	.gradient-text {
 		@apply bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text;
