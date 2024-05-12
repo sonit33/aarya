@@ -1,5 +1,3 @@
-use std::collections::HashMap;
-
 use aarya_utils::hash_ops::string_hasher;
 use actix_web::{get, web, HttpResponse, Responder};
 use handlebars::Handlebars;

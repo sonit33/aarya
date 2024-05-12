@@ -50,6 +50,10 @@
 		"thumbnail_url": {
 			"type": "string",
 			"maxLength": 256
+		},
+		"feature_url": {
+			"type": "string",
+			"maxLength": 256
 		}
 	},
 	"required": [

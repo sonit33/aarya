@@ -22,7 +22,9 @@ CREATE TABLE posts(
 	tldr varchar(1024) not null,
 	subtitle varchar(256) not null,
 	published timestamp not null,
-	hero_image varchar(256) not null,
+	image_url varchar(256) not null,
+	thumbnail_url varchar(256) not null,
+	feature_url varchar(256) not null,
 	post_hash varchar(256) not null unique
 ) auto_increment = 12340;
 CREATE TABLE post_keywords(

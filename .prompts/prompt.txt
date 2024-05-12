@@ -1,4 +1,4 @@
-You are an expert teacher and course author in '{{course_name}}'.
+You are an expert teacher and exam author in '{{course_name}}'.
 
 Please generate {{num_questions}} questions from the unit '{{chapter_name}}' and topic '{{topic_name}}' from '{{course_name}}'
 

@@ -1,16 +1,49 @@
 <html lang="en">
+
 	<head>
 		{{> head}}
 	</head>
+
 	<body>
-		{{> header}}
-		<div class="container">
-			{{#each posts as |post|}}
-				<h2>
-					<a href="{{post.post_url}}">{{post.post_title}}</a>
-				</h2>
-			{{/each}}
-		</div>
-        {{> footer}}
+		<nav></nav>
+		<main>
+			<section class="hero">
+				<!-- two 50% columns -->
+				<!-- left: hero post -->
+				<!-- right: stack of three posts from different tags separated by a line -->
+			</section>
+			<section class="featured-posts">
+				<!-- two 50% columns -->
+				<!-- left: featured post from tag one -->
+				<!-- post image, tag name, h2 title, subtitle, author, date -->
+				<!-- right: featured post from tag two -->
+				<!-- post image, tag name, title, subtitle, author, date -->
+			</section>
+			<section class="latest-posts">
+				<!-- section header: Latest posts (bold separater on top and a think muted separater below) -->
+				<!-- 4 columns of latest posts ordered by date-->
+				<!-- no blog post image, tag name, h3 title, subtitle, author name, date -->
+			</section>
+			<!-- list of sections -->
+			<section class="tags-posts">
+				<!-- separate sections for tags -->
+				<!-- section header: tag name (bold separater on top and a think muted separater below) -->
+				<!-- two 50% column layouts with alternating left and right contents -->
+				<!-- left: post image, h2 title, subtitle, author headshot and name, date -->
+				<!-- right: stack of three posts; post title, subtitle, author name -->
+				<!-- alternate the contents for each tag -->
+			</section>
+			<section class="trending-stories">
+				<!-- section with inverted background color -->
+				<!-- top 5 trending stories in columns-->
+				<!-- section header -->
+				<!-- each colum has a bold textured number on top followed by h3 title, subtitle, and author name -->
+			</section>
+		</main>
+		<section class="newsletter">
+
+		</section>
+		{{> footer}}
 	</body>
+
 </html>
