@@ -11,6 +11,7 @@ use crate::pages::{home_page, post_page};
 #[macro_use]
 pub mod macros;
 pub mod apis;
+pub mod models;
 pub mod pages;
 
 fn configure_handlebars() -> Handlebars<'static> {

@@ -6,72 +6,68 @@ use models::{
     result_types::EntityResult,
 };
 use pulldown_cmark::{html, Parser};
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::MySqlPool;
+
+use crate::models::{
+    AuthorThumbnailModel, IndexPostImageResponseModel, IndexPostTextResponseModel, IndexResponseModel, KeywordThumbnailModel, PostResponseModel, PostThumbnailModel, TagModel, TagThumbnailModel,
+};
+
+fn generate_random_post_image() -> IndexPostImageResponseModel {
+    IndexPostImageResponseModel {
+        author: AuthorThumbnailModel {
+            name: format!("Author {}", rand::random::<u8>()),
+            image_url: String::from("https://picsum.photos/128"),
+            profile_url: format!("/author/author-{}", rand::random::<u8>()),
+        },
+        featured_image: String::from("https://picsum.photos/720/360"),
+        thumbnail_image: String::from("https://picsum.photos/380/190"),
+        tag: TagModel {
+            name: format!("Category {}", rand::random::<u8>()),
+            url: format!("/tag/category-{}", rand::random::<u8>()),
+        },
+        title: format!("Post Title {}", rand::random::<u8>()),
+        subtitle: format!("Subtitle {}", rand::random::<u8>()),
+        is_featured: rand::random(),
+    }
+}
+
+fn generate_random_post_text() -> IndexPostTextResponseModel {
+    IndexPostTextResponseModel {
+        author: AuthorThumbnailModel {
+            name: format!("Author {}", rand::random::<u8>()),
+            image_url: String::from("https://picsum.photos/128"),
+            profile_url: format!("/author/author-{}", rand::random::<u8>()),
+        },
+        tag: TagModel {
+            name: format!("Category {}", rand::random::<u8>()),
+            url: format!("/tag/category-{}", rand::random::<u8>()),
+        },
+        title: format!("Post Title {}", rand::random::<u8>()),
+        subtitle: format!("Subtitle {}", rand::random::<u8>()),
+    }
+}
 
 #[get("/")]
 pub async fn home_page(
     handlebars: web::Data<Handlebars<'_>>,
-    pool: web::Data<MySqlPool>,
+    _pool: web::Data<MySqlPool>,
 ) -> impl Responder {
-    // load blog posts
-    let post = PostEntity::default();
-    match post.find(&pool).await {
-        EntityResult::Success(p) => {
-            render_template!(handlebars, "index", json!({"title": "Aarya blog", "posts": p}))
-        }
-        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Error retrieving posts: [{:?}]", e)),
-    }
-}
+    let hero_posts = (0..4).map(|_| generate_random_post_image()).collect();
+    let featured_posts = (0..4).map(|_| generate_random_post_image()).collect();
+    let latest_posts = (0..4).map(|_| generate_random_post_text()).collect();
+    let posts_by_tags = (0..4).map(|_| generate_random_post_image()).collect();
+    let trending_posts = (0..4).map(|_| generate_random_post_text()).collect();
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PostThumbnailModel {
-    pub title: String,
-    pub subtitle: String,
-    pub image_url: String,
-    pub author: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuthorThumbnailModel {
-    pub name: String,
-    pub image_url: String,
-    pub profile_url: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TagThumbnailModel {
-    pub name: String,
-    pub posts: Vec<PostThumbnailModel>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct KeywordThumbnailModel {
-    pub name: String,
-    pub posts: Vec<PostThumbnailModel>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TagModel {
-    pub name: String,
-    pub url: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PostResponseModel {
-    pub title: String,
-    pub subtitle: String,
-    pub body: String,
-    pub description: String,
-    pub keywords: String,
-    pub tldr: String,
-    pub hero_image: String,
-    pub published: String,
-    pub author: AuthorThumbnailModel,
-    pub tags: Vec<TagModel>,
-    pub tag_thumbnails: Vec<TagThumbnailModel>,
-    pub keyword_thumbnails: Vec<KeywordThumbnailModel>,
+    let response = IndexResponseModel {
+        title: "The Aarya AI Blog".to_string(),
+        hero_posts,
+        featured_posts,
+        latest_posts,
+        posts_by_tags,
+        trending_posts,
+    };
+    render_template!(handlebars, "index", json!({"title": response.title, "model": response}))
 }
 
 #[get("/{date_published}/{title}")]

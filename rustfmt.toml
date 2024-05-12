@@ -10,3 +10,4 @@ reorder_impl_items = true
 group_imports = "StdExternalCrate"
 trailing_comma = "Never"
 where_single_line = true
+
