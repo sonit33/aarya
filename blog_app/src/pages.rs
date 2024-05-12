@@ -26,9 +26,16 @@ fn generate_random_post_image() -> IndexPostImageResponseModel {
             name: format!("Category {}", rand::random::<u8>()),
             url: format!("/tag/category-{}", rand::random::<u8>()),
         },
-        title: format!("Post Title {}", rand::random::<u8>()),
-        subtitle: format!("Subtitle {}", rand::random::<u8>()),
+        title: format!(
+            "One of the nicer post title you'll see: Let's use a longer title to test wrapping and other effects, shall we? {}",
+            rand::random::<u8>()
+        ),
+        subtitle: format!(
+            "We've made improvements to the way users of assistive technology can interact with and navigate lists of issues and pull requests and tables across GitHub.com. {}",
+            rand::random::<u8>()
+        ),
         is_featured: rand::random(),
+        date_published: "2024-01-15".to_string(),
     }
 }
 
@@ -43,7 +50,7 @@ fn generate_random_post_text() -> IndexPostTextResponseModel {
             name: format!("Category {}", rand::random::<u8>()),
             url: format!("/tag/category-{}", rand::random::<u8>()),
         },
-        title: format!("Post Title {}", rand::random::<u8>()),
+        title: format!("Post Title: Let's use a longer title to test wrapping and other effects, shall we? {}", rand::random::<u8>()),
         subtitle: format!("Subtitle {}", rand::random::<u8>()),
     }
 }
@@ -53,16 +60,18 @@ pub async fn home_page(
     handlebars: web::Data<Handlebars<'_>>,
     _pool: web::Data<MySqlPool>,
 ) -> impl Responder {
-    let hero_posts = (0..4).map(|_| generate_random_post_image()).collect();
-    let featured_posts = (0..4).map(|_| generate_random_post_image()).collect();
+    let hero_posts: Vec<IndexPostImageResponseModel> = (0..4).map(|_| generate_random_post_image()).collect();
+    let featured_posts: Vec<IndexPostImageResponseModel> = (0..4).map(|_| generate_random_post_image()).collect();
     let latest_posts = (0..4).map(|_| generate_random_post_text()).collect();
     let posts_by_tags = (0..4).map(|_| generate_random_post_image()).collect();
     let trending_posts = (0..4).map(|_| generate_random_post_text()).collect();
 
     let response = IndexResponseModel {
         title: "The Aarya AI Blog".to_string(),
-        hero_posts,
-        featured_posts,
+        hero_post: hero_posts[0].clone(),
+        hero_posts: hero_posts[1..4].to_vec(),
+        featured_post: featured_posts[0].clone(),
+        featured_posts: featured_posts[1..4].to_vec(),
         latest_posts,
         posts_by_tags,
         trending_posts,
@@ -96,7 +105,7 @@ pub async fn post_page(
                 description: post.post_description,
                 keywords: post.post_keywords,
                 tldr: post.post_tldr,
-                hero_image: post.post_hero_image_url,
+                hero_image: String::from("/assets/images/2024-01-15-some-random-post-full.jpg"),
                 published: post.post_timestamp.format("%B %e, %Y").to_string(),
                 tag_thumbnails: vec![
                     TagThumbnailModel {

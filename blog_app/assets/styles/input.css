@@ -65,4 +65,10 @@
 	.button-flashy {
 		@apply bg-gradient-to-r from-pink-400 to-purple-500 inline-block font-bold text-white rounded shadow p-2 w-full cursor-pointer;
 	}
+	.gradient-text {
+		@apply bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text;
+	}
+	.container-default {
+		@apply container max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1440px] mx-auto;
+	}
 }

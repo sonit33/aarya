@@ -8,7 +8,7 @@ pub struct PostThumbnailModel {
     pub author: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct AuthorThumbnailModel {
     pub name: String,
     pub image_url: String,
@@ -27,7 +27,7 @@ pub struct KeywordThumbnailModel {
     pub posts: Vec<PostThumbnailModel>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct TagModel {
     pub name: String,
     pub url: String,
@@ -49,7 +49,7 @@ pub struct PostResponseModel {
     pub keyword_thumbnails: Vec<KeywordThumbnailModel>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct IndexPostImageResponseModel {
     pub author: AuthorThumbnailModel,
     pub is_featured: bool,
@@ -58,9 +58,10 @@ pub struct IndexPostImageResponseModel {
     pub tag: TagModel,
     pub title: String,
     pub subtitle: String,
+    pub date_published: String,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, Clone)]
 pub struct IndexPostTextResponseModel {
     pub author: AuthorThumbnailModel,
     pub tag: TagModel,
@@ -71,7 +72,9 @@ pub struct IndexPostTextResponseModel {
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IndexResponseModel {
     pub title: String,
+    pub hero_post: IndexPostImageResponseModel,
     pub hero_posts: Vec<IndexPostImageResponseModel>,
+    pub featured_post: IndexPostImageResponseModel,
     pub featured_posts: Vec<IndexPostImageResponseModel>,
     pub latest_posts: Vec<IndexPostTextResponseModel>,
     pub posts_by_tags: Vec<IndexPostImageResponseModel>,

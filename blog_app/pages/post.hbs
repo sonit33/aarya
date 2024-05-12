@@ -6,14 +6,13 @@
 	</head>
 
 	<body class="dark:bg-gray-800 dark:text-white">
-		<div class="container max-w-4xl xl:max-w-6xl mx-auto px-2 pt-2">
+		<div class="container-default px-2 pt-2">
 			<nav></nav>
 			<header class="flex flex-col gap-8 lg:gap-12">
 				<div class="flex flex-col gap-4 max-w-[720px] xl:max-w-[860px]">
 					<ul class="list-none gap-4 align-middle inline-flex font-bold">
 						{{#each model.tags as |tag|}}
-							<li
-								class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text">
+							<li class="gradient-text">
 								<a href="{{tag.url}}">{{tag.name}}</a>
 							</li>
 						{{/each}}
@@ -22,7 +21,7 @@
 					<sub class="text-sm">{{model.subtitle}}</sub>
 				</div>
 				<div class="hero-image">
-					<img src="/{{model.hero_image}}" alt="{{model.title}}" class="rounded-md shadow">
+					<img src="{{model.hero_image}}" alt="{{model.title}}" class="rounded-md shadow">
 				</div>
 				<figure class="flex flex-row gap-2">
 					<div class="w-16 h-16 rounded-full border-gray-400 bg-gray-200">
@@ -90,8 +89,7 @@
 										<img src="{{post.image_url}}"
 											class="object-cover h-full w-full rounded shadow" />
 									</figure>
-									<p
-										class="bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text font-bold uppercase">
+									<p class="gradient-text font-bold uppercase">
 										{{tag.name}}
 									</p>
 									<h3 class="text-lg capitalize">{{post.title}}</h3>
