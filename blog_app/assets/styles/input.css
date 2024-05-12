@@ -71,4 +71,10 @@
 	.container-default {
 		@apply container max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1440px] mx-auto;
 	}
+	.growable {
+		@apply transition-transform duration-300 ease-in-out transform hover:scale-105;
+	}
+	.clickable {
+		@apply cursor-pointer;
+	}
 }

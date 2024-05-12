@@ -74,7 +74,6 @@ pub struct IndexResponseModel {
     pub title: String,
     pub hero_post: IndexPostImageResponseModel,
     pub hero_posts: Vec<IndexPostImageResponseModel>,
-    pub featured_post: IndexPostImageResponseModel,
     pub featured_posts: Vec<IndexPostImageResponseModel>,
     pub latest_posts: Vec<IndexPostTextResponseModel>,
     pub posts_by_tags: Vec<IndexPostImageResponseModel>,

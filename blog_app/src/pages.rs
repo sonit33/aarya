@@ -61,7 +61,7 @@ pub async fn home_page(
     _pool: web::Data<MySqlPool>,
 ) -> impl Responder {
     let hero_posts: Vec<IndexPostImageResponseModel> = (0..4).map(|_| generate_random_post_image()).collect();
-    let featured_posts: Vec<IndexPostImageResponseModel> = (0..4).map(|_| generate_random_post_image()).collect();
+    let featured_posts: Vec<IndexPostImageResponseModel> = (0..2).map(|_| generate_random_post_image()).collect();
     let latest_posts = (0..4).map(|_| generate_random_post_text()).collect();
     let posts_by_tags = (0..4).map(|_| generate_random_post_image()).collect();
     let trending_posts = (0..4).map(|_| generate_random_post_text()).collect();
@@ -70,8 +70,7 @@ pub async fn home_page(
         title: "The Aarya AI Blog".to_string(),
         hero_post: hero_posts[0].clone(),
         hero_posts: hero_posts[1..4].to_vec(),
-        featured_post: featured_posts[0].clone(),
-        featured_posts: featured_posts[1..4].to_vec(),
+        featured_posts,
         latest_posts,
         posts_by_tags,
         trending_posts,
