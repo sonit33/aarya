@@ -67,6 +67,7 @@ pub struct IndexPostTextResponseModel {
     pub tag: TagModel,
     pub title: String,
     pub subtitle: String,
+    pub date_published: String,
 }
 
 #[derive(Debug, Serialize, Deserialize)]

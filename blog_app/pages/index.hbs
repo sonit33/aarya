@@ -28,7 +28,8 @@
 								<p class="ml-4 text-base font-bold flex-initial">
 									{{model.hero_post.author.name}}
 								</p>
-								<p class="ml-4 text-sm flex-initial">{{model.hero_post.date_published}}</p>
+								<p class="ml-4 text-sm flex-initial text-gray-500">{{model.hero_post.date_published}}
+								</p>
 							</div>
 						</div>
 					</div>
@@ -48,12 +49,12 @@
 								<p class="text-base font-bold flex-initial mt-2">
 									{{post.author.name}}
 								</p>
-								<p class="text-sm flex-initial">{{post.date_published}}</p>
+								<p class="text-sm flex-initial text-gray-500">{{post.date_published}}</p>
 							</div>
 						{{/each}}
 					</div>
 			</section>
-			<section class="featured-posts mt-16">
+			<section class="featured-posts mt-24">
 				<!-- two 50% columns -->
 				<div class="grid grid-cols-1 md:grid-cols-2 gap-8">
 					<!-- left: featured post from tag one -->
@@ -73,14 +74,30 @@
 							<p class="text-base font-bold flex-initial mt-2">
 								{{post.author.name}}
 							</p>
-							<p class="text-sm flex-initial">{{post.date_published}}</p>
+							<p class="text-sm flex-initial text-gray-500">{{post.date_published}}</p>
 						</div>
 					{{/each}}
 				</div>
 			</section>
-			<section class="latest-posts">
+			<section class="latest-posts mt-24">
+				<h2 class="border-t-gray-700 border-t-4 border-b border-b-gray-500 px-2 py-2 text-xl">Latest posts</h2>
 				<!-- section header: Latest posts (bold separater on top and a think muted separater below) -->
 				<!-- 4 columns of latest posts ordered by date-->
+				<div class="grid grid-cols-4 gap-8">
+					{{#each model.latest_posts as |post|}}
+						<div class="col-span-1 flex flex-col">
+							<h4 class="gradient-text text-base uppercase pt-4">{{post.tag.name}}</h4>
+							<h3 class="text-base leading-[0.9rem] xl:leading-[1rem] xl:text-lg mt-2 clickable">
+								{{post.title}}
+							</h3>
+							<p class="text-sm dark:text-stone-400 pt-2">{{post.subtitle}}</p>
+							<p class="text-base font-bold flex-initial mt-2">
+								{{post.author.name}}
+							</p>
+							<p class="text-sm flex-initial text-gray-500">{{post.date_published}}</p>
+						</div>
+					{{/each}}
+				</div>
 				<!-- no blog post image, tag name, h3 title, subtitle, author name, date -->
 			</section>
 			<!-- list of sections -->

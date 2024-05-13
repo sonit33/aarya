@@ -66,7 +66,7 @@
 		@apply bg-gradient-to-r from-pink-400 to-purple-500 inline-block font-bold text-white rounded shadow p-3 w-full cursor-pointer hover:from-pink-500 hover:to-purple-600;
 	}
 	.gradient-text {
-		@apply bg-gradient-to-r  from-pink-400 to-purple-500 inline-block text-transparent bg-clip-text;
+		@apply bg-gradient-to-r from-pink-500 to-purple-500 inline-block text-transparent bg-clip-text;
 	}
 	.container-default {
 		@apply container max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1440px] mx-auto;

@@ -51,12 +51,16 @@ fn generate_random_post_text() -> IndexPostTextResponseModel {
             url: format!("/tag/category-{}", rand::random::<u8>()),
         },
         title: format!("Post Title: Let's use a longer title to test wrapping and other effects, shall we? {}", rand::random::<u8>()),
-        subtitle: format!("Subtitle {}", rand::random::<u8>()),
+        subtitle: format!(
+            "We've made improvements to the way users of assistive technology can interact with and navigate lists of issues and pull requests and tables across GitHub.com. {}",
+            rand::random::<u8>()
+        ),
+        date_published: "2024-01-15".to_string(),
     }
 }
 
 #[get("/")]
-pub async fn home_page(
+pub async fn index_page(
     handlebars: web::Data<Handlebars<'_>>,
     _pool: web::Data<MySqlPool>,
 ) -> impl Responder {
