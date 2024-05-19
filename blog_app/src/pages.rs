@@ -6,72 +6,117 @@ use models::{
     result_types::EntityResult,
 };
 use pulldown_cmark::{html, Parser};
-use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sqlx::MySqlPool;
 
-#[get("/")]
-pub async fn home_page(
-    handlebars: web::Data<Handlebars<'_>>,
-    pool: web::Data<MySqlPool>,
-) -> impl Responder {
-    // load blog posts
-    let post = PostEntity::default();
-    match post.find(&pool).await {
-        EntityResult::Success(p) => {
-            render_template!(handlebars, "index", json!({"title": "Aarya blog", "posts": p}))
-        }
-        EntityResult::Error(e) => HttpResponse::InternalServerError().body(format!("Error retrieving posts: [{:?}]", e)),
+use crate::models::{
+    AuthorThumbnailModel, IndexPostImageResponseModel, IndexPostTextResponseModel, IndexResponseModel, KeywordThumbnailModel, PostByTagsResponseModel, PostResponseModel, PostThumbnailModel, TagModel,
+    TagThumbnailModel,
+};
+
+fn generate_random_post_image() -> IndexPostImageResponseModel {
+    IndexPostImageResponseModel {
+        author: AuthorThumbnailModel {
+            name: format!("Author {}", rand::random::<u8>()),
+            image_url: String::from("https://picsum.photos/128"),
+            profile_url: format!("/author/author-{}", rand::random::<u8>()),
+        },
+        featured_image: String::from("https://picsum.photos/720/360"),
+        thumbnail_image: String::from("https://picsum.photos/380/190"),
+        tag: TagModel {
+            name: format!("Category {}", rand::random::<u8>()),
+            url: format!("/tag/category-{}", rand::random::<u8>()),
+        },
+        title: format!(
+            "One of the nicer post title you'll see: Let's use a longer title to test wrapping and other effects, shall we? {}",
+            rand::random::<u8>()
+        ),
+        subtitle: format!(
+            "We've made improvements to the way users of assistive technology can interact with and navigate lists of issues and pull requests and tables across GitHub.com. {}",
+            rand::random::<u8>()
+        ),
+        is_featured: rand::random(),
+        date_published: "2024-01-15".to_string(),
     }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PostThumbnailModel {
-    pub title: String,
-    pub subtitle: String,
-    pub image_url: String,
-    pub author: String,
+fn generate_random_post_text() -> IndexPostTextResponseModel {
+    IndexPostTextResponseModel {
+        author: AuthorThumbnailModel {
+            name: format!("Author {}", rand::random::<u8>()),
+            image_url: String::from("https://picsum.photos/128"),
+            profile_url: format!("/author/author-{}", rand::random::<u8>()),
+        },
+        tag: TagModel {
+            name: format!("Category {}", rand::random::<u8>()),
+            url: format!("/tag/category-{}", rand::random::<u8>()),
+        },
+        title: format!("Post Title: Let's use a longer title to test wrapping and other effects, shall we? {}", rand::random::<u8>()),
+        subtitle: format!(
+            "We've made improvements to the way users of assistive technology can interact with and navigate lists of issues and pull requests and tables across GitHub.com. {}",
+            rand::random::<u8>()
+        ),
+        date_published: "2024-01-15".to_string(),
+    }
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuthorThumbnailModel {
-    pub name: String,
-    pub image_url: String,
-    pub profile_url: String,
+fn generate_posts_by_tags() -> Vec<PostByTagsResponseModel> {
+    let tags = [
+        TagModel {
+            name: "Technology".to_string(),
+            url: "https://example.com/tags/technology".to_string(),
+        },
+        TagModel {
+            name: "Science".to_string(),
+            url: "https://example.com/tags/science".to_string(),
+        },
+        TagModel {
+            name: "Health".to_string(),
+            url: "https://example.com/tags/health".to_string(),
+        },
+    ];
+
+    let mut posts_by_tags = Vec::new();
+
+    for tag in tags.iter() {
+        let featured_post = generate_random_post_image();
+
+        let mut posts = Vec::new();
+        (0..3).for_each(|_i| {
+            posts.push(generate_random_post_image());
+        });
+
+        posts_by_tags.push(PostByTagsResponseModel {
+            tag: tag.clone(),
+            featured_post,
+            posts,
+        });
+    }
+
+    posts_by_tags
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TagThumbnailModel {
-    pub name: String,
-    pub posts: Vec<PostThumbnailModel>,
-}
+#[get("/")]
+pub async fn index_page(
+    handlebars: web::Data<Handlebars<'_>>,
+    _pool: web::Data<MySqlPool>,
+) -> impl Responder {
+    let hero_posts: Vec<IndexPostImageResponseModel> = (0..4).map(|_| generate_random_post_image()).collect();
+    let featured_posts: Vec<IndexPostImageResponseModel> = (0..2).map(|_| generate_random_post_image()).collect();
+    let latest_posts = (0..4).map(|_| generate_random_post_text()).collect();
+    let posts_by_tags = generate_posts_by_tags();
+    let trending_posts = (0..4).map(|_| generate_random_post_text()).collect();
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct KeywordThumbnailModel {
-    pub name: String,
-    pub posts: Vec<PostThumbnailModel>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TagModel {
-    pub name: String,
-    pub url: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct PostResponseModel {
-    pub title: String,
-    pub subtitle: String,
-    pub body: String,
-    pub description: String,
-    pub keywords: String,
-    pub tldr: String,
-    pub hero_image: String,
-    pub published: String,
-    pub author: AuthorThumbnailModel,
-    pub tags: Vec<TagModel>,
-    pub tag_thumbnails: Vec<TagThumbnailModel>,
-    pub keyword_thumbnails: Vec<KeywordThumbnailModel>,
+    let response = IndexResponseModel {
+        title: "The Aarya AI Blog".to_string(),
+        hero_post: hero_posts[0].clone(),
+        hero_posts: hero_posts[1..4].to_vec(),
+        featured_posts,
+        latest_posts,
+        posts_by_tags,
+        trending_posts,
+    };
+    render_template!(handlebars, "index", json!({"title": response.title, "model": response}))
 }
 
 #[get("/{date_published}/{title}")]
@@ -100,7 +145,7 @@ pub async fn post_page(
                 description: post.post_description,
                 keywords: post.post_keywords,
                 tldr: post.post_tldr,
-                hero_image: post.post_hero_image_url,
+                hero_image: String::from("/assets/images/2024-01-15-some-random-post-full.jpg"),
                 published: post.post_timestamp.format("%B %e, %Y").to_string(),
                 tag_thumbnails: vec![
                     TagThumbnailModel {
