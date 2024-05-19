@@ -70,6 +70,15 @@ pub struct IndexPostTextResponseModel {
     pub date_published: String,
 }
 
+#[derive(Debug, Serialize, Deserialize, Clone)]
+pub struct PostByTagsResponseModel {
+    pub tag: TagModel,
+    // featured post (first)
+    pub featured_post: IndexPostImageResponseModel,
+    // three posts in the side panel (next three posts)
+    pub posts: Vec<IndexPostImageResponseModel>,
+}
+
 #[derive(Debug, Serialize, Deserialize)]
 pub struct IndexResponseModel {
     pub title: String,
@@ -77,6 +86,6 @@ pub struct IndexResponseModel {
     pub hero_posts: Vec<IndexPostImageResponseModel>,
     pub featured_posts: Vec<IndexPostImageResponseModel>,
     pub latest_posts: Vec<IndexPostTextResponseModel>,
-    pub posts_by_tags: Vec<IndexPostImageResponseModel>,
+    pub posts_by_tags: Vec<PostByTagsResponseModel>,
     pub trending_posts: Vec<IndexPostTextResponseModel>,
 }

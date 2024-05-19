@@ -10,7 +10,8 @@ use serde_json::json;
 use sqlx::MySqlPool;
 
 use crate::models::{
-    AuthorThumbnailModel, IndexPostImageResponseModel, IndexPostTextResponseModel, IndexResponseModel, KeywordThumbnailModel, PostResponseModel, PostThumbnailModel, TagModel, TagThumbnailModel,
+    AuthorThumbnailModel, IndexPostImageResponseModel, IndexPostTextResponseModel, IndexResponseModel, KeywordThumbnailModel, PostByTagsResponseModel, PostResponseModel, PostThumbnailModel, TagModel,
+    TagThumbnailModel,
 };
 
 fn generate_random_post_image() -> IndexPostImageResponseModel {
@@ -59,6 +60,42 @@ fn generate_random_post_text() -> IndexPostTextResponseModel {
     }
 }
 
+fn generate_posts_by_tags() -> Vec<PostByTagsResponseModel> {
+    let tags = [
+        TagModel {
+            name: "Technology".to_string(),
+            url: "https://example.com/tags/technology".to_string(),
+        },
+        TagModel {
+            name: "Science".to_string(),
+            url: "https://example.com/tags/science".to_string(),
+        },
+        TagModel {
+            name: "Health".to_string(),
+            url: "https://example.com/tags/health".to_string(),
+        },
+    ];
+
+    let mut posts_by_tags = Vec::new();
+
+    for tag in tags.iter() {
+        let featured_post = generate_random_post_image();
+
+        let mut posts = Vec::new();
+        (0..3).for_each(|_i| {
+            posts.push(generate_random_post_image());
+        });
+
+        posts_by_tags.push(PostByTagsResponseModel {
+            tag: tag.clone(),
+            featured_post,
+            posts,
+        });
+    }
+
+    posts_by_tags
+}
+
 #[get("/")]
 pub async fn index_page(
     handlebars: web::Data<Handlebars<'_>>,
@@ -67,7 +104,7 @@ pub async fn index_page(
     let hero_posts: Vec<IndexPostImageResponseModel> = (0..4).map(|_| generate_random_post_image()).collect();
     let featured_posts: Vec<IndexPostImageResponseModel> = (0..2).map(|_| generate_random_post_image()).collect();
     let latest_posts = (0..4).map(|_| generate_random_post_text()).collect();
-    let posts_by_tags = (0..4).map(|_| generate_random_post_image()).collect();
+    let posts_by_tags = generate_posts_by_tags();
     let trending_posts = (0..4).map(|_| generate_random_post_text()).collect();
 
     let response = IndexResponseModel {
