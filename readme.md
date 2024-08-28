@@ -130,3 +130,9 @@ db.getCollectionNames().forEach(function(c) {
     db.getSiblingDB('<new-db>').getCollection(c).insertMany(db.getCollection(c).find().toArray());
 });
 ```
+
+Tailwind watch
+
+```
+npx tailwindcss -i assets/styles/input.css -o assets/styles/output.css --watch
+```
