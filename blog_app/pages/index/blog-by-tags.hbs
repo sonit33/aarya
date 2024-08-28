@@ -1,0 +1,55 @@
+<section class="mt-16">
+    <!-- Iterate over posts_by_tags -->
+    {{#each model.posts_by_tags as |tagData|}}
+        <div class="mb-8">
+            <div
+                class="dark:border-t-gray-300 border-t-gray-700 border-t-4 border-b dark:border-b-gray-300 border-b-gray-500 mb-8">
+                <h2 class="text-xl py-2">{{tagData.tag.name}}</h2>
+            </div>
+            <div class="grid grid-cols-1 xl:grid-cols-12 gap-8">
+                <!-- Featured Post -->
+                <article class="col-span-1 lg:col-span-7 row-span-3">
+                    <figure class="col-span-1">
+                        <img src="{{tagData.featured_post.featured_image}}" alt="{{tagData.featured_post.title}}"
+                            class="w-full rounded shadow growable">
+                    </figure>
+                    <div class="col-span-1">
+                        <h3 class="text-3xl clickable">{{tagData.featured_post.title}}</h3>
+                        <p class="text-sm dark:text-stone-400 pt-4">{{tagData.featured_post.subtitle}}</p>
+                        <div class="text-lg flex flex-row mt-8 items-center">
+                            <img src="{{tagData.featured_post.author.image_url}}"
+                                alt="{{tagData.featured_post.author.name}}"
+                                class="w-12 h-12 rounded-full border-gray-400 bg-gray-200 flex-initial object-cover">
+                            <p class="ml-4 text-base font-bold flex-initial">
+                                {{tagData.featured_post.author.name}}
+                            </p>
+                            <p class="ml-4 text-sm flex-initial text-gray-500">{{tagData.featured_post.date_published}}
+                            </p>
+                        </div>
+                    </div>
+                </article>
+
+                <!-- Stack of three posts from different tags -->
+                <article class="col-span-1 lg:col-span-5 grid lg:grid-cols-3 gap-4">
+                    {{#each tagData.posts as |post|}}
+                        <figure class="col-span-2 lg:col-span-1">
+                            <img src="{{post.thumbnail_image}}" alt="{{post.title}}"
+                                class="w-full lg:h-48 rounded shadow lg:object-none object-cover growable">
+                        </figure>
+                        <article class="col-span-2">
+                            <h4 class="gradient-text text-base uppercase">{{post.tag.name}}</h4>
+                            <h3 class="text-base leading-[0.9rem] xl:leading-[1rem] xl:text-lg mt-2 clickable">
+                                {{post.title}}
+                            </h3>
+                            <p class="text-sm dark:text-stone-400 pt-2">{{post.subtitle}}</p>
+                            <p class="text-base font-bold flex-initial mt-2">
+                                {{post.author.name}}
+                            </p>
+                            <p class="text-sm flex-initial text-gray-500">{{post.date_published}}</p>
+                        </article>
+                    {{/each}}
+                </article>
+            </div>
+        </div>
+    {{/each}}
+</section>

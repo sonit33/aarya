@@ -1,0 +1,45 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug executable 'compscicoach'",
+            "cargo": {
+                "args": [
+                    "build",
+                    "--bin=compscicoach",
+                    "--package=compscicoach"
+                ],
+                "filter": {
+                    "name": "compscicoach",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        },
+        {
+            "type": "lldb",
+            "request": "launch",
+            "name": "Debug unit tests in executable 'compscicoach'",
+            "cargo": {
+                "args": [
+                    "test",
+                    "--no-run",
+                    "--bin=compscicoach",
+                    "--package=compscicoach"
+                ],
+                "filter": {
+                    "name": "compscicoach",
+                    "kind": "bin"
+                }
+            },
+            "args": [],
+            "cwd": "${workspaceFolder}"
+        }
+    ]
+}

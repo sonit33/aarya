@@ -1,0 +1,73 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"title": "Article",
+	"type": "object",
+	"properties": {
+		"keywords": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 255
+		},
+		"title": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 255
+		},
+		"subtitle": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 255
+		},
+		"body": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 65535
+		},
+		"description": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 160
+		},
+		"tldr": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 255
+		},
+		"hero_image": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 300
+		},
+		"publish_date": {
+			"type": "number"
+		},
+		"author": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 100
+		},
+		"tag": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 100
+		},
+		"permalink": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 255
+		}
+	},
+	"required": [
+		"keywords",
+		"title",
+		"subtitle",
+		"body",
+		"description",
+		"tldr",
+		"hero_image",
+		"publish_date",
+		"author",
+		"tag",
+		"permalink"
+	]
+}
