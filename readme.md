@@ -113,3 +113,20 @@ Blog post
 Edge cases
 
 - [error: gpg failed to sign the data](https://stackoverflow.com/questions/39494631/gpg-failed-to-sign-the-data-fatal-failed-to-write-commit-object-git-2-10-0)
+
+Helpful commands
+
+```
+cargo watch -x run
+```
+
+Migrate MongoDB collections to a new database
+
+```
+use <existing-db>
+
+db.getCollectionNames().forEach(function(c) {
+    db.getSiblingDB('<new-db>').createCollection(c);
+    db.getSiblingDB('<new-db>').getCollection(c).insertMany(db.getCollection(c).find().toArray());
+});
+```
