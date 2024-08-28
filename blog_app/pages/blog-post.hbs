@@ -1,0 +1,64 @@
+{{#> main}}
+    <p class="gradient-text uppercase text-lg mb-4">{{model.tag.name}}</p>
+    <div class="flex-col">
+        <!-- <p class="text-sm mb-2 uppercase">{{model.kicker}}</p> -->
+        <h1 class="text-5xl mb-4">{{model.title}}</h1>
+        <p class="text-sm text-gray-400 mb-4">{{model.subtitle}}</p>
+    </div>
+    <figure class="mb-8">
+        <img src="{{model.hero_image}}" alt="{{model.title}}" class="rounded shadow-md w-full">
+    </figure>
+    <figure class="flex items-center gap-4">
+        <img src="{{model.author.thumbnail_photo}}" class="rounded-full shadow w-16"
+            alt="{{model.author.first_name}} {{model.author.last_name}}">
+        <div class="flex flex-col">
+            <p class="font-semibold text-sm">
+                {{model.author.first_name}} {{model.author.last_name}}
+            </p>
+            <p class="text-xs text-gray-400">
+                {{model.author.bio}}
+            </p>
+            <p class="text-xs">
+                {{model.publish_date}}
+            </p>
+        </div>
+    </figure>
+    <section class="grid grid-cols-12 mt-8 lg:gap-16">
+        <div class="col-span-12 w-full lg:col-span-8">
+            <blockquote class="border-l-4 border-green-300 p-4 mb-8 font-light text-lg text-black dark:text-white">
+                {{model.tldr}}
+            </blockquote>
+
+            <div id="body" class="prose prose-lg dark:prose-invert prose-img:shadow prose-img:rounded">
+                {{{body}}}
+            </div>
+        </div>
+        <div class="hidden lg:block lg:col-span-4">
+            <div class="max-w-md p-6 mx-auto bg-gray-700 shadow-md rounded-md">
+                <h2 class="text-xl font-semibold mb-2 text-gray-300 dark:text-gray-300">Learn with
+                    {{model.author.first_name}}
+                </h2>
+                <hr class="border-t-2 border-gray-200 mb-4">
+                <p class="text-gray-300 dark:text-gray-300 mb-4">You are welcome to schedule tutoring
+                    sessions with {{model.author.first_name}}</p>
+                <button class="button-flashy">
+                    Schedule Now
+                </button>
+            </div>
+            <div class="max-w-md p-6 mx-auto bg-gray-700 shadow-md rounded-md mt-8">
+                <h2 class="text-xl font-semibold mb-2 text-gray-300 dark:text-gray-300">Become a Tutor
+                </h2>
+                <hr class="border-t-2 border-gray-200 mb-4">
+                <p class="text-gray-300 dark:text-gray-300 mb-4">We are hiring high school teachers and software
+                    engineering experts</p>
+                <button class="button-secondary">
+                    Apply Now
+                </button>
+            </div>
+        </div>
+    </section>
+    <script>
+        document.getElementById('body').innerHTML =
+            marked.parse("{{{body}}}");
+    </script>
+{{/main}}

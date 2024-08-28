@@ -1,29 +1,31 @@
 [package]
-name = "aarya_blog"
+name = "blog_app"
 version = "0.1.0"
 edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-aarya_utils = { path = "../utils", version = "*" }
-aarya_entities = { path = "../entities", version = "*" }
-actix-web = { version = "4.5.1", features = ["macros"] }
-sqlx = { version = "0.7.4", features = [
-    "mysql",
-    "runtime-tokio", 
-    "tls-rustls",
-    "json",
-    "macros",
-] }
-dotenv = "0.15.0"
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0.115"
-tokio = { version = "1.36.0", features = ["full"] }
-env_logger = "0.11.3"
-log = "0.4.21"
+actix-web = { version = "4.9.0", features = ["macros"] }
+dotenv = "0.14.1"
+serde = { version = "1.0.209", features = ["derive"] }
+serde_json = "1.0.127"
+tokio = { version = "1.39.3", features = ["full"] }
+env_logger = "0.11.5"
+log = "0.4.22"
 actix-cors = "0.7.0"
 handlebars = {version="5.1.2"}
-pulldown-cmark = "0.10.3"
-actix-files = "0.6.5"
+pulldown-cmark = "0.11.2"
+actix-files = "0.6.6"
 rand = "0.8.5"
+mongodb = {version ="2.8.2"}
+chrono = { version = "0.4.*", features = ["serde"] }
+bcrypt = "0.15.1"
+crc32fast = "1.4.2"
+hex = "0.4.3"
+sha2 = "0.10.8"
+jsonschema = "0.18.1"
+futures = "0.3.30"
+actix-multipart = "0.6.2"
+mime_guess = "2.0.5"
+image = "0.25.2"

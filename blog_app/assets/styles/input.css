@@ -53,6 +53,10 @@
 		font-weight: 600;
 		-webkit-font-smoothing: antialiased;
 	}
+	textarea {
+		white-space: normal;
+		overflow-wrap: break-word;
+	}
 }
 
 @layer components {
@@ -60,16 +64,32 @@
 		@apply text-base border-2 border-slate-300 rounded p-2;
 	}
 	button[type="button"] {
-		@apply bg-cyan-800 text-white rounded p-2 w-full cursor-pointer;
+		@apply bg-orange-500 hover:bg-orange-700 text-white py-2 px-4 rounded;
+	}
+	button:disabled {
+		@apply bg-slate-300 text-slate-500 cursor-not-allowed rounded hover:bg-slate-300;
+	}
+	input,
+	textarea {
+		@apply bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5  dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500 dark:caret-white;
+	}
+	select {
+		@apply bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full p-2.5 dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400 dark:text-white dark:focus:ring-blue-500 dark:focus:border-blue-500;
+	}
+	a {
+		@apply text-pink-700 dark:text-pink-500 hover:text-green-700 dark:hover:text-green-300;
 	}
 	.button-flashy {
 		@apply bg-gradient-to-r from-pink-400 to-purple-500 inline-block font-bold text-white rounded shadow p-3 w-full cursor-pointer hover:from-pink-500 hover:to-purple-600;
+	}
+	.button-secondary {
+		@apply bg-gradient-to-r from-gray-600 to-gray-800 inline-block font-bold text-white rounded shadow p-3 w-full cursor-pointer hover:from-pink-500 hover:to-purple-600;
 	}
 	.gradient-text {
 		@apply bg-gradient-to-r from-pink-500 to-purple-500 inline-block text-transparent bg-clip-text;
 	}
 	.container-default {
-		@apply container max-w-[1024px] xl:max-w-[1280px] 2xl:max-w-[1440px] mx-auto;
+		@apply container max-w-[840px] xl:max-w-[1024px] mx-auto;
 	}
 	.growable {
 		@apply transition-transform duration-300 ease-in-out transform hover:scale-105;

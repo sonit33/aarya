@@ -1,0 +1,157 @@
+{{#> admin-main}}
+    <div class="grid grid-cols-12 w-full gap-2">
+        <section class="col-span-8">
+            <form id="userForm" class="w-[360px] md:w-[540px] xl:w-[760px]">
+                <h1 class="text-3xl mb-6 text-gray-800 dark:text-white">Edit Post</h1>
+                <div class="mb-4">
+                    <label for="title" class="block text-gray-700 dark:text-white text-sm mb-2">Title:</label>
+                    <input type="text" id="title" name="title" placeholder="a clickworthy title of the post"
+                        value="{{post.title}}" maxlength="255" required>
+                </div>
+                <div class=" mb-4">
+                    <label for="subtitle" class="block text-gray-700 dark:text-white text-sm mb-2">Subtitle:</label>
+                    <input type="text" id="subtitle" name="subtitle" placeholder="a sneak peek of the post"
+                        value="{{post.subtitle}}" maxlength="255" required>
+                </div>
+                <div class="mb-4">
+                    <label for="keywords" class="block text-gray-700 dark:text-white text-sm mb-2">Keywords (comma
+                        separated, max 3):</label>
+                    <input type="text" id="keywords" name="keywords" placeholder="e.g. introduction, basics, advanced"
+                        value="{{post.keywords}}" maxlength="255" required>
+                </div>
+                <!-- <div class="mb-4">
+                    <label for="body" class="block text-gray-700  dark:text-white text-sm mb-2">Body:</label>
+                    <textarea id="body" name="body" rows="100" wrap="off"
+                        placeholder="the most engaging and informational part of the post (use markdown)"
+                        required>{{{post.body}}}</textarea>
+                </div> -->
+                <div class="mb-4">
+                    <label for="body-field" class="block text-gray-700 dark:text-white text-sm mb-2">Post Body</label>
+                    <p class="my-4 text-sm font-semibold">
+                        <a href="{{body_markdown}}" target="_blank">Download the markdown file</a> to edit the post body
+                    </p>
+                    <div class="flex-row md:flex items-baseline gap-4">
+                        <input type="file" id="body-field" name="body-field" class="mb-4 flex-1" accept=".md"
+                            multiple />
+                        <div class="flex md:justify-end">
+                            <button type="button" id="body-upload-button" disabled data-url="/api/files">Upload
+                                Markdown</button>
+                        </div>
+                        <input type="hidden" id="body-url" name="body-url" value="{{post.body}}">
+                    </div>
+                    <div id="body-field-info">
+                    </div>
+                    <div id="body-field-error">
+                    </div>
+                </div>
+                <div class="mb-4">
+                    <label for="description" class="block text-gray-700  dark:text-white text-sm mb-2">Description (160
+                        or fewer chars):</label>
+                    <textarea id="description" name="description" rows=" 5" maxlength="160"
+                        placeholder="post description goes in the page header for SEO"
+                        required>{{post.description}}</textarea>
+                </div>
+                <div class="mb-4">
+                    <label for="tldr" class="block text-gray-700  dark:text-white text-sm mb-2">TL;DR:</label>
+                    <textarea id="tldr" name="tldr" rows="5"
+                        placeholder="key takeaways or a concise summary of the post" maxlength="255"
+                        required>{{post.tldr}}</textarea>
+                </div>
+                <input type="hidden" id="publish_timestamp" value="{{published_timestamp}}">
+                <input type="hidden" id="modified_timestamp" value="{{timestamp}}">
+
+                <div class="mb-4">
+                    <label for="photo-field" class="block text-gray-700 dark:text-white text-sm mb-2">Hero Image (wide
+                        aspect ratio):</label>
+                    <div class="flex-row md:flex items-baseline gap-4">
+                        <input type="file" id="photo-field" name="photo-field" class="mb-4 flex-1"
+                            accept=".jpg,.jpeg" />
+                        <div class="flex md:justify-end">
+                            <button type="button" id="upload-button" disabled data-url="/api/photo">Upload
+                                Image</button>
+                        </div>
+                        <input type="hidden" id="hero-image-url" name="hero-image-url" value="{{post.hero_image}}">
+                    </div>
+                    <div id="photo-field-info">
+                    </div>
+                    <div id="photo-field-error">
+                    </div>
+                    <div class="mt-2">
+                        <img src="{{post.hero_image}}" id="hero-image" alt="hero image"
+                            class="object-cover border rounded w-full bg-white">
+                    </div>
+                </div>
+
+                <div class="mb-4">
+                    <label for="more-photos-field" class="block text-gray-700 dark:text-white text-sm mb-2">More
+                        Images:</label>
+                    <div class="flex-row md:flex items-baseline gap-4">
+                        <input type="file" id="more-photos-field" name="more-photos-field" class="mb-4 flex-1"
+                            accept=".jpg,.jpeg" multiple />
+                        <div class="flex md:justify-end">
+                            <button type="button" id="more-photos-upload-button" disabled data-url="/api/photos">Upload
+                                Images</button>
+                        </div>
+                        <input type="hidden" id="more-photos-url" name="more-photos-url">
+                    </div>
+                    <div id="more-photos-field-info">
+                    </div>
+                    <div id="more-photos-field-error">
+                    </div>
+                </div>
+
+                <div class="flex gap-4">
+                    <div class="mb-4 flex-1">
+                        <label for="authors" class="block text-gray-700  dark:text-white text-sm mb-2">Authors:</label>
+                        <input type="hidden" id="author-id" name="author-id" value="{{post.author.id}}">
+                        <select id="authors" name="authors">
+                            {{#each authors}}
+                                <option value="{{id}}">{{first_name}} {{last_name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+
+                    <div class="mb-4 flex-1">
+                        <label for="tags" class="block text-gray-700  dark:text-white text-sm mb-2">Tags:</label>
+                        <input type="hidden" id="tag-id" name="tag-id" value="{{post.tag.id}}">
+                        <select id="tags" name="tags">
+                            {{#each tags}}
+                                <option value="{{id}}">{{name}}</option>
+                            {{/each}}
+                        </select>
+                    </div>
+                    <div class="mb-4 flex-1">
+                        <label for="publish_date" class="block text-gray-700  dark:text-white text-sm mb-2">Publish
+                            Date:</label>
+                        <input type="date" id="publish_date" name="publish_date" required
+                            value="{{published_timestamp}}">
+                    </div>
+                    <div class="mb-4 flex-1">
+                        <label for="modified_date" class="block text-gray-700  dark:text-white text-sm mb-2">Modified
+                            Date:</label>
+                        <input type="date" id="modified_date" name="modified_date" required value="{{timestamp}}">
+                    </div>
+                </div>
+
+
+                <div class="mb-4">
+                    <label for="permalink" class="block text-gray-700 dark:text-white text-sm mb-2">Permalink:</label>
+                    <input type="text" id="permalink" name="permalink" placeholder="relative path of the post"
+                        value="{{post.permalink}}" maxlength="255" required>
+                </div>
+
+                <input type="hidden" id="schema" value="{{schema}}">
+
+                <div class="flex">
+                    <button type="submit" id="submit-button" class="button-flashy w-64 mx-auto"
+                        data-url="/admin/post/{{post.id}}">
+                        Submit
+                    </button>
+                </div>
+            </form>
+            <div id="errors" class="bg-yellow-100 text-black p-2 hidden">
+            </div>
+        </section>
+    </div>
+    <script type="module" src="/assets/scripts/post.js"></script>
+{{/admin-main}}

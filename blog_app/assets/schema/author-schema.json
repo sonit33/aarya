@@ -1,0 +1,39 @@
+{
+	"$schema": "http://json-schema.org/draft-07/schema#",
+	"type": "object",
+	"properties": {
+		"first_name": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 64
+		},
+		"last_name": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 64
+		},
+		"email": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 127,
+			"pattern": "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+		},
+		"bio": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 511
+		},
+		"photo_url": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 511,
+			"pattern": "^/(?:[a-zA-Z0-9_-]+/)*[a-zA-Z0-9_-]+.(?:jpg|svg|png|gif)$"
+		},
+		"intro": {
+			"type": "string",
+			"minLength": 1,
+			"maxLength": 511
+		}
+	},
+	"required": ["first_name", "last_name", "email", "bio", "photo_url", "intro"]
+}

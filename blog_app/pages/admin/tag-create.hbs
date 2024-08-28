@@ -1,0 +1,34 @@
+{{#> admin-main}}
+    <div class="grid grid-cols-12 w-full gap-2">
+        <section class="col-span-12 md:col-span-6">
+            <form id="userForm">
+                <h1 class="text-3xl mb-6 text-gray-800 dark:text-white">Add a new Tag</h1>
+                <div class="mb-4">
+                    <label class="block text-gray-700 dark:text-white text-sm mb-2">Name:</label>
+                    <input type="text" id="name" name="name" placeholder="tag name e.g. Java" required>
+                </div>
+
+                <div class="mb-4">
+                    <label for="description"
+                        class="block text-gray-700  dark:text-white text-sm mb-2">Description:</label>
+                    <textarea id="description" name="description" rows="5"
+                        placeholder="A brief description of the tag (use markdown)" required></textarea>
+                </div>
+
+                <input type="hidden" id="schema" value="{{schema}}">
+
+                <div class="flex">
+                    <button type="submit" id="submit-button" class="button-flashy w-64 mx-auto" data-url="/admin/tag">
+                        Submit
+                    </button>
+                </div>
+            </form>
+            <div id="errors" class="bg-yellow-100 text-black p-2 hidden">
+            </div>
+        </section>
+        <section class="col-auto">
+
+        </section>
+    </div>
+    <script type="module" src="/assets/scripts/tag.js"></script>
+{{/admin-main}}
